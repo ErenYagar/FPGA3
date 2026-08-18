@@ -121,7 +121,7 @@ Set-Location $OutputRoot
 ) | Set-Content -LiteralPath (Join-Path $OutputRoot 'provenance.txt')
 
 Invoke-Logged -Tool $Xvlog -Arguments (@('--sv') + $RtlFiles + $TestFiles + $GlblFile) `
-    -LogFile (Join-Path $OutputRoot 'xvlog.log')
+    -LogFile (Join-Path $OutputRoot 'compile_stdout.log')
 
 Invoke-Round54Test tb_axi_smoke smoke @('AXI_SMOKE_PASS cycles=8364')
 Invoke-Round54Test tb_throughput throughput @(
