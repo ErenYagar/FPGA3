@@ -1,0 +1,37 @@
+# This repository intentionally tracks reproducible project inputs only.
+# Vivado implementation products, simulator work directories, crash dumps,
+# archived experiments, and local reference documents remain local.
+
+# Default-deny the workspace, then allow the maintained source tree below.
+/*
+!/.gitignore
+!/engrenring/
+
+# Maintained RTL and verification inputs.
+/engrenring/*
+!/engrenring/rtl/
+!/engrenring/sim/
+!/engrenring/synth_1g/
+
+/engrenring/rtl/*
+!/engrenring/rtl/source/
+!/engrenring/rtl/source/**
+!/engrenring/rtl/functional\ test/
+!/engrenring/rtl/functional\ test/**
+
+!/engrenring/sim/**
+
+# Reproducible synthesis/implementation entry points and constraints.
+/engrenring/synth_1g/*
+!/engrenring/synth_1g/*.tcl
+!/engrenring/synth_1g/*.xdc
+!/engrenring/synth_1g/axi_ooc/
+
+/engrenring/synth_1g/axi_ooc/*
+!/engrenring/synth_1g/axi_ooc/*.tcl
+!/engrenring/synth_1g/axi_ooc/*.xdc
+!/engrenring/synth_1g/axi_ooc/*.ps1
+
+# Runtime transcripts are evidence, not source inputs.
+**/*.log
+**/transcript
