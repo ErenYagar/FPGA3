@@ -53,10 +53,12 @@ proc ::r54_hg::_prep_tag {experiment} {
         _fail "prep_tag mapped cell count is [llength $cells], expected 5"
     }
     set zeroize_q [lindex [_zeroize_driver] 1]
-    set zeroize_paths 0
-    set zseq_in_cone 0
+    set zeroize_bits 0
+    set zeroize_pin_paths 0
+    set zseq_in_reset_cone 0
     set pin_distribution [dict create]
     foreach cell $cells {
+        set bit_has_zeroize 0
         foreach pin_name {D CE R S} {
             set pins [get_pins -quiet ${cell}/${pin_name}]
             if {[llength $pins] == 0} {continue}
@@ -64,19 +66,25 @@ proc ::r54_hg::_prep_tag {experiment} {
             set pin [lindex $pins 0]
             set paths [get_timing_paths -quiet -from $zeroize_q -to $pin \
                 -delay_type max -max_paths 10 -nworst 1]
-            if {[llength $paths] > 0} {incr zeroize_paths}
-            foreach object [all_fanin -quiet -flat -to $pin] {
-                if {[string match "*zeroize_sequence_active_r_reg*" $object]} {
-                    set zseq_in_cone 1
+            if {[llength $paths] > 0} {
+                incr zeroize_pin_paths
+                set bit_has_zeroize 1
+            }
+            if {$pin_name in {R S}} {
+                foreach object [all_fanin -quiet -flat -to $pin] {
+                    if {[string match "*zeroize_sequence_active_r_reg*" $object]} {
+                        set zseq_in_reset_cone 1
+                    }
                 }
             }
         }
+        if {$bit_has_zeroize} {incr zeroize_bits}
     }
-    _log "ROUND54_HG_PREP_TAG experiment=$experiment cells=[llength $cells] zeroize_paths=$zeroize_paths zseq_in_cone=$zseq_in_cone pins={$pin_distribution}"
-    if {$zeroize_paths != 5} {
-        _fail "raw ZEROIZE reaches $zeroize_paths prep_tag bits, expected 5"
+    _log "ROUND54_HG_PREP_TAG experiment=$experiment cells=[llength $cells] zeroize_bits=$zeroize_bits zeroize_pin_paths=$zeroize_pin_paths zseq_in_reset_cone=$zseq_in_reset_cone pins={$pin_distribution}"
+    if {$zeroize_bits != 5} {
+        _fail "raw ZEROIZE reaches $zeroize_bits prep_tag bits, expected 5"
     }
-    if {[string match "B*" $experiment] && $zseq_in_cone} {
+    if {[string match "B*" $experiment] && $zseq_in_reset_cone} {
         _fail "R54-B prep_tag clear cone still contains zseq decode"
     }
     if {[string match "C*" $experiment] && $stage ne "synth" &&
