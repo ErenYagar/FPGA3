@@ -856,20 +856,13 @@ wire non96_j0_load_w = ghash_done && !queue_clear &&
 wire input_field_normal_w = (input_field_mode_r != IFM_NONE) &&
                             (input_field_mode_r != IFM_START) &&
                             (input_field_mode_r != IFM_DRAIN);
+wire input_field_block_w = (input_field_mode_r == IFM_IV96) ||
+                           (input_field_mode_r == IFM_IVHASH) ||
+                           (input_field_mode_r == IFM_AAD) ||
+                           (input_field_mode_r == IFM_DATA);
 wire normal_byte_commit_w = input_fire && input_field_normal_w &&
                             !early_tlast_now && !late_tlast_now;
-wire block_phase_capacity_local_w =
-    ((state == ST_IV) &&
-     (!completing_block_byte || rec_iv_is_96_r ||
-      gh_input_slot_free_r)) ||
-    ((state == ST_AAD) &&
-     (!completing_block_byte || gh_input_slot_free_r)) ||
-    ((state == ST_DATA) &&
-     (!completing_block_byte || data_block_capacity_r));
-wire block_phase_commit_local_w = s_axis_tvalid && !zeroize &&
-                                  crypto_context_live_r &&
-                                  block_phase_capacity_local_w &&
-                                  (s_axis_tlast == expected_record_last);
+wire block_phase_commit_w = normal_byte_commit_w && input_field_block_w;
 wire field_end_commit_w = normal_byte_commit_w && completing_field_byte;
 wire gh_input_write_w = normal_byte_commit_w && completing_block_byte &&
     ((input_field_mode_r == IFM_IVHASH) ||
@@ -981,7 +974,7 @@ always @(posedge clk)
 begin
     if(!rst_n || take_descriptor)
         block_beat_15_r <= 1'b0;
-    else if(block_phase_commit_local_w)
+    else if(block_phase_commit_w)
         block_beat_15_r <= !field_last_r &&
                            (block_byte_index == 4'd14);
 end
