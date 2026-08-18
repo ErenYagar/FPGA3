@@ -56,3 +56,25 @@ The complete ZEROIZE-source distribution is:
 Results are recorded in `round54_results.csv`.  No experiment is promoted
 unless WNS, TNS magnitude, and failing endpoint count all improve relative to
 the retained routed C checkpoint and all functional/security gates pass.
+
+### R54-A fresh reproducibility baseline
+
+R54-A rebuilt the retained RTL from source with Vivado 2021.1 build 3247384
+and the locked directives `ExploreWithRemap`, `ExtraNetDelay_high`,
+`AggressiveExplore`, and `Explore`.  The regenerated checkpoints are:
+
+| Stage | SHA-256 |
+|---|---|
+| synth | `848E00E57697609246F8F4AF243C90137AAACFC8625337B4E16C8C9FA900CF23` |
+| placed | `B98A90503BDA7D5B35309A9C97FC7651C7F5FA8FB5F0B7EEAB347BC1C1304E40` |
+| routed | `EA4511B5676C9475FB8E6F9A0D8B0B7660C8766CD1922F04E263F8B712B0AE85` |
+
+The DCP container hashes differ from the retained artifacts, but the fresh
+implementation reproduces the retained design exactly at the signoff level:
+WNS `-0.523 ns`, TNS `-26.673 ns`, FEP 273, WHS `+0.051 ns`, THS 0,
+309 control sets, 8,586 LUTs, 7,296 FFs, and 13,269/13,269 routed nets.
+The endpoint-family counts and TNS values are also identical.  DRC errors,
+critical warnings, route errors, CDC failures, latches, multiple drivers, and
+critical `check_timing` categories are all zero.  R54-A therefore passes the
+fresh-flow provenance gate and remains the comparison baseline; it does not
+pass setup closure.

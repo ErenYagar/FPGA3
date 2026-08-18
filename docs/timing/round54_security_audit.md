@@ -43,3 +43,14 @@ same-edge ZEROIZE reachability.  PartPin signoff remains NO unless an approved
 production map matches the retained placed-DCP SHA-256 and passes strict
 replay; the existing Round46 maps are discovery candidates for another parent
 checkpoint.
+
+## R54-A baseline audit
+
+The fresh R54-A build preserved the exact raw ZEROIZE implementation driver
+(`u_registers/zeroize_pulse_o_reg`, FDRE), its 342-load net, direct
+reachability to all five `prep_tag_bytes` bits, all 134 ciphertext head bits,
+and the retained ZEROIZE sequence structure.  It also reproduced every
+negative-path family count and TNS exactly.  No security behavior was changed;
+the existing Round53-C functional/security signatures are inherited only for
+this byte-identical RTL baseline.  Any RTL-changing experiment must rerun the
+directed and regression simulations rather than inherit these results.
