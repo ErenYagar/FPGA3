@@ -102,6 +102,8 @@ localparam [2:0] GH_KIND_MSG_LEN  = 3'd3;
 
 reg zeroize_busy_r;
 (* keep = "true", equivalent_register_removal = "no" *)
+reg zeroize_sequence_active_r;
+(* keep = "true", equivalent_register_removal = "no" *)
 reg crypto_context_live_r;
 wire crypto_event_enable_w = crypto_context_live_r &&
                              !zeroize && !zeroize_busy_r;
@@ -722,6 +724,7 @@ wire descriptor_crypto_active_w = !descriptor_idle_token_r && key_ready_r &&
 wire take_descriptor = descriptor_idle_token_r && key_ready_r &&
                        desc_out_valid &&
                        !queue_clear && !zeroize &&
+                       !zeroize_sequence_active_r &&
                        (zeroize_abort_count == 0);
 wire descriptor_resource_ready_w = rec_decrypt ? can_start_decrypt :
                                                  can_start_encrypt;
@@ -1238,10 +1241,18 @@ wire result_owned_by_active_record = result_valid_r &&
                                        active_abort_result_r));
 wire detached_result_pending = result_valid_r &&
                                !result_owned_by_active_record;
-wire zeroize_sequence_active = zeroize_busy_r ||
-                               (zeroize_abort_count != 0) ||
-                               (result_valid_r &&
-                                (result_data_r == RESULT_ZEROIZE_ABORT));
+wire result_visible_fire_w = result_valid_r && m_axis_result_tready &&
+                             !zeroize;
+wire zeroize_abort_result_fire_w = result_visible_fire_w &&
+                                    (result_data_r == RESULT_ZEROIZE_ABORT);
+wire first_zeroize_event_w = zeroize && !zeroize_sequence_active_r;
+wire zeroize_sequence_empty_done_w = zeroize_sequence_active_r &&
+                                      zeroize_busy_r &&
+                                      (zeroize_index == 5'd15) &&
+                                      (zeroize_abort_count == 0);
+wire zeroize_sequence_last_abort_done_w = zeroize_sequence_active_r &&
+                                           zeroize_abort_result_fire_w &&
+                                           (zeroize_abort_count == 0);
 
 // This registered token is the descriptor-admission form of ST_IDLE.  It is
 // set only on the four events which make an idle core usable, and cleared on
@@ -1277,8 +1288,7 @@ wire descriptor_idle_token_set_w = descriptor_h_ready_event ||
 // predictive empty condition gives KEY_COMMIT one narrow, cycle-exact
 // admission signal instead of the wide collection of packet/output state.
 wire accepted_record_event_w = cmd_push && desc_in_ready && !zeroize;
-wire accepted_result_event_w = result_valid_r && m_axis_result_tready &&
-                               !zeroize;
+wire accepted_result_event_w = result_visible_fire_w;
 wire postauth_plain_start_w = accepted_result_event_w &&
                               (result_data_r == RESULT_DEC_AUTH_OK) &&
                               (ctr_request_total_r != 5'd0);
@@ -1369,6 +1379,20 @@ begin
         active_abort_result_r <= 1'b1;
     else if(descriptor_abort_retire_event)
         active_abort_result_r <= 1'b0;
+end
+
+// Track one complete ZEROIZE lifecycle.  The token is set by the first
+// command, remains set across scrub and result backpressure, and clears only
+// when an empty scrub completes or the final visible ZEROIZE_ABORT retires.
+always @(posedge clk)
+begin
+    if(!rst_n)
+        zeroize_sequence_active_r <= 1'b0;
+    else if(first_zeroize_event_w)
+        zeroize_sequence_active_r <= 1'b1;
+    else if(zeroize_sequence_empty_done_w ||
+            zeroize_sequence_last_abort_done_w)
+        zeroize_sequence_active_r <= 1'b0;
 end
 
 (* keep = "true", dont_touch = "true" *)
@@ -1758,7 +1782,7 @@ begin
         // Repeated ZEROIZE commands are idempotent.  They may reset the
         // external boundary again, but must not recompute and overwrite the
         // abort count captured by the first command.
-        if(zeroize && !zeroize_sequence_active)
+        if(first_zeroize_event_w)
         begin
             zeroize_abort_count <= {1'b0, desc_count} +
                                    (active_record ? 3'd1 : 3'd0) +
@@ -2363,8 +2387,7 @@ begin
             // Explicit zeroize abort responses are emitted after memory
             // scrubbing.  Reset is the only operation allowed to suppress an
             // already accepted descriptor's result beat.
-            if(result_valid_r && m_axis_result_tready &&
-               (result_data_r == RESULT_ZEROIZE_ABORT))
+            if(zeroize_abort_result_fire_w)
                 result_valid_r <= 1'b0;
             else if((zeroize_abort_count != 0) && !result_valid_r &&
                     (state == ST_IDLE) && !abort_terminator_pending)
