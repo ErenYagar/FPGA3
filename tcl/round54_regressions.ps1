@@ -44,6 +44,9 @@ if (Test-Path -LiteralPath $OutputRoot) {
     throw "Refusing to overwrite verification directory: $OutputRoot"
 }
 New-Item -ItemType Directory -Path $OutputRoot | Out-Null
+$LocalRspDirectory = Join-Path $OutputRoot 'rsp'
+Copy-Item -LiteralPath (Join-Path $TestRoot 'rsp') -Destination $LocalRspDirectory `
+    -Recurse
 
 $RtlFiles = @(
     (Join-Path $RtlRoot 'aes_core\sbox.v'),
@@ -157,14 +160,13 @@ Invoke-Round54Test tb_round53_zeroize_public_directed round53_public @(
     'ROUND53_PUBLIC_ZEROIZE_PASS idle_results=0 accepted=2 abort_results=2'
 )
 
-$RspDirectory = (Join-Path $TestRoot 'rsp').Replace('\', '/')
 Invoke-Round54Test tb_nist nist525 @(
     'NIST_TOTAL_SUMMARY pass=525 fail=0 total=525 cycles=145808',
     'NIST_LIMITED_DONE pass=525 fail=0 total=525'
-) @('MAX_VECTORS_525', "RSP_DIR_$RspDirectory")
+) @('MAX_VECTORS_525', 'RSP_DIR_rsp')
 Invoke-Round54Test tb_nist nist5255 @(
     'NIST_TOTAL_SUMMARY pass=5255 fail=0 total=5255 cycles=1615588',
     'NIST_LIMITED_DONE pass=5255 fail=0 total=5255'
-) @('MAX_VECTORS_5255', "RSP_DIR_$RspDirectory")
+) @('MAX_VECTORS_5255', 'RSP_DIR_rsp')
 
 Write-Host "ROUND54_REGRESSION_PASS label=$Label commit=$Commit core_sha256=$ActualCoreSha256"
