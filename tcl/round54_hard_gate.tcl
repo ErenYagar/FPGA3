@@ -1,0 +1,132 @@
+# Round54 fail-closed structural/security extension for the Round53 hard gate.
+#
+# Public API:
+#   ::r54_hg::run <experiment> <stage> <audit_file>
+
+namespace eval ::r54_hg {
+    namespace export run
+    variable audit_channel ""
+}
+
+set ::r54_hg::script_dir [file dirname [file normalize [info script]]]
+source [file join $::r54_hg::script_dir round53_hard_gate.tcl]
+
+proc ::r54_hg::_log {message} {
+    variable audit_channel
+    puts $message
+    if {$audit_channel ne ""} {
+        puts $audit_channel $message
+        flush $audit_channel
+    }
+}
+
+proc ::r54_hg::_fail {message} {
+    _log "ROUND54_HARD_GATE_FAIL $message"
+    error "ROUND54_HARD_GATE_FAIL: $message"
+}
+
+proc ::r54_hg::_one {objects label} {
+    if {[llength $objects] != 1} {
+        _fail "$label count is [llength $objects], expected 1; objects={$objects}"
+    }
+    return [lindex $objects 0]
+}
+
+proc ::r54_hg::_zeroize_driver {} {
+    set cell [_one [get_cells -quiet u_registers/zeroize_pulse_o_reg] \
+        "ZEROIZE driver"]
+    if {[get_property REF_NAME $cell] ne "FDRE"} {
+        _fail "ZEROIZE driver is [get_property REF_NAME $cell], expected FDRE"
+    }
+    set q [_one [get_pins -quiet ${cell}/Q] "ZEROIZE Q"]
+    set net [_one [get_nets -quiet -of_objects $q] "ZEROIZE net"]
+    set loads [get_pins -quiet -leaf -of_objects $net \
+        -filter {DIRECTION == IN}]
+    _log "ROUND54_HG_ZEROIZE_DRIVER cell=$cell ref=FDRE net=$net fanout=[llength $loads] loc=[get_property LOC $cell] bel=[get_property BEL $cell]"
+    return [list $cell $q $net]
+}
+
+proc ::r54_hg::_prep_tag {experiment} {
+    set cells [get_cells -hier -quiet \
+        -filter {NAME =~ *prep_tag_bytes_reg* && REF_NAME =~ FD*}]
+    if {[llength $cells] != 5} {
+        _fail "prep_tag mapped cell count is [llength $cells], expected 5"
+    }
+    set zeroize_q [lindex [_zeroize_driver] 1]
+    set zeroize_paths 0
+    set zseq_in_cone 0
+    set pin_distribution [dict create]
+    foreach cell $cells {
+        foreach pin_name {D CE R S} {
+            set pins [get_pins -quiet ${cell}/${pin_name}]
+            if {[llength $pins] == 0} {continue}
+            dict incr pin_distribution $pin_name
+            set pin [lindex $pins 0]
+            set paths [get_timing_paths -quiet -from $zeroize_q -to $pin \
+                -delay_type max -max_paths 10 -nworst 1]
+            if {[llength $paths] > 0} {incr zeroize_paths}
+            foreach object [all_fanin -quiet -flat -to $pin] {
+                if {[string match "*zeroize_sequence_active_r_reg*" $object]} {
+                    set zseq_in_cone 1
+                }
+            }
+        }
+    }
+    _log "ROUND54_HG_PREP_TAG experiment=$experiment cells=[llength $cells] zeroize_paths=$zeroize_paths zseq_in_cone=$zseq_in_cone pins={$pin_distribution}"
+    if {$zeroize_paths != 5} {
+        _fail "raw ZEROIZE reaches $zeroize_paths prep_tag bits, expected 5"
+    }
+    if {[string match "B*" $experiment] && $zseq_in_cone} {
+        _fail "R54-B prep_tag clear cone still contains zseq decode"
+    }
+    if {[string match "C*" $experiment] && $stage ne "synth" &&
+        [dict exists $pin_distribution R]} {
+        _fail "R54-C targeted remap retained prep_tag R pins"
+    }
+}
+
+proc ::r54_hg::_ciphertext_structure {experiment stage} {
+    set head_cells [get_cells -hier -quiet \
+        -filter {NAME =~ *u_ciphertext_fifo/out_data_q_reg* && REF_NAME =~ FD*}]
+    if {[llength $head_cells] == 0} {
+        _fail "ciphertext FIFO head registers are missing"
+    }
+    set zeroize_q [lindex [_zeroize_driver] 1]
+    set ce_paths 0
+    foreach cell $head_cells {
+        set ce [get_pins -quiet ${cell}/CE]
+        if {[llength $ce] == 1 && [llength [get_timing_paths -quiet \
+                -from $zeroize_q -to $ce -delay_type max -max_paths 1]] > 0} {
+            incr ce_paths
+        }
+    }
+    _log "ROUND54_HG_CIPHERTEXT experiment=$experiment stage=$stage head_cells=[llength $head_cells] zeroize_to_ce=$ce_paths"
+}
+
+proc ::r54_hg::_run_body {experiment stage nested_audit_file} {
+    if {$stage ni {synth placed routed}} {
+        _fail "invalid stage '$stage'"
+    }
+    # Every Round54 experiment is based on the retained R53-C architecture.
+    set metrics [::r53_hg::run C $stage $nested_audit_file]
+    _prep_tag $experiment
+    _ciphertext_structure $experiment $stage
+    _log "ROUND54_HARD_GATE_PASS experiment=$experiment stage=$stage"
+    return $metrics
+}
+
+proc ::r54_hg::run {experiment stage audit_file} {
+    variable audit_channel
+    if {$audit_channel ne ""} {error "ROUND54_HARD_GATE: nested run"}
+    file mkdir [file dirname [file normalize $audit_file]]
+    set audit_channel [open $audit_file w]
+    set nested_audit_file ${audit_file}.round53
+    if {[catch {_run_body $experiment $stage $nested_audit_file} result options]} {
+        catch {close $audit_channel}
+        set audit_channel ""
+        return -options $options $result
+    }
+    close $audit_channel
+    set audit_channel ""
+    return $result
+}

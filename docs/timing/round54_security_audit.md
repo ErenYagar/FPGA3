@@ -1,0 +1,45 @@
+# Round54 security audit
+
+## Retained security contract
+
+Round54 retains R53-C's `zeroize_sequence_active_r`,
+`result_visible_fire_w`, `zeroize_abort_result_fire_w`, and
+`first_zeroize_event_w` sequence/cardinality semantics.  Timing experiments
+must not delay the raw ZEROIZE edge, restart the scrub index, recompute abort
+cardinality, invisibly retire the final abort, or admit a descriptor before
+the final visible abort.
+
+The Round53 hard gate remains mandatory and is wrapped by the Round54 gate.
+The wrapper additionally records the physical ZEROIZE driver, verifies direct
+raw-ZEROIZE reachability to every mapped `prep_tag_bytes` bit, rejects a zseq
+decode in the R54-B prep-tag clear cone, and records ciphertext head control
+reachability.
+
+## Prep-tag source audit
+
+`prep_tag_bytes` has exactly three writer cases in the retained source:
+
+1. global reset writes zero;
+2. the first ZEROIZE event writes zero;
+3. an accepted descriptor writes its decoded tag byte count.
+
+Its readers choose input-field mode and remaining-byte/last-byte state.  While
+the ZEROIZE lifecycle is active, the main state machine remains in the
+`zeroize_busy_r` branch and `take_descriptor` is independently gated by raw
+ZEROIZE, queue clear, `zeroize_sequence_active_r`, and abort count.  Therefore
+the register cannot be loaded during repeated ZEROIZE.  The next admissible
+descriptor overwrites it before any record uses it.
+
+This makes repeated raw-ZEROIZE writes of zero idempotent for this metadata,
+but does not justify moving abort-count, sequence, key, round-key, GHASH,
+plaintext ownership, or scrub state off `first_zeroize_event_w`.
+
+## Signoff rule
+
+Simulation is necessary but not sufficient.  A promoted experiment must also
+pass the DCP structural checks for key context, AES/GHASH state, plaintext
+banks, output-valid invalidation, result sequencing, abort cardinality, and
+same-edge ZEROIZE reachability.  PartPin signoff remains NO unless an approved
+production map matches the retained placed-DCP SHA-256 and passes strict
+replay; the existing Round46 maps are discovery candidates for another parent
+checkpoint.
