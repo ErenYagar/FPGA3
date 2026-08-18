@@ -61,6 +61,17 @@ proc ::r53_hg::_pin_drivers {cell pin_name label} {
     return [list $pin $net $drivers $driver_cells]
 }
 
+proc ::r53_hg::_clock_pin {cell pin_name label} {
+    set pin [_require_one [get_pins -quiet ${cell}/${pin_name}] "$label $pin_name pin"]
+    set net [_require_one [get_nets -quiet -of_objects $pin] "$label $pin_name net"]
+    set clock [_require_one [get_clocks -quiet -of_objects $pin] "$label $pin_name clock"]
+    if {$clock ne "aclk"} {
+        _fail "$label $pin_name clock is '$clock', expected aclk"
+    }
+    _log "ROUND53_HG_CLOCK_PIN label=$label pin=$pin net={$net} clock=$clock"
+    return [list $pin $net $clock]
+}
+
 proc ::r53_hg::_timing_count {label from_objects to_objects} {
     _require_nonempty $from_objects "$label startpoints"
     _require_nonempty $to_objects "$label endpoints"
@@ -321,7 +332,7 @@ proc ::r53_hg::_check_zseq_patch {experiment} {
             _fail "result_data still directly reaches main state in zseq experiment $experiment"
         }
         _pin_drivers $zseq D ZSEQ
-        _pin_drivers $zseq C ZSEQ
+        _clock_pin $zseq C ZSEQ
     } else {
         if {[llength $zseq_cells] != 0} {
             _fail "baseline experiment $experiment unexpectedly contains a zseq token"
