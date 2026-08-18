@@ -6,6 +6,14 @@
 /*
 !/.gitignore
 !/engrenring/
+!/docs/
+!/tcl/
+
+# Reviewable timing-closure evidence and reproducible Tcl entry points.
+/docs/*
+!/docs/timing/
+!/docs/timing/**
+!/tcl/**
 
 # Maintained RTL and verification inputs.
 /engrenring/*
