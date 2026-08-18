@@ -114,22 +114,22 @@ proc ::r54_paths::_cone_flags {endpoint_pin} {
 proc ::r54_paths::_family {source_cell endpoint_cell endpoint_ref endpoint_pin_type flags} {
     set source_name [_safe_property $source_cell NAME]
     set endpoint_name [_safe_property $endpoint_cell NAME]
-    set zeroize [lindex $flags 0]
-    if {$zeroize && [string match "*u_ciphertext_fifo/out_data_q_reg*" $endpoint_name] &&
+    set source_zeroize [string match "*zeroize_pulse_o_reg" $source_name]
+    if {$source_zeroize && [string match "*u_ciphertext_fifo/out_data_q_reg*" $endpoint_name] &&
         $endpoint_ref eq "FDRE" && $endpoint_pin_type eq "CE"} {
         return "ciphertext_head_ce"
     }
-    if {$zeroize && [string match "*u_ciphertext_fifo/mem_reg*" $endpoint_name] &&
+    if {$source_zeroize && [string match "*u_ciphertext_fifo/mem_reg*" $endpoint_name] &&
         $endpoint_pin_type eq "WE"} {
         return "ciphertext_lutram_we"
     }
-    if {$zeroize && [string match "*prep_tag_bytes_reg*" $endpoint_name]} {
+    if {$source_zeroize && [string match "*prep_tag_bytes_reg*" $endpoint_name]} {
         return "prep_tag_zeroize"
     }
-    if {$zeroize && [string match "*tag_byte_mismatch_r_reg*" $endpoint_name]} {
+    if {$source_zeroize && [string match "*tag_byte_mismatch_r_reg*" $endpoint_name]} {
         return "tag_mismatch_zeroize"
     }
-    if {$zeroize} {
+    if {$source_zeroize} {
         return "zeroize_other"
     }
     if {[string match "*u_key_context/FSM_sequential_state_r_reg*" $source_name] &&
@@ -212,7 +212,7 @@ proc ::r54_paths::run {output_prefix} {
     }
 
     set channel [open $path_file w]
-    puts $channel [join {rank slack_ns startpoint_pin startpoint_cell startpoint_ref endpoint_pin endpoint_pin_type endpoint_cell endpoint_ref hierarchy logic_levels datapath_delay_ns logic_delay_ns net_delay_ns source_net source_physical_fanout source_loc source_bel source_clock_region endpoint_loc endpoint_bel endpoint_clock_region manhattan_xy cone_zeroize cone_abort_queue_clear cone_zseq family zeroize_class fanin_startpoints} "\t"]
+    puts $channel [join {rank slack_ns startpoint_pin startpoint_cell startpoint_ref endpoint_pin endpoint_pin_type endpoint_cell endpoint_ref hierarchy logic_levels datapath_delay_ns logic_delay_ns net_delay_ns source_net source_physical_fanout source_loc source_bel source_clock_region endpoint_loc endpoint_bel endpoint_clock_region manhattan_xy source_zeroize cone_zeroize cone_abort_queue_clear cone_zseq family zeroize_class fanin_startpoints} "\t"]
     set summary [dict create]
     set rank 0
     foreach path $paths {
@@ -229,7 +229,9 @@ proc ::r54_paths::run {output_prefix} {
         set family [_family $start_cell $endpoint_cell $endpoint_ref \
             $endpoint_pin_type $flags]
         set endpoint_name [_safe_property $endpoint_cell NAME]
-        set zeroize_class [expr {[lindex $flags 0] ?
+        set source_zeroize [string match "*zeroize_pulse_o_reg" \
+            [_safe_property $start_cell NAME]]
+        set zeroize_class [expr {$source_zeroize ?
             [_zeroize_class $family $endpoint_pin_type $endpoint_name] : "NA"}]
         set source_xy [_xy $start_cell]
         set endpoint_xy [_xy $endpoint_cell]
@@ -245,7 +247,7 @@ proc ::r54_paths::run {output_prefix} {
         set logic_delay [expr {double([get_property DATAPATH_LOGIC_DELAY $path])}]
         set net_delay [expr {double([get_property DATAPATH_NET_DELAY $path])}]
         _summary_add summary $family $slack $levels $logic_delay $net_delay
-        if {[lindex $flags 0]} {
+        if {$source_zeroize} {
             _summary_add summary "zeroize:$zeroize_class" $slack $levels \
                 $logic_delay $net_delay
         }
@@ -257,7 +259,7 @@ proc ::r54_paths::run {output_prefix} {
             [_safe_property $start_cell LOC] [_safe_property $start_cell BEL] \
             [_clock_region $start_cell] [_safe_property $endpoint_cell LOC] \
             [_safe_property $endpoint_cell BEL] [_clock_region $endpoint_cell] \
-            $manhattan [lindex $flags 0] [lindex $flags 1] [lindex $flags 2] \
+            $manhattan $source_zeroize [lindex $flags 0] [lindex $flags 1] [lindex $flags 2] \
             $family $zeroize_class [lindex $flags 3]]
         set escaped {}
         foreach field $fields {lappend escaped [_tsv $field]}
