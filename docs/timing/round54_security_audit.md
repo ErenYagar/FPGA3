@@ -54,3 +54,20 @@ negative-path family count and TNS exactly.  No security behavior was changed;
 the existing Round53-C functional/security signatures are inherited only for
 this byte-identical RTL baseline.  Any RTL-changing experiment must rerun the
 directed and regression simulations rather than inherit these results.
+
+## R54-B audit (failed timing promotion)
+
+The final explicit-FDRE implementation has one writer per mapped bit.  Raw
+ZEROIZE reaches all five R pins on the same edge, and the routed fanin audit
+finds no `zeroize_sequence_active_r` decode in those reset cones.  The
+ciphertext FIFO still has 134 head registers with raw-ZEROIZE reachability to
+their CE cones.  Latch, multiple-driver, CDC, route, DRC, methodology, and
+Round53 sequence/cardinality gates all pass.
+
+The RTL-changing candidate passed the exact 8,364-cycle smoke signature, all
+six throughput signatures (including AES II 10/12/14 and every mode above
+1 Gbit/s), Round48/49, all Round53 ZEROIZE/stall/capacity regressions, the
+repeated-ZEROIZE same-edge prep-tag test, NIST525 at 145,808 cycles, and
+NIST5255 at 1,615,588 cycles.  Functional/security behavior is clean, but the
+candidate is rejected because routed TNS and FEP regress; none of its RTL is
+eligible for promotion.
