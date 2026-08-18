@@ -172,7 +172,8 @@ proc ::r54_paths::_summary_add {summary_name family slack levels logic_delay net
         dict set summary $family logic 0.0
         dict set summary $family net 0.0
     }
-    dict incr summary $family count
+    dict set summary $family count \
+        [expr {[dict get $summary $family count] + 1}]
     dict set summary $family tns \
         [expr {[dict get $summary $family tns] + $slack}]
     if {$slack < [dict get $summary $family worst]} {
