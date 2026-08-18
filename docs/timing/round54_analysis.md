@@ -111,3 +111,19 @@ R54-B therefore fails the three-metric promotion rule: only WNS improved;
 TNS magnitude and FEP regressed.  Per the isolation plan, no B2 and no
 B-derived combination are run.  The new round-key dominance is recorded for
 a subsequent round and is not expanded in Round54.
+
+### R54-C targeted control-set remap (stopped before route)
+
+R54-C opened the immutable retained synth DCP (SHA-256 `5875...0789`) and
+applied `CONTROL_SET_REMAP RESET` to exactly the five
+`prep_tag_bytes_reg[0:4]` cells.  The property-only optimization reported ten
+created cells, after which the baseline opt/place/phys-opt directives were
+used.  The placed checkpoint SHA-256 is
+`E6ED749ED3E430A091E379B9CFE2872D8154B5F699E91D42E3A0032CE1E4EF92`.
+
+The requested remap did not occur.  All five placed cells remained FDREs with
+R pins, raw ZEROIZE reached both D and R (10 pin paths), and each D path had
+five logic levels.  The placed control-set count increased from 309 to 367;
+utilization was 8,548 LUTs and 7,303 FFs.  Although the transient placed setup
+estimate was positive (`+0.101 ns`), the hard gate rejected the structural
+result before routing.  No C route or B+C combination exists.

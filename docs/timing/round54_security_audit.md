@@ -71,3 +71,11 @@ repeated-ZEROIZE same-edge prep-tag test, NIST525 at 145,808 cycles, and
 NIST5255 at 1,615,588 cycles.  Functional/security behavior is clean, but the
 candidate is rejected because routed TNS and FEP regress; none of its RTL is
 eligible for promotion.
+
+## R54-C audit (remap did not occur)
+
+R54-C changed no RTL, so retained functional signatures remain applicable.
+Its physical experiment nevertheless failed the mandatory structural gate:
+the five prep-tag R pins remained present, and ZEROIZE also entered their new
+five-level D cones.  Routing was intentionally not run.  This experiment is
+rejected and contributes no netlist or property to a combination.
