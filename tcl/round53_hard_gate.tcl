@@ -95,6 +95,26 @@ proc ::r53_hg::_timing_count {label from_objects to_objects} {
     return [llength $paths]
 }
 
+proc ::r53_hg::_check_logic_depth {label from_objects to_objects max_levels} {
+    _require_nonempty $from_objects "$label startpoints"
+    _require_nonempty $to_objects "$label endpoints"
+    set paths [_require_nonempty \
+        [get_timing_paths -quiet -from $from_objects -to $to_objects \
+            -delay_type max -max_paths 10000 -nworst 1] \
+        "$label timing paths"]
+    set observed_max 0
+    foreach path $paths {
+        set levels [get_property LOGIC_LEVELS $path]
+        if {$levels > $observed_max} {
+            set observed_max $levels
+        }
+    }
+    _log "ROUND53_HG_LOGIC_DEPTH label=$label observed_max=$observed_max allowed_max=$max_levels"
+    if {$observed_max > $max_levels} {
+        _fail "$label logic depth is $observed_max, exceeds locked maximum $max_levels"
+    }
+}
+
 proc ::r53_hg::_sum_slack {paths} {
     set total 0.0
     foreach path $paths {
@@ -156,6 +176,52 @@ proc ::r53_hg::_check_timing_categories {} {
     }
     if {[dict size $found] != [llength $expected]} {
         _fail "check_timing category set changed: found={[dict keys $found]}"
+    }
+}
+
+proc ::r53_hg::_check_multiple_drivers {} {
+    set violations {}
+    foreach net [get_nets -hier -quiet] {
+        set drivers [get_pins -quiet -leaf -of_objects $net -filter {DIRECTION == OUT}]
+        if {[llength $drivers] > 1} {
+            lappend violations [list $net $drivers]
+        }
+    }
+    _log "ROUND53_HG_MULTIPLE_DRIVERS count=[llength $violations] violations={$violations}"
+    if {[llength $violations] != 0} {
+        _fail "multiple-driven nets exist"
+    }
+}
+
+proc ::r53_hg::_check_cdc {} {
+    set text [report_cdc -details -return_string]
+    set safe [regexp {All paths are Safely Timed\.} $text]
+    _log "ROUND53_HG_CDC all_paths_safely_timed=$safe"
+    if {!$safe} {
+        _fail "report_cdc did not report all paths safely timed"
+    }
+}
+
+proc ::r53_hg::_check_methodology {} {
+    report_methodology -quiet -return_string
+    set errors 0
+    set critical 0
+    set warnings {}
+    foreach violation [get_methodology_violations -quiet] {
+        set severity [get_property SEVERITY $violation]
+        set check [lindex [split $violation #] 0]
+        if {[string equal -nocase $severity "Error"]} {
+            incr errors
+        } elseif {[string equal -nocase $severity "Critical Warning"]} {
+            incr critical
+        } elseif {[string equal -nocase $severity "Warning"]} {
+            lappend warnings $check
+        }
+    }
+    set warnings [lsort -unique $warnings]
+    _log "ROUND53_HG_METHODOLOGY errors=$errors critical_warnings=$critical warnings={$warnings}"
+    if {$errors != 0 || $critical != 0} {
+        _fail "methodology has $errors errors and $critical critical warnings"
     }
 }
 
@@ -266,21 +332,23 @@ proc ::r53_hg::_check_block_patch {experiment} {
         if {$mode_count != 0} {
             _fail "block-local experiment $experiment still has $mode_count mode-to-block_beat paths"
         }
-        foreach {label pattern} [list \
-            STATE {NAME =~ u_core/state_reg* && REF_NAME =~ FD*} \
-            RECIV {NAME =~ *rec_iv_is_96_r_reg* && REF_NAME =~ FD*} \
-            GHSLOT {NAME =~ *gh_input_slot_free_r_reg* && REF_NAME =~ FD*} \
-            DATACAP {NAME =~ *data_block_capacity_r_reg* && REF_NAME =~ FD*}] {
+        foreach {label pattern max_levels} [list \
+            STATE {NAME =~ u_core/state_reg* && REF_NAME =~ FD*} 3 \
+            RECIV {NAME =~ *rec_iv_is_96_r_reg* && REF_NAME =~ FD*} 3 \
+            GHSLOT {NAME =~ *gh_input_slot_free_r_reg* && REF_NAME =~ FD*} 3 \
+            DATACAP {NAME =~ *data_block_capacity_r_reg* && REF_NAME =~ FD*} 3] {
             set cells [_require_nonempty [get_cells -hier -quiet -filter $pattern] "$label block-local source registers"]
             set starts [_require_nonempty [get_pins -quiet -of_objects $cells -filter {REF_PIN_NAME == C}] "$label source clock pins"]
             if {[_timing_count ${label}_TO_BLOCK_BEAT $starts $beat_sinks] == 0} {
                 _fail "block-local source family $label does not reach block_beat_15"
             }
+            _check_logic_depth ${label}_TO_BLOCK_BEAT $starts $beat_sinks $max_levels
         }
     } else {
         if {$mode_count == 0} {
             _fail "baseline experiment $experiment unexpectedly lacks mode-to-block_beat identity path"
         }
+        _check_logic_depth MODE_TO_BLOCK_BEAT $mode_starts $beat_sinks 4
     }
 }
 
@@ -331,8 +399,53 @@ proc ::r53_hg::_check_zseq_patch {experiment} {
         if {$result_state_count != 0} {
             _fail "result_data still directly reaches main state in zseq experiment $experiment"
         }
-        _pin_drivers $zseq D ZSEQ
+        set d_detail [_pin_drivers $zseq D ZSEQ]
+        set d_cells [lindex $d_detail 3]
+        if {[llength $d_cells] != 1 ||
+            ![string match "LUT*" [get_property REF_NAME [lindex $d_cells 0]]]} {
+            _fail "zseq D is not driven by exactly one LUT"
+        }
+        set d_pin [lindex $d_detail 0]
+        set d_starts [all_fanin -flat -startpoints_only -to $d_pin]
+        foreach pattern [list \
+            *zeroize_pulse* *result_valid_r_reg* *result_data_r_reg* \
+            *zeroize_busy_r_reg* *zeroize_index_reg* \
+            *zeroize_abort_count_reg* *zeroize_sequence_active_r_reg* \
+            m_axis_result_tready] {
+            set matched 0
+            foreach start $d_starts {
+                if {[string match $pattern $start]} {
+                    set matched 1
+                    break
+                }
+            }
+            if {!$matched} {
+                _fail "zseq D startpoints lack required pattern '$pattern'; startpoints={$d_starts}"
+            }
+        }
+        _log "ROUND53_HG_ZSEQ_D_STARTPOINTS startpoints={$d_starts}"
         _clock_pin $zseq C ZSEQ
+        set ce_detail [_pin_drivers $zseq CE ZSEQ]
+        set ce_cells [lindex $ce_detail 3]
+        if {[llength $ce_cells] != 1 ||
+            [get_property REF_NAME [lindex $ce_cells 0]] ne "VCC"} {
+            _fail "zseq CE is not driven solely by VCC"
+        }
+        set r_detail [_pin_drivers $zseq R ZSEQ]
+        set r_cells [lindex $r_detail 3]
+        if {[llength $r_cells] != 1 ||
+            [get_property REF_NAME [lindex $r_cells 0]] ne "LUT1"} {
+            _fail "zseq R is not driven by exactly one LUT1 reset inverter"
+        }
+        set r_starts [all_fanin -flat -startpoints_only -to [lindex $r_detail 0]]
+        if {[llength $r_starts] != 1 || [lindex $r_starts 0] ne "aresetn"} {
+            _fail "zseq R startpoints are '{$r_starts}', expected only aresetn"
+        }
+        set s_pins [get_pins -quiet ${zseq}/S]
+        if {[llength $s_pins] != 0} {
+            _fail "zseq unexpectedly has an S pin: {$s_pins}"
+        }
+        _log "ROUND53_HG_ZSEQ_CONTROL ce_driver={$ce_cells} r_driver={$r_cells} r_startpoints={$r_starts} s_pin_count=0"
     } else {
         if {[llength $zseq_cells] != 0} {
             _fail "baseline experiment $experiment unexpectedly contains a zseq token"
@@ -410,6 +523,8 @@ proc ::r53_hg::_run_body {experiment stage} {
     _check_clock
     _check_exceptions
     _check_timing_categories
+    _check_multiple_drivers
+    _check_cdc
 
     set latches [get_cells -hier -quiet -filter {REF_NAME =~ LD*}]
     _log "ROUND53_HG_LATCHES count=[llength $latches] cells={$latches}"
@@ -421,6 +536,7 @@ proc ::r53_hg::_run_body {experiment stage} {
     _check_block_patch $experiment
     _check_zseq_patch $experiment
     _check_drc $stage
+    _check_methodology
     if {$stage eq "routed"} {
         _check_route
     }
