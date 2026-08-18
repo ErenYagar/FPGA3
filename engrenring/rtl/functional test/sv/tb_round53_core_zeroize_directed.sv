@@ -64,8 +64,14 @@ integer result_fire_count = 0;
 integer data_fire_count = 0;
 integer tag_fire_count = 0;
 integer timeout;
+integer collision_attempt_count = 0;
+integer collision_age = 0;
+integer collision_first_abort_cycle = 0;
+integer collision_second_abort_cycle = 0;
 reg [7:0] captured_result = 8'hff;
+reg [7:0] result_history [0:3];
 reg expect_baseline_loss;
+reg collision_phase = 1'b0;
 
 aes_gcm_stream_core dut (
     .clk(clk), .rst_n(rst_n), .key_commit(key_commit),
@@ -97,6 +103,8 @@ aes_gcm_stream_core dut (
 
 always @(posedge clk)
 begin
+    if(collision_phase)
+        collision_age = collision_age + 1;
     if(m_axis_data_tvalid && m_axis_data_tready)
         data_fire_count = data_fire_count + 1;
     if(m_axis_tag_tvalid && m_axis_tag_tready)
@@ -104,6 +112,12 @@ begin
     if(m_axis_result_tvalid && m_axis_result_tready)
     begin
         captured_result = m_axis_result_tdata;
+        if(result_fire_count < 4)
+            result_history[result_fire_count] = m_axis_result_tdata;
+        if(collision_phase && (result_fire_count == 0))
+            collision_first_abort_cycle = collision_age;
+        if(collision_phase && (result_fire_count == 1))
+            collision_second_abort_cycle = collision_age;
         result_fire_count = result_fire_count + 1;
         if(!m_axis_result_tlast)
             $fatal(1, "ZEROIZE_RESULT_MISSING_TLAST");
@@ -158,6 +172,14 @@ begin
     data_fire_count = 0;
     tag_fire_count = 0;
     captured_result = 8'hff;
+    result_history[0] = 8'hff;
+    result_history[1] = 8'hff;
+    result_history[2] = 8'hff;
+    result_history[3] = 8'hff;
+    collision_phase = 1'b0;
+    collision_age = 0;
+    collision_first_abort_cycle = 0;
+    collision_second_abort_cycle = 0;
     rst_n = 1'b1;
 end
 endtask
@@ -325,6 +347,74 @@ begin
                cmd_pending, cmd_full);
     if(!expect_baseline_loss)
         $display("ROUND53_ZSEQ_ADMISSION_PASS held_until_abort=1 admitted_next_edge=1");
+
+    // Descriptor-admission collision.  Two records are already accepted
+    // (one active, one queued).  A third CMD_PUSH is attempted on the exact
+    // ZEROIZE edge while key_ready=1 and cmd_full=0, so it would otherwise
+    // be admissible.  ZEROIZE must preserve both existing response credits
+    // but must not accept a third credit which would later be lost.
+    reset_core();
+    pulse_key_commit();
+    wait_for_key_ready();
+    push_idle_record();
+    timeout = 0;
+    while(!record_active && timeout < 200)
+    begin
+        @(posedge clk);
+        timeout = timeout + 1;
+    end
+    if(!record_active)
+        $fatal(1, "COLLISION_ACTIVE_RECORD_TIMEOUT pending=%b full=%b",
+               cmd_pending, cmd_full);
+    push_idle_record();
+    if(!cmd_pending || cmd_full || !key_ready)
+        $fatal(1,
+               "COLLISION_PRECONDITION pending=%b full=%b key_ready=%b",
+               cmd_pending, cmd_full, key_ready);
+
+    @(negedge clk);
+    collision_phase = 1'b1;
+    collision_age = 0;
+    collision_attempt_count = collision_attempt_count + 1;
+    m_axis_result_tready = 1'b1;
+    cmd_push = 1'b1;
+    zeroize = 1'b1;
+    @(posedge clk);
+    @(negedge clk);
+    cmd_push = 1'b0;
+    zeroize = 1'b0;
+
+    if(key_ready || record_active || cmd_pending)
+        $fatal(1,
+               "COLLISION_ZEROIZE_DID_NOT_INVALIDATE key=%b active=%b pending=%b",
+               key_ready, record_active, cmd_pending);
+
+    timeout = 0;
+    while(result_fire_count < 2 && timeout < 400)
+    begin
+        @(posedge clk);
+        timeout = timeout + 1;
+    end
+    repeat(32) @(posedge clk);
+    @(negedge clk);
+    collision_phase = 1'b0;
+
+    if(collision_attempt_count != 1 || result_fire_count != 2 ||
+       (result_history[0] !== RESULT_ZEROIZE_ABORT) ||
+       (result_history[1] !== RESULT_ZEROIZE_ABORT) ||
+       collision_first_abort_cycle <= 0 ||
+       collision_second_abort_cycle <= collision_first_abort_cycle ||
+       m_axis_result_tvalid || output_pending ||
+       data_fire_count != 0 || tag_fire_count != 0)
+        $fatal(1,
+               "COLLISION_CARDINALITY_ORDER attempts=%0d results=%0d r0=%02x r1=%02x first=%0d second=%0d valid=%b pending=%b data=%0d tag=%0d",
+               collision_attempt_count, result_fire_count,
+               result_history[0], result_history[1],
+               collision_first_abort_cycle, collision_second_abort_cycle,
+               m_axis_result_tvalid, output_pending,
+               data_fire_count, tag_fire_count);
+    $display("ROUND53_DESCRIPTOR_ZEROIZE_COLLISION_PASS attempts=1 accepted_before=2 abort_results=2 first_cycle=%0d second_cycle=%0d extra_results=0",
+             collision_first_abort_cycle, collision_second_abort_cycle);
 
     $finish;
 end
