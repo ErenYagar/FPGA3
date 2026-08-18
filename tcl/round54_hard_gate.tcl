@@ -46,7 +46,7 @@ proc ::r54_hg::_zeroize_driver {} {
     return [list $cell $q $net]
 }
 
-proc ::r54_hg::_prep_tag {experiment} {
+proc ::r54_hg::_prep_tag {experiment stage} {
     set cells [get_cells -hier -quiet \
         -filter {NAME =~ *prep_tag_bytes_reg* && REF_NAME =~ FD*}]
     if {[llength $cells] != 5} {
@@ -59,6 +59,15 @@ proc ::r54_hg::_prep_tag {experiment} {
     set pin_distribution [dict create]
     foreach cell $cells {
         set bit_has_zeroize 0
+        set d_levels "NA"
+        set d_pin [get_pins -quiet ${cell}/D]
+        if {[llength $d_pin] == 1} {
+            set d_path [get_timing_paths -quiet -to $d_pin -delay_type max \
+                -max_paths 1 -nworst 1]
+            if {[llength $d_path] == 1} {
+                set d_levels [get_property LOGIC_LEVELS $d_path]
+            }
+        }
         foreach pin_name {D CE R S} {
             set pins [get_pins -quiet ${cell}/${pin_name}]
             if {[llength $pins] == 0} {continue}
@@ -79,6 +88,7 @@ proc ::r54_hg::_prep_tag {experiment} {
             }
         }
         if {$bit_has_zeroize} {incr zeroize_bits}
+        _log "ROUND54_HG_PREP_TAG_BIT stage=$stage cell=$cell ref=[get_property REF_NAME $cell] pins={[get_pins -quiet -of_objects $cell -filter {DIRECTION == IN}]} d_levels=$d_levels loc=[get_property LOC $cell] bel=[get_property BEL $cell]"
     }
     _log "ROUND54_HG_PREP_TAG experiment=$experiment cells=[llength $cells] zeroize_bits=$zeroize_bits zeroize_pin_paths=$zeroize_pin_paths zseq_in_reset_cone=$zseq_in_reset_cone pins={$pin_distribution}"
     if {$zeroize_bits != 5} {
@@ -117,7 +127,7 @@ proc ::r54_hg::_run_body {experiment stage nested_audit_file} {
     }
     # Every Round54 experiment is based on the retained R53-C architecture.
     set metrics [::r53_hg::run C $stage $nested_audit_file]
-    _prep_tag $experiment
+    _prep_tag $experiment $stage
     _ciphertext_structure $experiment $stage
     _log "ROUND54_HARD_GATE_PASS experiment=$experiment stage=$stage"
     return $metrics
