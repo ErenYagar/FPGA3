@@ -11,15 +11,19 @@ set ::r54_reports::script_dir [file dirname [file normalize [info script]]]
 source [file join $::r54_reports::script_dir round53_reports.tcl]
 source [file join $::r54_reports::script_dir round54_path_families.tcl]
 
-proc ::r54_reports::_write_design_analysis {path} {
+proc ::r54_reports::_write_design_analysis {stage path} {
     if {[llength [info commands report_design_analysis]] == 0} {
         set channel [open $path w]
         puts $channel "UNSUPPORTED: report_design_analysis"
         close $channel
         return
     }
-    report_design_analysis -logic_level_distribution -congestion \
-        -file $path
+    if {$stage eq "synth"} {
+        report_design_analysis -logic_level_distribution -file $path
+    } else {
+        report_design_analysis -logic_level_distribution -congestion \
+            -file $path
+    }
 }
 
 proc ::r54_reports::run {stage experiment report_dir} {
@@ -38,7 +42,7 @@ proc ::r54_reports::run {stage experiment report_dir} {
     set metrics [::r53_reports::run $stage C $report_dir]
     set prefix [file join $report_dir \
         r54_[string tolower $experiment]_${stage}]
-    _write_design_analysis ${prefix}_design_analysis.rpt
+    _write_design_analysis $stage ${prefix}_design_analysis.rpt
     if {$stage eq "routed"} {
         set decoded [::r54_paths::run ${prefix}_internal]
         foreach key {setup_wns setup_tns setup_fep hold_whs hold_ths hold_fep} {
