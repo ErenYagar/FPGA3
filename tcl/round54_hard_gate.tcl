@@ -118,7 +118,25 @@ proc ::r54_hg::_ciphertext_structure {experiment stage} {
             incr ce_paths
         }
     }
-    _log "ROUND54_HG_CIPHERTEXT experiment=$experiment stage=$stage head_cells=[llength $head_cells] zeroize_to_ce=$ce_paths"
+    set we_cells [get_cells -hier -quiet -filter {
+        NAME =~ *u_ciphertext_fifo* && REF_NAME =~ RAM*32}]
+    set we_paths 0
+    foreach cell $we_cells {
+        set we [get_pins -quiet ${cell}/WE]
+        if {[llength $we] == 1 && [llength [get_timing_paths -quiet \
+                -from $zeroize_q -to $we -delay_type max -max_paths 1]] > 0} {
+            incr we_paths
+        }
+    }
+    _log "ROUND54_HG_CIPHERTEXT experiment=$experiment stage=$stage head_cells=[llength $head_cells] zeroize_to_ce=$ce_paths we_cells=[llength $we_cells] zeroize_to_we=$we_paths"
+    if {[string match "D*" $experiment]} {
+        if {$ce_paths >= [llength $head_cells]} {
+            _fail "R54-D did not reduce ciphertext head ZEROIZE/CE reachability"
+        }
+        if {[llength $we_cells] != 36 || $we_paths != 36} {
+            _fail "R54-D ciphertext LUTRAM WE structure changed: cells=[llength $we_cells] zeroize_paths=$we_paths expected=36"
+        }
+    }
 }
 
 proc ::r54_hg::_run_body {experiment stage nested_audit_file} {
