@@ -97,6 +97,10 @@ proc ::r54_paths::_source_net_info {cell} {
     return [list $net [llength $loads]]
 }
 
+proc ::r54_paths::_is_zeroize_source_name {name} {
+    return [regexp {(^|/)zeroize_pulse_o_reg(_replica(_[0-9]+)?)?$} $name]
+}
+
 proc ::r54_paths::_cone_flags {endpoint_pin} {
     set starts [all_fanin -quiet -flat -startpoints_only -to $endpoint_pin]
     set start_names [join $starts ";"]
@@ -104,7 +108,8 @@ proc ::r54_paths::_cone_flags {endpoint_pin} {
     set abort_clear 0
     set zseq 0
     foreach start $starts {
-        if {[string match "*zeroize_pulse_o_reg/C" $start]} {set zeroize 1}
+        set start_cell [file dirname $start]
+        if {[_is_zeroize_source_name $start_cell]} {set zeroize 1}
         if {[string match "*abort_queue_clear_reg/C" $start]} {set abort_clear 1}
         if {[string match "*zeroize_sequence_active_r_reg/C" $start]} {set zseq 1}
     }
@@ -114,7 +119,7 @@ proc ::r54_paths::_cone_flags {endpoint_pin} {
 proc ::r54_paths::_family {source_cell endpoint_cell endpoint_ref endpoint_pin_type flags} {
     set source_name [_safe_property $source_cell NAME]
     set endpoint_name [_safe_property $endpoint_cell NAME]
-    set source_zeroize [string match "*zeroize_pulse_o_reg" $source_name]
+    set source_zeroize [_is_zeroize_source_name $source_name]
     if {$source_zeroize && [string match "*u_ciphertext_fifo/out_data_q_reg*" $endpoint_name] &&
         $endpoint_ref eq "FDRE" && $endpoint_pin_type eq "CE"} {
         return "ciphertext_head_ce"
@@ -203,16 +208,25 @@ proc ::r54_paths::run {output_prefix} {
 
     set registers [all_registers]
     set paths [get_timing_paths -quiet -from $registers -to $registers \
-        -delay_type max -slack_lesser_than 0.0 -max_paths 2000 -nworst 1]
+        -delay_type max -max_paths 2000 -nworst 1]
+    if {[llength $paths] < 2000} {
+        error "ROUND54_PATHS: expected at least 2000 internal candidates, got [llength $paths]"
+    }
     set metrics [collect_metrics]
-    set decoded_tns [_sum_slack $paths]
-    if {[llength $paths] != [dict get $metrics setup_fep] ||
+    set failing_paths {}
+    foreach path $paths {
+        if {double([get_property SLACK $path]) < 0.0} {
+            lappend failing_paths $path
+        }
+    }
+    set decoded_tns [_sum_slack $failing_paths]
+    if {[llength $failing_paths] != [dict get $metrics setup_fep] ||
         abs($decoded_tns - [dict get $metrics setup_tns]) > 0.0005} {
-        error "ROUND54_PATHS: decoded collection does not cover all failures: decoded=[llength $paths]/$decoded_tns metrics=[dict get $metrics setup_fep]/[dict get $metrics setup_tns]"
+        error "ROUND54_PATHS: candidate collection does not cover all failures: decoded=[llength $failing_paths]/$decoded_tns metrics=[dict get $metrics setup_fep]/[dict get $metrics setup_tns]"
     }
 
     set channel [open $path_file w]
-    puts $channel [join {rank slack_ns startpoint_pin startpoint_cell startpoint_ref endpoint_pin endpoint_pin_type endpoint_cell endpoint_ref hierarchy logic_levels datapath_delay_ns logic_delay_ns net_delay_ns source_net source_physical_fanout source_loc source_bel source_clock_region endpoint_loc endpoint_bel endpoint_clock_region manhattan_xy source_zeroize cone_zeroize cone_abort_queue_clear cone_zseq family zeroize_class fanin_startpoints} "\t"]
+    puts $channel [join {rank slack_ns negative startpoint_pin startpoint_cell startpoint_ref endpoint_pin endpoint_pin_type endpoint_cell endpoint_ref hierarchy logic_levels datapath_delay_ns logic_delay_ns net_delay_ns source_net source_physical_fanout source_loc source_bel source_clock_region endpoint_loc endpoint_bel endpoint_clock_region manhattan_xy source_zeroize cone_zeroize cone_abort_queue_clear cone_zseq family zeroize_class fanin_startpoints} "\t"]
     set summary [dict create]
     set rank 0
     foreach path $paths {
@@ -229,7 +243,7 @@ proc ::r54_paths::run {output_prefix} {
         set family [_family $start_cell $endpoint_cell $endpoint_ref \
             $endpoint_pin_type $flags]
         set endpoint_name [_safe_property $endpoint_cell NAME]
-        set source_zeroize [string match "*zeroize_pulse_o_reg" \
+        set source_zeroize [_is_zeroize_source_name \
             [_safe_property $start_cell NAME]]
         set zeroize_class [expr {$source_zeroize ?
             [_zeroize_class $family $endpoint_pin_type $endpoint_name] : "NA"}]
@@ -246,12 +260,15 @@ proc ::r54_paths::run {output_prefix} {
         set levels [expr {double([get_property LOGIC_LEVELS $path])}]
         set logic_delay [expr {double([get_property DATAPATH_LOGIC_DELAY $path])}]
         set net_delay [expr {double([get_property DATAPATH_NET_DELAY $path])}]
-        _summary_add summary $family $slack $levels $logic_delay $net_delay
-        if {$source_zeroize} {
-            _summary_add summary "zeroize:$zeroize_class" $slack $levels \
-                $logic_delay $net_delay
+        set negative [expr {$slack < 0.0}]
+        if {$negative} {
+            _summary_add summary $family $slack $levels $logic_delay $net_delay
+            if {$source_zeroize} {
+                _summary_add summary "zeroize:$zeroize_class" $slack $levels \
+                    $logic_delay $net_delay
+            }
         }
-        set fields [list $rank $slack $start_pin \
+        set fields [list $rank $slack $negative $start_pin \
             [_safe_property $start_cell NAME] $start_ref $endpoint_pin \
             $endpoint_pin_type $endpoint_name $endpoint_ref $hierarchy $levels \
             [get_property DATAPATH_DELAY $path] $logic_delay $net_delay \
@@ -280,7 +297,7 @@ proc ::r54_paths::run {output_prefix} {
             [expr {[dict get $summary $family levels]/$count}] $ratio] "\t"]
     }
     close $channel
-    puts [format "ROUND54_PATHS_COMPLETE count=%d tns=%.3f path_file=%s summary_file=%s" \
-        [llength $paths] $decoded_tns $path_file $summary_file]
+    puts [format "ROUND54_PATHS_COMPLETE candidates=%d negative_count=%d tns=%.3f path_file=%s summary_file=%s" \
+        [llength $paths] [llength $failing_paths] $decoded_tns $path_file $summary_file]
     return $metrics
 }
