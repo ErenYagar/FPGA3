@@ -46,13 +46,90 @@ proc ::r54_hg::_zeroize_driver {} {
     return [list $cell $q $net]
 }
 
+proc ::r54_hg::_pin_net {cell pin_name} {
+    set pin [get_pins -quiet ${cell}/${pin_name}]
+    if {[llength $pin] == 0} {return ""}
+    return [_one [get_nets -quiet -of_objects $pin] "$cell/$pin_name net"]
+}
+
+proc ::r54_hg::_zeroize_sources {} {
+    set primary [lindex [_zeroize_driver] 0]
+    set replicas [get_cells -hier -quiet -filter {
+        NAME =~ u_registers/zeroize_pulse_o_reg_replica* && REF_NAME =~ FD*}]
+    set sources [concat [list $primary] $replicas]
+
+    set primary_d [get_pins -quiet ${primary}/D]
+    set primary_d_net [_one [get_nets -quiet -of_objects $primary_d] \
+        "primary ZEROIZE D net"]
+    set primary_d_driver_pin [_one [get_pins -quiet -leaf \
+        -of_objects $primary_d_net -filter {DIRECTION == OUT}] \
+        "primary ZEROIZE D driver"]
+    set primary_d_driver [_one [get_cells -quiet -of_objects \
+        $primary_d_driver_pin] "primary ZEROIZE D driver cell"]
+    set primary_d_ref [get_property REF_NAME $primary_d_driver]
+    set primary_d_init [get_property INIT $primary_d_driver]
+    set primary_d_starts [lsort [all_fanin -quiet -flat \
+        -startpoints_only -to $primary_d]]
+
+    set index 0
+    foreach source $sources {
+        if {[get_property REF_NAME $source] ne "FDRE" ||
+            [get_property INIT $source] ne [get_property INIT $primary]} {
+            _fail "ZEROIZE source $source primitive/INIT differs from primary"
+        }
+        foreach pin_name {C CE R S} {
+            if {[_pin_net $source $pin_name] ne
+                [_pin_net $primary $pin_name]} {
+                _fail "ZEROIZE source $source $pin_name net differs from primary"
+            }
+        }
+        set d_pin [get_pins -quiet ${source}/D]
+        set d_net [_one [get_nets -quiet -of_objects $d_pin] \
+            "$source D net"]
+        set d_driver_pin [_one [get_pins -quiet -leaf -of_objects $d_net \
+            -filter {DIRECTION == OUT}] "$source D driver"]
+        set d_driver [_one [get_cells -quiet -of_objects $d_driver_pin] \
+            "$source D driver cell"]
+        set d_starts [lsort [all_fanin -quiet -flat \
+            -startpoints_only -to $d_pin]]
+        if {[get_property REF_NAME $d_driver] ne $primary_d_ref ||
+            [get_property INIT $d_driver] ne $primary_d_init ||
+            $d_starts ne $primary_d_starts} {
+            _fail "ZEROIZE source $source D cone is not equivalent to primary"
+        }
+        set q [get_pins -quiet ${source}/Q]
+        set net [_one [get_nets -quiet -of_objects $q] "$source Q net"]
+        set loads [get_pins -quiet -leaf -of_objects $net \
+            -filter {DIRECTION == IN}]
+        set role [expr {$source eq $primary ? "primary" : "replica"}]
+        _log "ROUND54_HG_ZEROIZE_SOURCE index=$index role=$role cell=$source ref=FDRE d_driver=$d_driver d_ref=$primary_d_ref d_init=$primary_d_init loc=[get_property LOC $source] bel=[get_property BEL $source] net=$net fanout=[llength $loads] loads={$loads}"
+        incr index
+    }
+    _log "ROUND54_HG_ZEROIZE_REPLICAS count=[llength $replicas] sources={$sources}"
+    return $sources
+}
+
+proc ::r54_hg::_logical_zeroize_reaches {sources pin} {
+    set starts [all_fanin -quiet -flat -startpoints_only -to $pin]
+    foreach source $sources {
+        set c [get_pins -quiet ${source}/C]
+        if {$c in $starts} {return 1}
+        set q [get_pins -quiet ${source}/Q]
+        if {[llength [get_timing_paths -quiet -from $q -to $pin \
+                -delay_type max -max_paths 1 -nworst 1]] > 0} {
+            return 1
+        }
+    }
+    return 0
+}
+
 proc ::r54_hg::_prep_tag {experiment stage} {
     set cells [get_cells -hier -quiet \
         -filter {NAME =~ *prep_tag_bytes_reg* && REF_NAME =~ FD*}]
     if {[llength $cells] != 5} {
         _fail "prep_tag mapped cell count is [llength $cells], expected 5"
     }
-    set zeroize_q [lindex [_zeroize_driver] 1]
+    set zeroize_sources [_zeroize_sources]
     set zeroize_bits 0
     set zeroize_pin_paths 0
     set zseq_in_reset_cone 0
@@ -73,9 +150,7 @@ proc ::r54_hg::_prep_tag {experiment stage} {
             if {[llength $pins] == 0} {continue}
             dict incr pin_distribution $pin_name
             set pin [lindex $pins 0]
-            set paths [get_timing_paths -quiet -from $zeroize_q -to $pin \
-                -delay_type max -max_paths 10 -nworst 1]
-            if {[llength $paths] > 0} {
+            if {[_logical_zeroize_reaches $zeroize_sources $pin]} {
                 incr zeroize_pin_paths
                 set bit_has_zeroize 1
             }
@@ -109,12 +184,12 @@ proc ::r54_hg::_ciphertext_structure {experiment stage} {
     if {[llength $head_cells] == 0} {
         _fail "ciphertext FIFO head registers are missing"
     }
-    set zeroize_q [lindex [_zeroize_driver] 1]
+    set zeroize_sources [_zeroize_sources]
     set ce_paths 0
     foreach cell $head_cells {
         set ce [get_pins -quiet ${cell}/CE]
-        if {[llength $ce] == 1 && [llength [get_timing_paths -quiet \
-                -from $zeroize_q -to $ce -delay_type max -max_paths 1]] > 0} {
+        if {[llength $ce] == 1 &&
+            [_logical_zeroize_reaches $zeroize_sources $ce]} {
             incr ce_paths
         }
     }
@@ -123,8 +198,8 @@ proc ::r54_hg::_ciphertext_structure {experiment stage} {
     set we_paths 0
     foreach cell $we_cells {
         set we [get_pins -quiet ${cell}/WE]
-        if {[llength $we] == 1 && [llength [get_timing_paths -quiet \
-                -from $zeroize_q -to $we -delay_type max -max_paths 1]] > 0} {
+        if {[llength $we] == 1 &&
+            [_logical_zeroize_reaches $zeroize_sources $we]} {
             incr we_paths
         }
     }
