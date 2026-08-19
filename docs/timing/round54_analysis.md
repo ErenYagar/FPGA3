@@ -176,3 +176,72 @@ its synth DCP is
 An explicit-FDRE simulation run before the behavioral simulation branch was
 stopped after excessive idle self-assignment events; the final source removed
 those simulation-only events and then passed the full regression.
+
+### R54-E forced ZEROIZE replication (not promoted)
+
+R54-E opened the immutable retained-C placed checkpoint and applied
+`phys_opt_design -force_replication_on_nets` only to the exact
+`u_registers/zeroize_pulse` net.  Before the command the primary FDRE was at
+`SLICE_X32Y122/DFF`, had fanout 342, and had no replicas.  The command created
+nine equivalent FDRE replicas (18 cells including their D LUTs).  The
+post-replication placed checkpoint SHA-256 is
+`7331BBFA4CF87A408370D549A26BF7321AD037FCF2F1B5F783A088686D0C59C9`.
+
+| Source | LOC/BEL | Fanout |
+|---|---|---:|
+| primary | `SLICE_X32Y122/DFF` | 1 |
+| replica 0 | `SLICE_X32Y123/C5FF` | 273 |
+| replica 1 | `SLICE_X7Y136/AFF` | 19 |
+| replica 2 | `SLICE_X29Y127/CFF` | 16 |
+| replica 3 | `SLICE_X12Y138/BFF` | 2 |
+| replica 4 | `SLICE_X13Y142/AFF` | 1 |
+| replica 5 | `SLICE_X32Y137/AFF` | 10 |
+| replica 6 | `SLICE_X37Y133/AFF` | 16 |
+| replica 7 | `SLICE_X12Y138/CFF` | 2 |
+| replica 8 | `SLICE_X12Y138/DFF` | 2 |
+
+The fanouts sum to the original 342 loads.  The hard gate verifies every
+source's FDRE INIT, C/CE/R/S nets, D-driver primitive and INIT, D-cone
+startpoints, LOC/BEL, fanout, and complete load mapping.  No BUFG, LOC,
+Pblock, `DONT_TOUCH`, or `MAX_FANOUT` constraint was added.
+
+The replicated placed design estimated WNS `-0.211 ns`, TNS `-6.721 ns`, and
+FEP 79, with transient WHS `-0.142 ns`, THS `-0.953 ns`, and 24 hold failing
+endpoints.  The independent Explore route repaired hold and routed all 13,287
+nets without errors, but signoff setup regressed to WNS `-0.640 ns`, TNS
+`-76.238 ns`, and FEP 464.  The routed checkpoint SHA-256 is
+`66C18BB8B8C6774DE7B85A296E33BE428DE34E79C7FC6C8661F7295ECE962BD1`.
+WHS is `+0.051 ns`, THS is 0, and DRC/check-timing/security gates pass.
+Utilization is 8,595 LUTs, 7,305 FFs, and 311 control sets.
+
+The corrected path decoder recorded exactly 2,000 routed candidates and
+recomputed all 464 negative endpoints and `-76.238 ns` TNS exactly.  Replica
+launches dominate the new failures: ciphertext head CE is 133/-36.051 ns,
+ciphertext LUTRAM WE is 100/-13.416 ns, all direct ZEROIZE is 312/-62.182 ns,
+and round-key control is 41/-5.202 ns.  The decoder fix is commit `740f16c`;
+it changes reporting only and was validated by an audit-only run against the
+immutable routed hash.
+
+R54-E fails every setup promotion metric relative to retained C.  It is not a
+stable structural candidate, so the three remaining routing directives are
+not run.
+
+## Round54 disposition
+
+| Experiment | WNS (ns) | TNS (ns) | FEP | WHS (ns) | THS (ns) | Control sets | LUT | FF | Disposition |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| A | -0.523 | -26.673 | 273 | +0.051 | 0 | 309 | 8,586 | 7,296 | reproducible baseline |
+| B | -0.442 | -33.434 | 358 | +0.052 | 0 | 407 | 8,569 | rejected |
+| C | not routed | not routed | not routed | not routed | not routed | 367 placed | 8,548 | 7,303 | remap absent; stopped |
+| D | -0.457 | -40.010 | 339 | +0.050 | 0 | 376 | 8,735 | 7,300 | rejected |
+| E | -0.640 | -76.238 | 464 | +0.051 | 0 | 311 | 8,595 | 7,305 | rejected |
+| combined | not run | not run | not run | not run | not run | not run | not run | not run | B/C/D failed promotion |
+
+No isolated structural experiment passes the required three setup metrics.
+Consequently no B/C+D combination, final-mile directive sweep, manual pulse
+FF study, or 47,250-vector final-candidate NIST run is eligible.  Retained
+R53-C remains the best legal implementation, but internal 200 MHz timing is
+open; Round54 final internal PASS is **NO**.
+
+PartPin is also **NO**.  No approved production map matches the retained
+placed-DCP identity, and the Round46 maps remain discovery candidates only.

@@ -103,3 +103,25 @@ signatures and AES II 10/12/14, Round48/49, all Round53 regressions, NIST525 at
 145,808 cycles, and NIST5255 at 1,615,588 cycles.  It is still rejected because
 routed TNS and FEP are worse than retained C.  No D RTL is eligible for the
 integration branch or a structural combination.
+
+## R54-E audit (equivalent physical replicas, timing promotion fail)
+
+R54-E changes no RTL, clock, exception, or protocol behavior.  Its nine
+physical ZEROIZE replicas are accepted by the audit only because each matches
+the primary FDRE's INIT, clock, CE, reset/set, D-driver LUT primitive and INIT,
+and complete D-cone startpoint set.  The recorded primary-plus-replica fanouts
+sum to all 342 original loads, and the routed audit retains direct logical
+ZEROIZE reachability to all five prep-tag bits, 134 ciphertext head CE cones,
+and 180 transformed LUTRAM WE pins.  Sequence/cardinality, CDC, latch,
+multiple-driver, route, DRC, and hold gates all pass.
+
+Because the source is byte-identical to retained R53-C, the existing smoke,
+throughput, Round48/49/53, ZEROIZE, NIST525, and NIST5255 signatures are
+inherited.  The routed setup result is nevertheless worse on WNS, TNS, and
+FEP, so no physical checkpoint or replica mapping is promoted.  No
+combination or final routing sweep can inherit E.
+
+Round54 ends without an internal-closure candidate.  The full 47,250-vector
+NIST run is reserved for a closed final candidate and is therefore not run.
+PartPin remains NO because there is no approved, identity-matched production
+map for the retained placed checkpoint.
