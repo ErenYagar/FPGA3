@@ -127,3 +127,52 @@ five logic levels.  The placed control-set count increased from 309 to 367;
 utilization was 8,548 LUTs and 7,303 FFs.  Although the transient placed setup
 estimate was positive (`+0.101 ns`), the hard gate rejected the structural
 result before routing.  No C route or B+C combination exists.
+
+### R54-D ciphertext FIFO logical clear (not promoted)
+
+R54-D set `CLEAR_HEAD_ON_CLEAR=0` only on `u_ciphertext_fifo`.  Global reset
+still scrubs the 134-bit head; logical clear atomically clears FIFO count and
+pointers while the physically stale head remains unobservable.  The final
+synthesis implementation uses 134 explicit FDREs with CE tied high and moves
+the hold behavior into D, eliminating the raw-ZEROIZE CE cone without changing
+the 4x134 LUTRAM body.  The checkpoint hashes are:
+
+| Stage | SHA-256 |
+|---|---|
+| synth | `59A36389DD7CB6D8CFA3610A511C1D98095839CA1C54E9B98B874CDE8E1F6456` |
+| placed | `3D522696725B18961F73F84C279BBF4BE4DB5A4B536A88D7224412BA62D2D792` |
+| routed | `2C68A17238F92D0E94825A45B52E702885B17EBEFA2F293A968B306BFE688CC6` |
+
+The synth and placed gates found 134 head FDREs, zero raw-ZEROIZE reachability
+to their CE pins, and 180 LUTRAM WE pins with logical raw-ZEROIZE reachability.
+Baseline `AggressiveExplore` produced two equivalent ZEROIZE FF replicas.  The
+gate verifies their FDRE INIT, clock, CE, reset, D-driver primitive/INIT, and
+all D-cone startpoints against the primary.  Routed mapping was primary fanout
+359 at `SLICE_X35Y91/BFF`, replica fanout 21 at `SLICE_X35Y85/DFF`, and
+replica fanout 1 at `SLICE_X36Y111/A5FF`.
+
+Placement reached setup WNS `+0.024 ns`, TNS 0, and FEP 0, with transient hold
+WHS `-0.059 ns`.  The independent Explore route repaired hold to WHS
+`+0.050 ns` and THS 0, routed all 13,412 nets, and passed route, DRC, CDC,
+latch, multiple-driver, and security gates.  Routed setup was WNS
+`-0.457 ns`, TNS `-40.010 ns`, and FEP 339.  The direct ciphertext negative
+family fell from 123/-14.028 ns to 0/0, but the round-key family grew to
+109/-19.039 ns; direct ZEROIZE failures were 9/-0.370 ns.  Utilization was
+8,735 LUTs, 7,300 FFs, and 376 control sets.
+
+All functional tests passed, including the exact smoke/throughput signatures,
+Round48/49, all Round53 ZEROIZE/stall/capacity tests, directed abort and
+ZEROIZE clear, clear priority, immediate refill, stale-head non-observability,
+global scrub, NIST525, and NIST5255.  D nevertheless fails promotion because
+TNS magnitude and FEP regress.  No D combination or D final-mile directive is
+eligible.
+
+Two stopped D variants are retained as negative evidence.  Commit `08023da`
+left the 134-bit head CE cone intact; its synth DCP is
+`5E2E2F4E04F061DF316BC05F8B966A46D73239DA843B0CB46C5444C94F77C8B7`.
+Commit `e0c90b8` isolated pop-ready from clear but again left all 134 CE paths;
+its synth DCP is
+`B021CF755699D75D3004CBB9C25DB3DB1BF223640524456701DA8FF7488E7F1E`.
+An explicit-FDRE simulation run before the behavioral simulation branch was
+stopped after excessive idle self-assignment events; the final source removed
+those simulation-only events and then passed the full regression.

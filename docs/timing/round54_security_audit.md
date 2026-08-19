@@ -79,3 +79,27 @@ Its physical experiment nevertheless failed the mandatory structural gate:
 the five prep-tag R pins remained present, and ZEROIZE also entered their new
 five-level D cones.  Routing was intentionally not run.  This experiment is
 rejected and contributes no netlist or property to a combination.
+
+## R54-D audit (functional pass, timing promotion fail)
+
+The ciphertext FIFO always clears count and pointer state, so `out_valid`
+drops on the clear edge.  With `CLEAR_HEAD_ON_CLEAR=0`, logical clear alone
+does not scrub the head bits; global reset still does.  The directed test
+proves abort clear, raw-ZEROIZE clear, clear-over-push/pop priority, immediate
+empty refill, no stale-head fire, and global scrub.  Existing public-valid and
+abort sequencing gates also pass, so a retained head value cannot be observed
+or retired.
+
+The routed DCP contains 134 always-enabled ciphertext head FDREs and no
+logical ZEROIZE path to their CE pins.  All 180 LUTRAM WE pins retain logical
+ZEROIZE reachability.  Two physical ZEROIZE replicas created by baseline
+phys-opt are accepted only after strict equivalence checks against the primary
+FF and its D cone; the audit records their LOC/BEL, fanout, and every load.
+The routed design has no hold, CDC, route, DRC, latch, multiple-driver, or
+sequence/cardinality regression.
+
+The RTL-changing candidate passed smoke at 8,364 cycles, all six throughput
+signatures and AES II 10/12/14, Round48/49, all Round53 regressions, NIST525 at
+145,808 cycles, and NIST5255 at 1,615,588 cycles.  It is still rejected because
+routed TNS and FEP are worse than retained C.  No D RTL is eligible for the
+integration branch or a structural combination.
