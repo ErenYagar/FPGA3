@@ -263,6 +263,9 @@ if {[catch {
         if {[string match "E*" $experiment]} {
             set flow_stage force_zeroize_replication
             ::r54_force_zeroize_replication
+            set flow_stage audit_replicated_placed
+            set final_metrics [::r54_audit $experiment placed \
+                [file join $output_dir reports_after_replication]]
         }
         set placed_dcp [file join $checkpoint_dir ${top_name}_placed.dcp]
         write_checkpoint $placed_dcp
