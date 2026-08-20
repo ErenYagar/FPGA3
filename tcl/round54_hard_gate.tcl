@@ -224,8 +224,9 @@ proc ::r54_hg::_prep_tag {experiment stage} {
     if {$zeroize_bits != 5} {
         _fail "raw ZEROIZE reaches $zeroize_bits prep_tag bits, expected 5"
     }
-    if {[string match "B*" $experiment] && $zseq_in_reset_cone} {
-        _fail "R54-B prep_tag clear cone still contains zseq decode"
+    if {([string match "B*" $experiment] || [string match "I*" $experiment]) &&
+        $zseq_in_reset_cone} {
+        _fail "R54-$experiment prep_tag clear cone still contains zseq decode"
     }
     if {[string match "C*" $experiment] && $stage ne "synth" &&
         [dict exists $pin_distribution R]} {
