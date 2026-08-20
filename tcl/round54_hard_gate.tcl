@@ -209,6 +209,8 @@ proc ::r54_hg::_prep_tag {experiment stage} {
     set sources_by_bit [dict create]
     foreach cell $cells {
         if {![regexp {^(.*gen_prep_tag_bytes\[([0-4])\]\.prep_tag_bytes_reg)(.*)$} \
+                $cell match primary_name bit suffix] &&
+            ![regexp {^(.*prep_tag_bytes_reg\[([0-4])\])(.*)$} \
                 $cell match primary_name bit suffix]} {
             _fail "unrecognized prep_tag mapped cell '$cell'"
         }
