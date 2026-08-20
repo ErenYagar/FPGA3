@@ -123,21 +123,23 @@ proc ::r54_hg::_logical_zeroize_reaches {sources pin} {
     return 0
 }
 
-proc ::r54_hg::_input_mode_sources {stage} {
+proc ::r54_hg::_input_mode_sources {experiment stage} {
+    set expected_replicas [expr {[string match "GI*" $experiment] ? 1 : 2}]
+    set expected_loads [expr {[string match "GI*" $experiment] ? 36 : 40}]
     set primary [_one [get_cells -quiet {u_core/input_field_mode_r_reg[2]}] \
         "input-mode driver"]
     set replicas [get_cells -hier -quiet -filter {
         NAME =~ {u_core/input_field_mode_r_reg[2]_replica*} &&
         REF_NAME == FDRE}]
-    if {$stage eq "routed" && [llength $replicas] != 2} {
-        _fail "R54-G routed input-mode replica count is [llength $replicas], expected 2"
+    if {$stage eq "routed" && [llength $replicas] != $expected_replicas} {
+        _fail "R54-$experiment routed input-mode replica count is [llength $replicas], expected $expected_replicas"
     }
     if {[llength $replicas] == 0} {
         _log "ROUND54_HG_INPUT_MODE_REPLICAS stage=$stage count=0"
         return
     }
-    if {[llength $replicas] != 2} {
-        _fail "R54-G input-mode replica count is [llength $replicas], expected 0 or 2"
+    if {[llength $replicas] != $expected_replicas} {
+        _fail "R54-$experiment input-mode replica count is [llength $replicas], expected 0 or $expected_replicas"
     }
 
     set primary_d [get_pins -quiet ${primary}/D]
@@ -172,10 +174,10 @@ proc ::r54_hg::_input_mode_sources {stage} {
         _log "ROUND54_HG_INPUT_MODE_SOURCE index=$index role=$role cell=$source ref=FDRE loc=[get_property LOC $source] bel=[get_property BEL $source] net=$net fanout=[llength $loads] loads={$loads}"
         incr index
     }
-    if {$total_fanout != 40} {
-        _fail "R54-G input-mode mapped load count is $total_fanout, expected 40"
+    if {$total_fanout != $expected_loads} {
+        _fail "R54-$experiment input-mode mapped load count is $total_fanout, expected $expected_loads"
     }
-    _log "ROUND54_HG_INPUT_MODE_REPLICAS stage=$stage count=2 total_fanout=$total_fanout sources={$sources}"
+    _log "ROUND54_HG_INPUT_MODE_REPLICAS stage=$stage count=$expected_replicas total_fanout=$total_fanout sources={$sources}"
 }
 
 proc ::r54_hg::_prep_tag {experiment stage} {
@@ -280,7 +282,7 @@ proc ::r54_hg::_run_body {experiment stage nested_audit_file} {
     _prep_tag $experiment $stage
     _ciphertext_structure $experiment $stage
     if {[string match "G*" $experiment]} {
-        _input_mode_sources $stage
+        _input_mode_sources $experiment $stage
     }
     _log "ROUND54_HARD_GATE_PASS experiment=$experiment stage=$stage"
     return $metrics
