@@ -52,6 +52,21 @@ proc ::r54_hg::_pin_net {cell pin_name} {
     return [_one [get_nets -quiet -of_objects $pin] "$cell/$pin_name net"]
 }
 
+proc ::r54_hg::_pin_signature {cell pin_name} {
+    set pins [get_pins -quiet ${cell}/${pin_name}]
+    if {[llength $pins] == 0} {return [list absent]}
+    set pin [_one $pins "$cell/$pin_name pin"]
+    set net [_one [get_nets -quiet -of_objects $pin] "$cell/$pin_name net"]
+    set driver_pin [_one [get_pins -quiet -leaf -of_objects $net \
+        -filter {DIRECTION == OUT}] "$cell/$pin_name driver"]
+    set driver [_one [get_cells -quiet -of_objects $driver_pin] \
+        "$cell/$pin_name driver cell"]
+    set driver_init ""
+    catch {set driver_init [get_property INIT $driver]}
+    set starts [lsort [all_fanin -quiet -flat -startpoints_only -to $pin]]
+    return [list present [get_property REF_NAME $driver] $driver_init $starts]
+}
+
 proc ::r54_hg::_zeroize_sources {} {
     set primary [lindex [_zeroize_driver] 0]
     set replicas [get_cells -hier -quiet -filter {
@@ -190,52 +205,117 @@ proc ::r54_hg::_input_mode_sources {experiment stage} {
 proc ::r54_hg::_prep_tag {experiment stage} {
     set cells [get_cells -hier -quiet \
         -filter {NAME =~ *prep_tag_bytes_reg* && REF_NAME =~ FD*}]
-    if {[llength $cells] != 5} {
-        _fail "prep_tag mapped cell count is [llength $cells], expected 5"
+    set primary_by_bit [dict create]
+    set sources_by_bit [dict create]
+    foreach cell $cells {
+        if {![regexp {^(.*gen_prep_tag_bytes\[([0-4])\]\.prep_tag_bytes_reg)(.*)$} \
+                $cell match primary_name bit suffix]} {
+            _fail "unrecognized prep_tag mapped cell '$cell'"
+        }
+        if {$suffix eq ""} {
+            if {[dict exists $primary_by_bit $bit]} {
+                _fail "prep_tag bit $bit has more than one canonical cell"
+            }
+            dict set primary_by_bit $bit $cell
+        } elseif {![string match "_replica*" $suffix]} {
+            _fail "prep_tag bit $bit has unexpected physical source '$cell'"
+        }
+        dict lappend sources_by_bit $bit $cell
+    }
+    if {[dict size $primary_by_bit] != 5 || [dict size $sources_by_bit] != 5} {
+        _fail "prep_tag canonical/source bit counts are [dict size $primary_by_bit]/[dict size $sources_by_bit], expected 5/5; cells={$cells}"
     }
     set zeroize_sources [_zeroize_sources]
     set zeroize_bits 0
     set zeroize_pin_paths 0
     set zseq_in_reset_cone 0
     set pin_distribution [dict create]
-    foreach cell $cells {
-        set bit_has_zeroize 0
-        set d_levels "NA"
-        set d_pin [get_pins -quiet ${cell}/D]
-        if {[llength $d_pin] == 1} {
-            set d_path [get_timing_paths -quiet -to $d_pin -delay_type max \
-                -max_paths 1 -nworst 1]
-            if {[llength $d_path] == 1} {
-                set d_levels [get_property LOGIC_LEVELS $d_path]
-            }
+    set mapped_loads [dict create]
+    set replica_count 0
+    for {set bit 0} {$bit < 5} {incr bit} {
+        if {![dict exists $primary_by_bit $bit] ||
+            ![dict exists $sources_by_bit $bit]} {
+            _fail "prep_tag bit $bit canonical/source mapping is missing"
         }
-        foreach pin_name {D CE R S} {
-            set pins [get_pins -quiet ${cell}/${pin_name}]
-            if {[llength $pins] == 0} {continue}
-            dict incr pin_distribution $pin_name
-            set pin [lindex $pins 0]
-            if {[_logical_zeroize_reaches $zeroize_sources $pin]} {
-                incr zeroize_pin_paths
-                set bit_has_zeroize 1
+        set primary [dict get $primary_by_bit $bit]
+        set replicas {}
+        foreach source [dict get $sources_by_bit $bit] {
+            if {$source ne $primary} {lappend replicas $source}
+        }
+        incr replica_count [llength $replicas]
+        set reference_signatures [dict create]
+        set bit_all_zeroize 1
+        foreach cell [concat [list $primary] [lsort $replicas]] {
+            if {[get_property REF_NAME $cell] ne "FDRE" ||
+                [get_property INIT $cell] ne "1'b0"} {
+                _fail "prep_tag bit $bit source '$cell' is not FDRE INIT=0"
             }
-            if {$pin_name in {R S}} {
-                foreach object [all_fanin -quiet -flat -to $pin] {
-                    if {[string match "*zeroize_sequence_active_r_reg*" $object]} {
-                        set zseq_in_reset_cone 1
+            set c_pin [_one [get_pins -quiet ${cell}/C] "$cell/C pin"]
+            set clock [_one [get_clocks -quiet -of_objects $c_pin] \
+                "$cell/C clock"]
+            if {$clock ne "aclk"} {
+                _fail "prep_tag bit $bit source '$cell' clock is '$clock'"
+            }
+            set bit_has_zeroize 0
+            foreach pin_name {C D CE R S} {
+                if {$pin_name eq "C"} {
+                    set signature [list clock [_pin_net $cell C]]
+                } else {
+                    set signature [_pin_signature $cell $pin_name]
+                }
+                if {$cell eq $primary} {
+                    dict set reference_signatures $pin_name $signature
+                } elseif {$signature ne [dict get $reference_signatures $pin_name]} {
+                    _fail "prep_tag bit $bit replica '$cell' $pin_name signature differs from canonical source"
+                }
+                set pins [get_pins -quiet ${cell}/${pin_name}]
+                if {[llength $pins] == 0} {continue}
+                dict incr pin_distribution $pin_name
+                set pin [lindex $pins 0]
+                if {[_logical_zeroize_reaches $zeroize_sources $pin]} {
+                    incr zeroize_pin_paths
+                    set bit_has_zeroize 1
+                }
+                if {$pin_name in {R S}} {
+                    foreach object [all_fanin -quiet -flat -to $pin] {
+                        if {[string match "*zeroize_sequence_active_r_reg*" $object]} {
+                            set zseq_in_reset_cone 1
+                        }
                     }
                 }
             }
+            if {!$bit_has_zeroize} {set bit_all_zeroize 0}
+            set q_pin [_one [get_pins -quiet ${cell}/Q] "$cell/Q pin"]
+            set q_net [_one [get_nets -quiet -of_objects $q_pin] "$cell/Q net"]
+            set q_loads [get_pins -quiet -leaf -of_objects $q_net \
+                -filter {DIRECTION == IN}]
+            if {[llength $q_loads] == 0} {
+                _fail "prep_tag bit $bit source '$cell' has no mapped loads"
+            }
+            foreach load $q_loads {
+                if {[dict exists $mapped_loads $load]} {
+                    _fail "prep_tag load '$load' is mapped to more than one source"
+                }
+                dict set mapped_loads $load $cell
+            }
+            set d_levels "NA"
+            set d_path [get_timing_paths -quiet -to [get_pins -quiet ${cell}/D] \
+                -delay_type max -max_paths 1 -nworst 1]
+            if {[llength $d_path] == 1} {
+                set d_levels [get_property LOGIC_LEVELS $d_path]
+            }
+            set role [expr {$cell eq $primary ? "primary" : "replica"}]
+            _log "ROUND54_HG_PREP_TAG_SOURCE stage=$stage bit=$bit role=$role cell=$cell ref=FDRE net=$q_net fanout=[llength $q_loads] loads={$q_loads} d_levels=$d_levels loc=[get_property LOC $cell] bel=[get_property BEL $cell]"
         }
-        if {$bit_has_zeroize} {incr zeroize_bits}
-        _log "ROUND54_HG_PREP_TAG_BIT stage=$stage cell=$cell ref=[get_property REF_NAME $cell] pins={[get_pins -quiet -of_objects $cell -filter {DIRECTION == IN}]} d_levels=$d_levels loc=[get_property LOC $cell] bel=[get_property BEL $cell]"
+        if {$bit_all_zeroize} {incr zeroize_bits}
     }
-    _log "ROUND54_HG_PREP_TAG experiment=$experiment cells=[llength $cells] zeroize_bits=$zeroize_bits zeroize_pin_paths=$zeroize_pin_paths zseq_in_reset_cone=$zseq_in_reset_cone pins={$pin_distribution}"
+    _log "ROUND54_HG_PREP_TAG experiment=$experiment canonical_bits=5 sources=[llength $cells] replica_count=$replica_count mapped_loads=[dict size $mapped_loads] zeroize_bits=$zeroize_bits zeroize_pin_paths=$zeroize_pin_paths zseq_in_reset_cone=$zseq_in_reset_cone pins={$pin_distribution}"
     if {$zeroize_bits != 5} {
         _fail "raw ZEROIZE reaches $zeroize_bits prep_tag bits, expected 5"
     }
     if {([string match "B*" $experiment] || [string match "I*" $experiment] ||
          [string match "GI*" $experiment] || [string match "J*" $experiment] ||
-         [string match "EGI*" $experiment]) &&
+         [string match "EGI*" $experiment] || [string match "*K*" $experiment]) &&
         $zseq_in_reset_cone} {
         _fail "R54-$experiment prep_tag clear cone still contains zseq decode"
     }
