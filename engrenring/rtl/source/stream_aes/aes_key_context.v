@@ -41,6 +41,8 @@ reg         ready_r;
 reg [1:0]   key_size_r;
 reg [3:0]   round_count_r;
 reg [1919:0] round_keys_r;
+(* keep = "true", equivalent_register_removal = "no" *)
+reg [59:0]  round_key_word_we_r;
 
 reg [2:0]  state_r;
 reg [3:0]  nk_r;
@@ -64,6 +66,8 @@ reg [31:0] window_w4_r;
 reg [31:0] window_w5_r;
 reg [31:0] window_w6_r;
 reg [31:0] window_w7_r;
+integer round_key_round_iter;
+integer round_key_word_iter;
 
 wire [31:0] previous_word_w;
 wire [31:0] nk_back_word_w;
@@ -74,7 +78,6 @@ wire [7:0]  sbox_b3_w;
 wire [31:0] sbox_word_w;
 wire [31:0] normal_new_word_w;
 wire [31:0] sbox_new_word_w;
-wire [10:0] flat_round_base_w;
 wire        sbox_rst_n_w;
 
 function [7:0] xtime;
@@ -92,8 +95,6 @@ assign sbox_word_w = {sbox_b0_w, sbox_b1_w, sbox_b2_w, sbox_b3_w};
 assign sbox_new_word_w = nk_back_word_w ^ sbox_word_w ^
                          (sbox_uses_rcon_r ? {rcon_r, 24'd0} : 32'd0);
 
-// word_index is at most 59, so word_index[5:2] is the round number.
-assign flat_round_base_w = {word_index_r[5:2], 7'b0};
 assign sbox_rst_n_w = rst_n && !zeroize;
 
 // A registered S-box makes the key-expansion lookup an explicit pipeline
@@ -139,6 +140,7 @@ begin
         ready_r           <= 1'b0;
         key_size_r        <= KEY_SIZE_256;
         round_count_r     <= 4'd0;
+        round_key_word_we_r <= 60'd0;
         // Round-key payload is invalid while ready_r=0; omit ordinary reset
         // to avoid a 1920-bit synchronous-reset fanout.  Explicit ZEROIZE
         // below still scrubs every key bit.
@@ -169,6 +171,7 @@ begin
         key_size_r        <= KEY_SIZE_256;
         round_count_r     <= 4'd0;
         round_keys_r      <= 1920'd0;
+        round_key_word_we_r <= 60'd0;
         state_r           <= ST_IDLE;
         nk_r              <= 4'd0;
         total_words_r     <= 7'd0;
@@ -191,6 +194,27 @@ begin
     end
     else
     begin
+        // The key-expansion FSM registers a one-hot write pulse one cycle
+        // before ST_STORE_WORD.  Each pulse drives only one 32-bit round-key
+        // word, keeping the FSM state bits out of the 1920 payload CEs while
+        // preserving the existing key-expansion latency.
+        round_key_word_we_r <= 60'd0;
+        for(round_key_round_iter = 0;
+            round_key_round_iter < 15;
+            round_key_round_iter = round_key_round_iter + 1)
+        begin
+            for(round_key_word_iter = 0;
+                round_key_word_iter < 4;
+                round_key_word_iter = round_key_word_iter + 1)
+            begin
+                if(round_key_word_we_r[round_key_round_iter*4 +
+                                       round_key_word_iter])
+                    round_keys_r[round_key_round_iter*128 +
+                                 (3-round_key_word_iter)*32 +: 32]
+                        <= generated_word_r;
+            end
+        end
+
         case(state_r)
             ST_IDLE:
             begin
@@ -303,6 +327,7 @@ begin
                 else
                 begin
                     generated_word_r <= normal_new_word_w;
+                    round_key_word_we_r <= 60'd1 << word_index_r;
                     state_r <= ST_STORE_WORD;
                 end
             end
@@ -316,6 +341,7 @@ begin
             ST_SBOX_CAPTURE:
             begin
                 generated_word_r <= sbox_new_word_w;
+                round_key_word_we_r <= 60'd1 << word_index_r;
 
                 if(sbox_uses_rcon_r)
                     rcon_r <= xtime(rcon_r);
@@ -355,18 +381,6 @@ begin
                         window_w6_r <= window_w7_r;
                         window_w7_r <= generated_word_r;
                     end
-                endcase
-
-                case(word_index_r[1:0])
-                    2'd0: round_keys_r[flat_round_base_w + 11'd96 +: 32]
-                              <= generated_word_r;
-                    2'd1: round_keys_r[flat_round_base_w + 11'd64 +: 32]
-                              <= generated_word_r;
-                    2'd2: round_keys_r[flat_round_base_w + 11'd32 +: 32]
-                              <= generated_word_r;
-                    default:
-                          round_keys_r[flat_round_base_w +: 32]
-                              <= generated_word_r;
                 endcase
 
                 if(word_index_r == (total_words_r - 7'd1))
