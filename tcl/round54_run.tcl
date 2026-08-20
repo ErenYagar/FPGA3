@@ -215,6 +215,20 @@ proc ::r54_force_zeroize_replication {} {
     phys_opt_design -force_replication_on_nets $net
 }
 
+proc ::r54_force_input_mode_replication {} {
+    set driver [get_cells -quiet {u_core/input_field_mode_r_reg[2]}]
+    if {[llength $driver] != 1 || [get_property REF_NAME $driver] ne "FDRE"} {
+        error "exact input-field-mode FDRE driver was not found"
+    }
+    set q [get_pins -quiet -of_objects $driver -filter {REF_PIN_NAME == Q}]
+    set net [get_nets -quiet -of_objects $q]
+    if {[llength $net] != 1 || $net ne {u_core/input_field_mode_r[2]}} {
+        error "exact input-field-mode net was not found: '$net'"
+    }
+    puts "ROUND54_FORCE_INPUT_MODE_REPLICATION driver=$driver net=$net fanout=[get_property FLAT_PIN_COUNT $net]"
+    phys_opt_design -force_replication_on_nets $net
+}
+
 set flow_stage initialize
 set final_metrics [dict create]
 if {[catch {
@@ -263,6 +277,13 @@ if {[catch {
         if {[string match "E*" $experiment]} {
             set flow_stage force_zeroize_replication
             ::r54_force_zeroize_replication
+            set flow_stage audit_replicated_placed
+            set final_metrics [::r54_audit $experiment placed \
+                [file join $output_dir reports_after_replication]]
+        }
+        if {[string match "G*" $experiment]} {
+            set flow_stage force_input_mode_replication
+            ::r54_force_input_mode_replication
             set flow_stage audit_replicated_placed
             set final_metrics [::r54_audit $experiment placed \
                 [file join $output_dir reports_after_replication]]
