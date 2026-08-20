@@ -306,11 +306,56 @@ proc ::r53_hg::_check_descriptor_token {} {
     if {[llength $old] != 0 || [llength $canonical] != 0} {
         _fail "obsolete descriptor/public-P registers reappeared"
     }
-    set pcore [_require_one $pcore "public_frames_idle_core register"]
-    if {[get_property REF_NAME $pcore] ne "FDSE" || [get_property INIT $pcore] ne "1'b1"} {
-        _fail "public_frames_idle_core register is not the sole FDSE INIT=1 mapping"
+    set pcore [_require_nonempty $pcore "public_frames_idle_core registers"]
+    set pcore_primary [_require_one \
+        [get_cells -quiet public_frames_idle_core_r_reg] \
+        "canonical public_frames_idle_core register"]
+    set reference_cones [dict create]
+    set mapped_loads [dict create]
+    set pcore_replicas {}
+    foreach source $pcore {
+        if {$source ne $pcore_primary} {lappend pcore_replicas $source}
     }
-    _log "ROUND53_HG_PUBLIC_P cell=$pcore ref=FDSE init=1'b1"
+    set source_index 0
+    foreach source [concat [list $pcore_primary] [lsort $pcore_replicas]] {
+        if {$source ne $pcore_primary &&
+            ![string match "${pcore_primary}_replica*" $source]} {
+            _fail "unexpected public_frames_idle_core replica name '$source'"
+        }
+        if {[get_property REF_NAME $source] ne "FDSE" ||
+            [get_property INIT $source] ne "1'b1"} {
+            _fail "public_frames_idle_core source '$source' is not FDSE INIT=1"
+        }
+        _clock_pin $source C PUBLIC_P
+        foreach pin_name {D CE S} {
+            set pin [_require_one [get_pins -quiet ${source}/${pin_name}] \
+                "PUBLIC_P $source $pin_name pin"]
+            set cone [lsort [all_fanin -flat -startpoints_only -to $pin]]
+            _require_nonempty $cone "PUBLIC_P $source $pin_name startpoints"
+            if {$source eq $pcore_primary} {
+                dict set reference_cones $pin_name $cone
+            } elseif {$cone ne [dict get $reference_cones $pin_name]} {
+                _fail "public_frames_idle_core replica '$source' $pin_name cone differs from canonical source; canonical={[dict get $reference_cones $pin_name]} replica={$cone}"
+            }
+        }
+        set q_pin [_require_one [get_pins -quiet ${source}/Q] \
+            "PUBLIC_P $source Q pin"]
+        set q_net [_require_one [get_nets -quiet -of_objects $q_pin] \
+            "PUBLIC_P $source Q net"]
+        set q_loads [_require_nonempty \
+            [get_pins -quiet -leaf -of_objects $q_net -filter {DIRECTION == IN}] \
+            "PUBLIC_P $source Q loads"]
+        foreach load $q_loads {
+            if {[dict exists $mapped_loads $load]} {
+                _fail "public_frames_idle_core load '$load' is mapped to more than one source"
+            }
+            dict set mapped_loads $load $source
+        }
+        set role [expr {$source eq $pcore_primary ? "primary" : "replica"}]
+        _log "ROUND53_HG_PUBLIC_P_SOURCE index=$source_index role=$role cell=$source ref=FDSE init=1'b1 net=$q_net fanout=[llength $q_loads] loads={$q_loads}"
+        incr source_index
+    }
+    _log "ROUND53_HG_PUBLIC_P_MAPPING source_count=[llength $pcore] replica_count=[expr {[llength $pcore] - 1}] mapped_loads=[dict size $mapped_loads]"
 }
 
 proc ::r53_hg::_check_block_patch {experiment} {
