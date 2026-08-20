@@ -310,7 +310,7 @@ proc ::r53_hg::_check_descriptor_token {} {
     set pcore_primary [_require_one \
         [get_cells -quiet public_frames_idle_core_r_reg] \
         "canonical public_frames_idle_core register"]
-    set reference_cones [dict create]
+    set reference_signatures [dict create]
     set mapped_loads [dict create]
     set pcore_replicas {}
     foreach source $pcore {
@@ -328,14 +328,21 @@ proc ::r53_hg::_check_descriptor_token {} {
         }
         _clock_pin $source C PUBLIC_P
         foreach pin_name {D CE S} {
-            set pin [_require_one [get_pins -quiet ${source}/${pin_name}] \
-                "PUBLIC_P $source $pin_name pin"]
+            set detail [_pin_drivers $source $pin_name PUBLIC_P]
+            set pin [lindex $detail 0]
             set cone [lsort [all_fanin -flat -startpoints_only -to $pin]]
-            _require_nonempty $cone "PUBLIC_P $source $pin_name startpoints"
+            set driver_signature {}
+            foreach driver_cell [lindex $detail 3] {
+                set driver_init ""
+                catch {set driver_init [get_property INIT $driver_cell]}
+                lappend driver_signature \
+                    [list [get_property REF_NAME $driver_cell] $driver_init]
+            }
+            set signature [list $cone [lsort $driver_signature]]
             if {$source eq $pcore_primary} {
-                dict set reference_cones $pin_name $cone
-            } elseif {$cone ne [dict get $reference_cones $pin_name]} {
-                _fail "public_frames_idle_core replica '$source' $pin_name cone differs from canonical source; canonical={[dict get $reference_cones $pin_name]} replica={$cone}"
+                dict set reference_signatures $pin_name $signature
+            } elseif {$signature ne [dict get $reference_signatures $pin_name]} {
+                _fail "public_frames_idle_core replica '$source' $pin_name signature differs from canonical source; canonical={[dict get $reference_signatures $pin_name]} replica={$signature}"
             }
         }
         set q_pin [_require_one [get_pins -quiet ${source}/Q] \
