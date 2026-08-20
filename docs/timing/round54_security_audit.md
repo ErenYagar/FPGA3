@@ -146,3 +146,65 @@ warnings, and positive hold slack.  G is security/legal for promotion as the
 best available implementation, but it is not a final candidate because 86
 setup endpoints remain.  The 47,250-vector NIST run remains reserved for an
 internally closed candidate; PartPin remains NO.
+
+## Continued R54-H/I/GI/J/EGI/K audit
+
+R54-H changes only the combinational expression for FIFO full.  The count
+register remains the state authority and the existing clear/push/pop priority
+is unchanged.  H is subsequently covered by the complete I functional run.
+
+R54-I adds five explicit prep-tag FDRE instances.  The RTL and mapped-netlist
+audits both prove one logical writer per bit, reset/raw-ZEROIZE priority over
+descriptor load, direct same-edge raw-ZEROIZE reachability to every R pin,
+and no zseq decode in the reset cone.  Physical synthesis may replicate a
+prep-tag source, but the gate counts logical bits separately from physical
+sources and accepts a replica only when its FDRE INIT, clock, D/CE/R/S
+mapping, D-driver signature and disjoint Q-load partition match its canonical
+bit.  The same equivalence rule now covers the public-idle FDSE replica,
+including INIT=1 and matching D/CE/S signatures.
+
+The I RTL passes compile/elaboration, the 8,364-cycle smoke signature, all six
+throughput signatures (`18920/19139`, `19520/19739`, `20120/20339`), AES II
+10/12/14, every mode above 1 Gbit/s, Round48, Round49, the applicable Round53
+ZEROIZE/stall/capacity tests, repeated-ZEROIZE prep-tag same-edge clear,
+NIST525 at 145,808 cycles, and NIST5255 at 1,615,588 cycles.  Scrub and abort
+sequence/cardinality behavior is unchanged.
+
+R54-GI changes no RTL.  It replicates only the exact
+`input_field_mode_r[2]` physical net from the SHA-256-matched I placed DCP.
+The gate proves one canonical FDRE plus one equivalent replica, maps all 36
+loads exactly once (1 primary and 35 replica loads), and rechecks clock,
+exceptions, ZEROIZE, prep-tag, ciphertext clear, public-idle, route, DRC,
+methodology, CDC, latch, multiple-driver and hold gates on the routed DCP.
+GI therefore inherits I's functional evidence and is security/legal for
+promotion as the best available implementation.  It is not final signoff
+because 19 setup endpoints remain.
+
+R54-J changes no netlist structure and routes independent copies of the same
+immutable GI placed DCP with three other directives.  All legality/security
+gates pass, but all timing results are worse than GI, so none is promoted.
+R54-EGI additionally force-replicates the exact ZEROIZE net.  Its 11 physical
+replicas pass strict equivalence and complete-load mapping, but routed setup
+regresses to `-0.422/-38.597/287`; no EGI DCP or replica mapping is promoted.
+
+R54-K is the final manual-pulse experiment permitted by the plan.  The
+boundary and core pulse FDREs are both written directly by the same accepted
+AXI control-write edge and the same requested control bit.  It does not delay
+ZEROIZE and does not implement `copy <= zeroize_pulse_o`.  Boundary/public
+and FIFO consumers remain on the original pulse; only `u_core.zeroize` uses
+the second pulse.  Source and DCP audits verify the common LUT2 writer
+function, same clock/reset behavior, physical replicas, prep-tag reachability,
+public-idle mapping and all Round53 sequence/cardinality invariants.
+
+K passes the same full functional signatures as I, including repeated
+ZEROIZE and both NIST suites.  Nevertheless all four routed implementations
+fail setup promotion.  The GK probe produces seven input-mode replicas and a
+placed setup regression to `-0.621/-2.564/8`; the fail-closed topology gate
+stops it before routing.  K and GK are rejected, and their RTL is not eligible
+for the integration branch.
+
+The promoted Round54 source is therefore I, paired with the GI physical DCP
+and its exact input-mode replica map.  This is a best-available promotion, not
+internal closure.  The 47,250-vector NIST run remains gated on WNS >= 0 and
+TNS/FEP/THS = 0.  PartPin remains NO because no approved production map
+matches the GI placed-DCP identity and passes strict replay.

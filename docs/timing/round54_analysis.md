@@ -295,3 +295,138 @@ one input-mode replica (`-0.870 ns`), and the WNS path from
 `aes_result_out[140]` to `state_reg[1]/D`.  Hold, route, DRC, methodology,
 CDC, latch, multiple-driver, and ZEROIZE gates pass.  Internal PASS remains
 **NO**, and PartPin remains **NO** pending an approved identity-matched map.
+
+## Continued R54-H/I/GI/J/EGI/K experiments
+
+This section supersedes the F/G best-candidate statement above.  No result in
+this section is called closed unless routed WNS is non-negative and routed
+TNS/FEP/THS are zero.
+
+### R54-H FIFO full locality
+
+R54-H commit `af62da4ca97b19e4fcfde8b479e2a6bb6eef5a0f` replaces the
+wide equality expression used for FIFO full detection with the count MSB.
+It is combined with F and does not change the FIFO state or push/pop priority.
+Fresh synthesis was `-0.114/-1.104/10`, and the placed checkpoint was setup
+clean at `+0.049 ns`.  The immutable placed DCP SHA-256 is
+`0529620C18FBFF1FC8B7854088DD51F35976F218BD3FE299BCC5D1D1854F96C1`.
+
+| Directive | WNS | TNS | FEP | WHS | THS | Routed DCP SHA-256 |
+|---|---:|---:|---:|---:|---:|---|
+| Explore | -0.675 | -10.490 | 71 | +0.060 | 0 | `0AE1248EFFB2ADF5139D4EC844FD0016BD9F80D01B60ECC37A8E05FD6A52F389` |
+| AggressiveExplore | -0.647 | -15.125 | 84 | +0.060 | 0 | `33BE024D2BDD0100C98523442A5BAC46499FEE19E3A3982A93B7D522ED55AE9A` |
+| MoreGlobalIterations | -0.802 | -26.205 | 240 | +0.055 | 0 | `4B0DCDEFF67729535EFC3257FDDF77913EFB7A899F07A191AEFF1EDBEA7B0C8B` |
+| HigherDelayCost | -0.799 | -9.529 | 43 | +0.063 | 0 | `F5413D0F33140369FCA51C14B3B746A0D13001124019092E1B7E15E59EC0068F` |
+
+No H route improves all three promotion metrics.  H is retained only as an
+RTL component of the later I/GI candidate.
+
+### R54-I prep-tag locality and R54-GI physical input-mode replication
+
+R54-I moves `prep_tag_bytes[4:0]` into five explicit FDRE writers on top of
+F+H.  Reset and raw ZEROIZE drive R, `take_descriptor` drives CE, and the
+descriptor value is the only D writer.  Synthesis is setup clean at
+`+0.086/0/0`; the synth and placed hashes are respectively
+`F0D3654E35E62A8A613413F965DC3C7D77B171A1934779190F1AE95FD2E4B806`
+and `93D5A75B2246985A0C03555E12A4D71DA42CB6A83BDBF8B7550E4A2371F97009`.
+All five physical bits retain same-edge raw-ZEROIZE reachability, have one
+logical writer, and have no zseq decode in the reset cone.
+
+| Candidate | WNS | TNS | FEP | WHS | THS | Routed DCP SHA-256 |
+|---|---:|---:|---:|---:|---:|---|
+| I Explore | -0.528 | -74.776 | 567 | +0.050 | 0 | `1177EE4DFFB62F433ED9D5B83C6201114D37EAACFBEC0D102D53D3EE8C9BA151` |
+| I AggressiveExplore | -0.422 | -22.967 | 278 | +0.050 | 0 | `524A07487CDEF75BA7164286427F13F471700A2F09AAD9D31A0ACC63496225AE` |
+| I MoreGlobalIterations | -0.480 | -32.462 | 343 | +0.050 | 0 | `8D70C88FD7691795BE6AC73E2D832521E77C76804C370652E0A158B551349910` |
+| I HigherDelayCost | -0.502 | -73.020 | 451 | +0.054 | 0 | `D550FC697BD6A13C26D42F57EDA38F77EFC9B323E38B401E4D925E19DD2A9695` |
+| **GI AggressiveExplore** | **-0.146** | **-0.540** | **19** | **+0.050** | **0** | `2C10BCA0BAD8A8ED3407B2F3FF6FC0FFD378A9FDB6FF2ED65F0293150573433A` |
+
+I-Aggressive misses the retained-C promotion rule by five FEP.  GI therefore
+starts from the exact I placed hash and force-replicates only
+`u_core/input_field_mode_r[2]`.  Vivado creates one equivalent FDRE replica;
+the post-replication placed DCP hash is
+`CA482687CB00A75D541C01A8B512AACD43073E8AA881255B808DD0EF475BBCBA`.
+
+| Input-mode source | LOC/BEL | Loads |
+|---|---|---:|
+| primary | `SLICE_X46Y68/SLICEM.CFF` | 1 |
+| replica | `SLICE_X45Y65/SLICEL.BFF` | 35 |
+
+The hard gate verifies primitive/INIT, clock and every control pin, D-cone
+startpoints, disjoint/nonempty load partitions, and all 36 mapped loads.  GI
+improves WNS, TNS and FEP over retained C and is the current best legal
+implementation.  Its 19 residual paths total only `-0.540 ns`: 12 include
+the input-mode control cone (`-0.437 ns`), the WNS path is descriptor FIFO
+count to state (`-0.146 ns`), four are `field_bytes_remaining` CE paths, and
+two are round-key R paths (`-0.046 ns`).  No prep-tag path is negative.
+
+### R54-J and R54-EGI final-mile attempts
+
+All J routes start independently from the same hash-matched GI placed DCP.
+
+| Candidate | WNS | TNS | FEP | WHS | THS | Routed DCP SHA-256 |
+|---|---:|---:|---:|---:|---:|---|
+| J Explore | -0.403 | -43.696 | 224 | +0.050 | 0 | `2D96957AAE635B8516722E9F1097CBD246293B64D6B0E90EE7880E38A7CAA556` |
+| J MoreGlobalIterations | -0.406 | -40.434 | 291 | +0.050 | 0 | `7554043733817CA7B62F2A14EAAABC9D33CC1DBF8B08F78134B04F213C0E6D22` |
+| J HigherDelayCost | -0.353 | -56.148 | 449 | +0.057 | 0 | `AF4DF589845733B024B91687FE0471D7669FD5E079209DDBDAB7817086ECE344` |
+
+None beats GI.  EGI then force-replicates only the exact ZEROIZE net in the
+same GI placed DCP.  Vivado creates 11 physical ZEROIZE replicas; the routed
+result regresses to `-0.422/-38.597/287`, WHS `+0.050 ns`, THS 0.  The routed
+DCP SHA-256 is
+`E7DB7D18704B53DF4D109EE5AEFD3B62C99CC99863FB08DF548D44198BBF495C`.
+EGI is rejected and no replica mapping is promoted.
+
+### R54-K manual same-edge ZEROIZE locality
+
+R54-K commit `22e6fac7587f2e9cc0671852b144660d21f2bc49` implements the
+plan's final permitted manual pulse FF.  Boundary/public/FIFO logic remains on
+`zeroize_pulse_o`; only `u_core.zeroize` uses `zeroize_core_pulse_o`.  Both
+FDREs are written directly from the same accepted AXI control write and the
+same `requested_control[2]` value.  There is no registered pulse-to-pulse
+copy.  The full functional regression passes, but synth timing regresses to
+`-0.226/-30.736/136`.  The synth and placed hashes are
+`DAA6DB3E0AF5E15BA29AF970F7867001B899AC0E8CAAF42EA84D751ED405D908`
+and `27D0D56E3131AF74E657DF81BECCBFB670EE7DCCCFB26746AC6322B89BBA4736`.
+
+| Directive | WNS | TNS | FEP | WHS | THS | Routed DCP SHA-256 |
+|---|---:|---:|---:|---:|---:|---|
+| Explore | -0.632 | -108.082 | 570 | +0.051 | 0 | `7183F0DDEB432D1860F2C9622D5D8E6FA17B5D90A40850012B1452B8118741D6` |
+| AggressiveExplore | -0.720 | -73.738 | 520 | +0.051 | 0 | `CBAE426F95C011877B660AA29AC680959097E0628748FEBEF5AC043908F0DF97` |
+| MoreGlobalIterations | -0.528 | -128.195 | 668 | +0.050 | 0 | `793EDACACBDCDB2198126C91B80EE298BA5F467651A8FE77028C5F26725383EC` |
+| HigherDelayCost | -0.587 | -106.487 | 757 | +0.050 | 0 | `0810DAC036417473214AC9B81D0C946C5D71911E2E57AF6210F7C54FF505660F` |
+
+All four routes pass legality/security/hold gates and fail setup promotion.
+The GK combination probe starts from the exact K placed hash and asks Vivado
+to replicate `input_field_mode_r[2]`.  K changes its pre-force fanout from 37
+to 25, and the same command now creates seven replicas.  The post-force
+placed result immediately regresses from `+0.004/0/0` to
+`-0.621/-2.564/8`; the topology gate expected the proven GI mapping and stops
+the run before a checkpoint is written or routing begins.  The gate is not
+relaxed because the timing evidence already rejects the topology.
+
+The additional physical audits accept automatically created replicas only
+when canonical/replica naming, primitive INIT, clock, every control pin,
+D-driver primitive/INIT, fanin signature, and disjoint load mapping match.
+This covers both the public-idle FDSE and each logical prep-tag bit and avoids
+silently treating physical replication as a new RTL writer.
+
+## Current Round54 promotion status
+
+| Candidate | WNS | TNS | FEP | WHS | THS | Control sets | LUT | FF | Status |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| retained C | -0.523 | -26.673 | 273 | +0.051 | 0 | 309 | 8,586 | 7,296 | reference |
+| G | -0.379 | -4.579 | 86 | +0.058 | 0 | 234 | 8,357 | 7,352 | superseded |
+| I AggressiveExplore | -0.422 | -22.967 | 278 | +0.050 | 0 | 462 | 8,369 | 7,363 | FEP promotion fail |
+| **GI AggressiveExplore** | **-0.146** | **-0.540** | **19** | **+0.050** | **0** | **462** | **8,370** | **7,364** | **best legal; setup open** |
+| J best WNS | -0.353 | -56.148 | 449 | +0.057 | 0 | 462 | 8,370 | 7,364 | rejected |
+| EGI | -0.422 | -38.597 | 287 | +0.050 | 0 | 466 | 8,380 | 7,374 | rejected |
+| K best WNS | -0.528 | -128.195 | 668 | +0.050 | 0 | 368 | 8,440 | 7,373 | rejected |
+| GK | not routed | not routed | not routed | transient -0.097 | transient -1.606 | not promoted | not promoted | not promoted | stopped after phys-opt |
+
+GI is `0.146 ns` and 19 endpoints short of the 200 MHz internal setup goal.
+Compared with retained C it removes 254 failing endpoints and 98.0% of the
+TNS magnitude while preserving positive hold slack.  It is promoted as the
+best available Round54 implementation, not as internal closure.  The final
+47,250-vector NIST run remains gated on actual closure.  Internal PASS is
+**NO** and PartPin is **NO** until an approved identity-matched production map
+exists and passes strict replay.
