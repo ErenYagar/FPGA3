@@ -124,8 +124,11 @@ proc ::r54_hg::_logical_zeroize_reaches {sources pin} {
 }
 
 proc ::r54_hg::_input_mode_sources {experiment stage} {
-    set expected_replicas [expr {[string match "GI*" $experiment] ? 1 : 2}]
-    set expected_loads [expr {[string match "GI*" $experiment] ? 36 : 40}]
+    set route_only [string match "J*" $experiment]
+    set expected_replicas [expr {([string match "GI*" $experiment] ||
+        $route_only) ? 1 : 2}]
+    set expected_loads [expr {([string match "GI*" $experiment] ||
+        $route_only) ? 36 : 40}]
     set primary [_one [get_cells -quiet {u_core/input_field_mode_r_reg[2]}] \
         "input-mode driver"]
     set replicas [get_cells -hier -quiet -filter {
@@ -135,6 +138,9 @@ proc ::r54_hg::_input_mode_sources {experiment stage} {
         _fail "R54-$experiment routed input-mode replica count is [llength $replicas], expected $expected_replicas"
     }
     if {[llength $replicas] == 0} {
+        if {$route_only} {
+            _fail "R54-$experiment route-only input checkpoint has no replica"
+        }
         _log "ROUND54_HG_INPUT_MODE_REPLICAS stage=$stage count=0"
         return
     }
@@ -227,7 +233,7 @@ proc ::r54_hg::_prep_tag {experiment stage} {
         _fail "raw ZEROIZE reaches $zeroize_bits prep_tag bits, expected 5"
     }
     if {([string match "B*" $experiment] || [string match "I*" $experiment] ||
-         [string match "GI*" $experiment]) &&
+         [string match "GI*" $experiment] || [string match "J*" $experiment]) &&
         $zseq_in_reset_cone} {
         _fail "R54-$experiment prep_tag clear cone still contains zseq decode"
     }
@@ -281,7 +287,7 @@ proc ::r54_hg::_run_body {experiment stage nested_audit_file} {
     set metrics [::r53_hg::run C $stage $nested_audit_file]
     _prep_tag $experiment $stage
     _ciphertext_structure $experiment $stage
-    if {[string match "G*" $experiment]} {
+    if {[string match "G*" $experiment] || [string match "J*" $experiment]} {
         _input_mode_sources $experiment $stage
     }
     _log "ROUND54_HARD_GATE_PASS experiment=$experiment stage=$stage"
