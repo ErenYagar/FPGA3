@@ -208,3 +208,13 @@ and its exact input-mode replica map.  This is a best-available promotion, not
 internal closure.  The 47,250-vector NIST run remains gated on WNS >= 0 and
 TNS/FEP/THS = 0.  PartPin remains NO because no approved production map
 matches the GI placed-DCP identity and passes strict replay.
+
+The promoted integration source was independently rerun at commit
+`839ebdede1473afd51a41c72261a34264d51f007` with the non-D regression
+profile.  It passed compile/elaboration, smoke `8364`, all six throughput
+signatures, Round48/49, every applicable Round53 security/stall/capacity
+test, repeated-ZEROIZE prep-tag same-edge clear, NIST525 `525/0` at 145,808
+cycles, and NIST5255 `5255/0` at 1,615,588 cycles.  The D-only FIFO testbench
+is not applicable because GI deliberately does not contain D's rejected
+`CLEAR_HEAD_ON_CLEAR` parameter; this exclusion is explicit in the runner
+and does not remove the retained FIFO clear/abort/ZEROIZE gates.

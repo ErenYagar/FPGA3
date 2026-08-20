@@ -430,3 +430,13 @@ best available Round54 implementation, not as internal closure.  The final
 47,250-vector NIST run remains gated on actual closure.  Internal PASS is
 **NO** and PartPin is **NO** until an approved identity-matched production map
 exists and passes strict replay.
+
+Promotion was reverified from the final integration branch at commit
+`839ebdede1473afd51a41c72261a34264d51f007`.  Audit-only reopened the exact
+GI routed hash and again recomputed `-0.146/-0.540/19`, positive hold, all
+13,583 routable nets complete, and every hard gate passing.  The final
+non-D regression profile (`promotion_final_v2`) passed compile/elaboration,
+smoke, throughput, Round48/49/53, repeated-ZEROIZE prep-tag clear, NIST525,
+and NIST5255.  The R54-D-only FIFO testbench was excluded because it
+intentionally instantiates D's rejected `CLEAR_HEAD_ON_CLEAR` parameter;
+the retained FIFO clear/security regressions remain in the passing R53 set.
