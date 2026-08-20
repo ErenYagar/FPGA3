@@ -708,7 +708,7 @@ reg abort_crypto_drained_r;
 reg [8:0] prep_iv_bytes;
 reg [8:0] prep_aad_bytes;
 reg [8:0] prep_data_bytes;
-reg [8:0] prep_tag_bytes;
+wire [8:0] prep_tag_bytes;
 reg [9:0] prep_header_bytes;
 reg [9:0] prep_payload_bytes;
 reg [9:0] prep_record_bytes;
@@ -1082,6 +1082,28 @@ begin
         rec_tag_byte_enable_r <=
             tag_byte_enable_mask(desc_out_data[40:33]);
 end
+
+// prep_tag_bytes is non-sensitive public framing metadata.  Five bits hold
+// the byte count; the upper bits are constant.  Explicit FDRE control pins
+// keep the descriptor-load decode out of the reset cone while preserving a
+// direct same-edge clear from every raw ZEROIZE command.
+wire prep_tag_clear_w = !rst_n || zeroize;
+wire [4:0] prep_tag_load_w = {5{desc_out_data[41]}} &
+                             desc_out_data[40:36];
+assign prep_tag_bytes[8:5] = 4'd0;
+genvar prep_tag_bit;
+generate
+for(prep_tag_bit = 0; prep_tag_bit < 5; prep_tag_bit = prep_tag_bit + 1)
+begin : gen_prep_tag_bytes
+    FDRE #(.INIT(1'b0)) prep_tag_bytes_reg (
+        .C(clk),
+        .CE(take_descriptor),
+        .D(prep_tag_load_w[prep_tag_bit]),
+        .Q(prep_tag_bytes[prep_tag_bit]),
+        .R(prep_tag_clear_w)
+    );
+end
+endgenerate
 
 // Compare each tag byte in an independent one-bit datapath.  Formation writes
 // a deterministic snapshot for all bytes; a simultaneous stream beat uses the
@@ -1681,7 +1703,6 @@ begin
         prep_iv_bytes            <= 9'd0;
         prep_aad_bytes           <= 9'd0;
         prep_data_bytes          <= 9'd0;
-        prep_tag_bytes           <= 9'd0;
         prep_header_bytes        <= 10'd0;
         prep_payload_bytes       <= 10'd0;
         prep_record_bytes        <= 10'd0;
@@ -1823,7 +1844,6 @@ begin
             prep_iv_bytes       <= 9'd0;
             prep_aad_bytes      <= 9'd0;
             prep_data_bytes     <= 9'd0;
-            prep_tag_bytes      <= 9'd0;
             prep_header_bytes   <= 10'd0;
             prep_payload_bytes  <= 10'd0;
             prep_record_bytes   <= 10'd0;
@@ -2013,9 +2033,6 @@ begin
                 prep_iv_bytes           <= bits_to_bytes(desc_out_data[32:22]);
                 prep_aad_bytes          <= bits_to_bytes(desc_out_data[21:11]);
                 prep_data_bytes         <= bits_to_bytes(desc_out_data[10:0]);
-                prep_tag_bytes          <= desc_out_data[41] ?
-                                           ({1'b0, desc_out_data[40:33]} >> 3) :
-                                           9'd0;
                 record_last_r           <= 1'b0;
                 field_received          <= 9'd0;
                 block_byte_index        <= 4'd0;

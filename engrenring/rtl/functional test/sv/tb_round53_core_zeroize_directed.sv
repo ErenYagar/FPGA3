@@ -71,6 +71,7 @@ integer collision_second_abort_cycle = 0;
 reg [7:0] captured_result = 8'hff;
 reg [7:0] result_history [0:3];
 reg expect_baseline_loss;
+reg expect_local_prep_clear;
 reg collision_phase = 1'b0;
 
 aes_gcm_stream_core dut (
@@ -232,6 +233,7 @@ endtask
 initial
 begin
     expect_baseline_loss = $test$plusargs("EXPECT_BASELINE_LOSS");
+    expect_local_prep_clear = $test$plusargs("EXPECT_LOCAL_PREP_CLEAR");
 
     repeat(8) @(posedge clk);
     @(negedge clk);
@@ -261,12 +263,31 @@ begin
     // Critical Round53 collision: VALID is externally masked throughout the
     // repeated ZEROIZE pulse, so READY=1 cannot retire the internal beat.
     @(negedge clk);
+    if(expect_local_prep_clear)
+    begin
+        if(!dut.zeroize_sequence_active_r)
+            $fatal(1, "PREP_TAG_TEST_SEQUENCE_NOT_ACTIVE");
+        // Test-only metadata injection distinguishes a direct raw-ZEROIZE
+        // writer from the retained first_zeroize_event_w-qualified writer.
+        force dut.prep_tag_bytes = 9'h1a5;
+    end
     zeroize = 1'b1;
     m_axis_result_tready = 1'b1;
     #1;
     if(m_axis_result_tvalid)
         $fatal(1, "RESULT_VALID_NOT_MASKED_DURING_ZEROIZE");
     @(posedge clk);
+    #1;
+    if(expect_local_prep_clear)
+    begin
+        release dut.prep_tag_bytes;
+        #1;
+    end
+    if(expect_local_prep_clear && (dut.prep_tag_bytes !== 9'd0))
+        $fatal(1, "REPEATED_ZEROIZE_PREP_TAG_NOT_CLEARED value=%03x",
+               dut.prep_tag_bytes);
+    if(expect_local_prep_clear)
+        $display("ROUND54_PREP_TAG_REPEATED_ZEROIZE_PASS same_edge_clear=1 value=000");
     @(negedge clk);
     zeroize = 1'b0;
 
