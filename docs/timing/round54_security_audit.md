@@ -125,3 +125,24 @@ Round54 ends without an internal-closure candidate.  The full 47,250-vector
 NIST run is reserved for a closed final candidate and is therefore not run.
 PartPin remains NO because there is no approved, identity-matched production
 map for the retained placed checkpoint.
+
+## Continued R54-F/G audit
+
+R54-F changes only the round-key context's internal word-write locality.  The
+new one-hot enables are cleared by reset and raw ZEROIZE and preserve the
+existing generation/capture edge ordering.  It passed smoke at 8,364 cycles,
+all six exact throughput signatures (18,920/19,139, 19,520/19,739, and
+20,120/20,339), AES II 10/12/14, Round48/49, all applicable Round53
+ZEROIZE/stall/capacity regressions, the key-mid-expansion ZEROIZE recovery,
+NIST525 at 145,808 cycles, and NIST5255 at 1,615,588 cycles.
+
+R54-G changes no RTL or architectural state.  It physically replicates only
+the exact `input_field_mode_r[2]` register net from the hash-matched R54-F
+placed checkpoint, so it inherits F's functional evidence.  Routed hard
+gates confirm the original clock and exceptions, direct prep-tag and FIFO
+ZEROIZE reachability, sequence/cardinality structure, zero latches and
+multiple drivers, safe CDC, zero route errors, zero DRC errors/critical
+warnings, and positive hold slack.  G is security/legal for promotion as the
+best available implementation, but it is not a final candidate because 86
+setup endpoints remain.  The 47,250-vector NIST run remains reserved for an
+internally closed candidate; PartPin remains NO.

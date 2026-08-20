@@ -123,6 +123,61 @@ proc ::r54_hg::_logical_zeroize_reaches {sources pin} {
     return 0
 }
 
+proc ::r54_hg::_input_mode_sources {stage} {
+    set primary [_one [get_cells -quiet {u_core/input_field_mode_r_reg[2]}] \
+        "input-mode driver"]
+    set replicas [get_cells -hier -quiet -filter {
+        NAME =~ {u_core/input_field_mode_r_reg[2]_replica*} &&
+        REF_NAME == FDRE}]
+    if {$stage eq "routed" && [llength $replicas] != 2} {
+        _fail "R54-G routed input-mode replica count is [llength $replicas], expected 2"
+    }
+    if {[llength $replicas] == 0} {
+        _log "ROUND54_HG_INPUT_MODE_REPLICAS stage=$stage count=0"
+        return
+    }
+    if {[llength $replicas] != 2} {
+        _fail "R54-G input-mode replica count is [llength $replicas], expected 0 or 2"
+    }
+
+    set primary_d [get_pins -quiet ${primary}/D]
+    set primary_starts [lsort [all_fanin -quiet -flat \
+        -startpoints_only -to $primary_d]]
+    set sources [concat [list $primary] $replicas]
+    set total_fanout 0
+    set index 0
+    foreach source $sources {
+        if {[get_property REF_NAME $source] ne "FDRE" ||
+            [get_property INIT $source] ne [get_property INIT $primary]} {
+            _fail "input-mode source $source primitive/INIT differs from primary"
+        }
+        foreach pin_name {C CE R S} {
+            if {[_pin_net $source $pin_name] ne
+                [_pin_net $primary $pin_name]} {
+                _fail "input-mode source $source $pin_name net differs from primary"
+            }
+        }
+        set d_pin [get_pins -quiet ${source}/D]
+        set starts [lsort [all_fanin -quiet -flat \
+            -startpoints_only -to $d_pin]]
+        if {$starts ne $primary_starts} {
+            _fail "input-mode source $source D cone is not equivalent to primary"
+        }
+        set q [get_pins -quiet ${source}/Q]
+        set net [_one [get_nets -quiet -of_objects $q] "$source Q net"]
+        set loads [get_pins -quiet -leaf -of_objects $net \
+            -filter {DIRECTION == IN}]
+        incr total_fanout [llength $loads]
+        set role [expr {$source eq $primary ? "primary" : "replica"}]
+        _log "ROUND54_HG_INPUT_MODE_SOURCE index=$index role=$role cell=$source ref=FDRE loc=[get_property LOC $source] bel=[get_property BEL $source] net=$net fanout=[llength $loads] loads={$loads}"
+        incr index
+    }
+    if {$total_fanout != 41} {
+        _fail "R54-G input-mode mapped fanout is $total_fanout, expected 41"
+    }
+    _log "ROUND54_HG_INPUT_MODE_REPLICAS stage=$stage count=2 total_fanout=$total_fanout sources={$sources}"
+}
+
 proc ::r54_hg::_prep_tag {experiment stage} {
     set cells [get_cells -hier -quiet \
         -filter {NAME =~ *prep_tag_bytes_reg* && REF_NAME =~ FD*}]
@@ -222,6 +277,9 @@ proc ::r54_hg::_run_body {experiment stage nested_audit_file} {
     set metrics [::r53_hg::run C $stage $nested_audit_file]
     _prep_tag $experiment $stage
     _ciphertext_structure $experiment $stage
+    if {[string match "G*" $experiment]} {
+        _input_mode_sources $stage
+    }
     _log "ROUND54_HARD_GATE_PASS experiment=$experiment stage=$stage"
     return $metrics
 }

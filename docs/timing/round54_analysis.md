@@ -245,3 +245,43 @@ open; Round54 final internal PASS is **NO**.
 
 PartPin is also **NO**.  No approved production map matches the retained
 placed-DCP identity, and the Round46 maps remain discovery candidates only.
+
+## Continued control-locality experiments (F/G)
+
+This section supersedes the earlier Round54 disposition.  R54-F commit
+`cfff841394a06e58e7d4a675dc3aa137e2aa297d` replaces the state-dependent,
+indexed round-key array write with 60 registered one-hot word enables and
+constant-slice writes.  It preserves the core source hash
+`EB905D71345AA93E1D64C8B47D0BEEF50BF1CFF8FE77C3E80594D610BF7B0E5E`.
+Fresh synthesis improved to WNS/TNS/FEP `-0.235/-2.291/14`; its placed DCP
+`EBF9C119CD6D9F4E087B34ADE8C3A55E57010E9F372A0C817A93499B43BDE6BB`
+had setup WNS `+0.107 ns`.
+
+The route directive sweep from that immutable placed checkpoint produced:
+
+| Candidate | WNS (ns) | TNS (ns) | FEP | WHS (ns) | THS | Routed DCP SHA-256 |
+|---|---:|---:|---:|---:|---:|---|
+| F Explore | -0.432 | -95.464 | 677 | +0.050 | 0 | `6F3303FB...CB1920F` |
+| F MoreGlobalIterations | -0.445 | -36.125 | 259 | +0.050 | 0 | `7264A0B3...BA273A8` |
+| F AggressiveExplore | -0.468 | -5.835 | 108 | +0.054 | 0 | `6FE53A7B...EF82767` |
+| F HigherDelayCost | -0.544 | -34.085 | 251 | +0.050 | 0 | `243B36CA...1F77C6A` |
+| G AggressiveExplore | **-0.379** | **-4.579** | **86** | **+0.058** | **0** | `6E065570...D741F` |
+
+F removes the former round-key setup family as a dominant contributor.
+On F-Aggressive, 80 of 108 negative paths launched from
+`input_field_mode_r[2]`, contributing `-2.790 ns` TNS.  R54-G commit
+`e940299` therefore force-replicates only that exact placed net.  Vivado
+created two equivalent physical register replicas.  The post-replication
+placed DCP SHA-256 is
+`CCA973F67FEDD7EFE52D36DCAD757DA63EE5BE6E336E2DD43B9CC4C8D722ED51`.
+AggressiveExplore then improved every promotion metric over retained C and
+F-Aggressive.  Its routed utilization is 8,357 LUTs, 7,352 FFs, and 234
+control sets; all 13,511 routable nets are fully routed.
+
+G is the current best legal implementation, but it is not internal closure:
+86 setup endpoints remain and WNS is `-0.379 ns`.  Its largest residual
+groups are 42 AES-result FIFO RAM-WE paths (`-1.880 ns` TNS), 19 paths from
+one input-mode replica (`-0.870 ns`), and the WNS path from
+`aes_result_out[140]` to `state_reg[1]/D`.  Hold, route, DRC, methodology,
+CDC, latch, multiple-driver, and ZEROIZE gates pass.  Internal PASS remains
+**NO**, and PartPin remains **NO** pending an approved identity-matched map.
