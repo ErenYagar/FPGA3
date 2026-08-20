@@ -7,7 +7,9 @@ param(
     [ValidatePattern('^[0-9A-Fa-f]{64}$')]
     [string]$ExpectedCoreSha256,
 
-    [switch]$ExpectLocalPrepClear
+    [switch]$ExpectLocalPrepClear,
+
+    [switch]$SkipFifoClearDirected
 )
 
 $ErrorActionPreference = 'Stop'
@@ -71,8 +73,10 @@ $TestFiles = @(
     (Join-Path $TestRoot 'sv\tb_round53_key_midzeroize_directed.sv'),
     (Join-Path $TestRoot 'sv\tb_round53_non96_ghash_zeroize_directed.sv'),
     (Join-Path $TestRoot 'sv\tb_round53_zeroize_public_directed.sv')
-    (Join-Path $TestRoot 'sv\tb_round54_fifo_clear_directed.sv')
 )
+if (-not $SkipFifoClearDirected) {
+    $TestFiles += (Join-Path $TestRoot 'sv\tb_round54_fifo_clear_directed.sv')
+}
 $GlblFile = Join-Path (Split-Path $VivadoBin -Parent) 'data\verilog\src\glbl.v'
 
 function Invoke-Logged {
@@ -170,9 +174,11 @@ Invoke-Round54Test tb_round53_non96_ghash_zeroize_directed round53_non96 @(
 Invoke-Round54Test tb_round53_zeroize_public_directed round53_public @(
     'ROUND53_PUBLIC_ZEROIZE_PASS idle_results=0 accepted=2 abort_results=2'
 )
-Invoke-Round54Test tb_round54_fifo_clear_directed round54_fifo @(
-    'ROUND54_FIFO_CLEAR_HEAD_PASS abort=1 zeroize=1 priority=clear refill=immediate stale_fire=0 global_scrub=1'
-)
+if (-not $SkipFifoClearDirected) {
+    Invoke-Round54Test tb_round54_fifo_clear_directed round54_fifo @(
+        'ROUND54_FIFO_CLEAR_HEAD_PASS abort=1 zeroize=1 priority=clear refill=immediate stale_fire=0 global_scrub=1'
+    )
+}
 
 Invoke-Round54Test tb_nist nist525 @(
     'NIST_TOTAL_SUMMARY pass=525 fail=0 total=525 cycles=145808',
