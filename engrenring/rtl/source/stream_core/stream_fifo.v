@@ -27,7 +27,9 @@ reg [WIDTH-1:0] out_data_q;
 wire push = in_valid && in_ready;
 wire pop  = out_valid && out_ready;
 
-assign in_ready = (count_r != DEPTH);
+// DEPTH is 2**ADDR_W, so only the count MSB is set at the full value.
+// Keeping the lower count bits out of push localizes every RAM write enable.
+assign in_ready = !count_r[ADDR_W];
 assign out_valid = (count_r != 0);
 // Register the head so the RAM/pointer selection never feeds the consumer's
 // wide control/data mux in the same cycle.  Consecutive pops remain bubble
