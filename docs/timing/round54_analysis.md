@@ -278,6 +278,16 @@ AggressiveExplore then improved every promotion metric over retained C and
 F-Aggressive.  Its routed utilization is 8,357 LUTs, 7,352 FFs, and 234
 control sets; all 13,511 routable nets are fully routed.
 
+| Input-mode source | LOC/BEL | Mapped loads |
+|---|---|---:|
+| primary | `SLICE_X45Y95/SLICEL.BFF` | 3 |
+| replica 0 | `SLICE_X43Y93/SLICEL.AFF` | 26 |
+| replica 1 | `SLICE_X39Y98/SLICEL.AFF` | 11 |
+
+The 40 mapped input loads plus the driver pin correspond to Vivado's original
+`FLAT_PIN_COUNT=41`.  The G hard gate compares primitive/INIT, clock and
+control pins, D-cone startpoints, and the complete per-net load mapping.
+
 G is the current best legal implementation, but it is not internal closure:
 86 setup endpoints remain and WNS is `-0.379 ns`.  Its largest residual
 groups are 42 AES-result FIFO RAM-WE paths (`-1.880 ns` TNS), 19 paths from

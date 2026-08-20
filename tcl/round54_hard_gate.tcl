@@ -172,8 +172,8 @@ proc ::r54_hg::_input_mode_sources {stage} {
         _log "ROUND54_HG_INPUT_MODE_SOURCE index=$index role=$role cell=$source ref=FDRE loc=[get_property LOC $source] bel=[get_property BEL $source] net=$net fanout=[llength $loads] loads={$loads}"
         incr index
     }
-    if {$total_fanout != 41} {
-        _fail "R54-G input-mode mapped fanout is $total_fanout, expected 41"
+    if {$total_fanout != 40} {
+        _fail "R54-G input-mode mapped load count is $total_fanout, expected 40"
     }
     _log "ROUND54_HG_INPUT_MODE_REPLICAS stage=$stage count=2 total_fanout=$total_fanout sources={$sources}"
 }
