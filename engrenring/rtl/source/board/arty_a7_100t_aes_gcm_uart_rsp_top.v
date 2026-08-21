@@ -33,6 +33,7 @@ MMCME2_BASE #(
     .RST(1'b0),
     .PWRDWN(1'b0),
     .CLKFBOUT(mmcm_clkfb_raw),
+    .CLKFBOUTB(),
     .CLKOUT0(core_clk_raw),
     .CLKOUT0B(), .CLKOUT1(), .CLKOUT1B(), .CLKOUT2(), .CLKOUT2B(),
     .CLKOUT3(), .CLKOUT3B(), .CLKOUT4(), .CLKOUT5(), .CLKOUT6(),
