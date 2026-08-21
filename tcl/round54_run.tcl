@@ -272,6 +272,13 @@ if {[catch {
     }
 
     if {$mode eq "audit_dcp"} {
+        if {$clock_mhz ne "200"} {
+            set flow_stage write_reclocked_checkpoint
+            set audited_dcp [file join $checkpoint_dir \
+                ${top_name}_${clock_mhz}mhz_routed.dcp]
+            write_checkpoint $audited_dcp
+            puts "ROUND54_DCP stage=routed clock_mhz=$clock_mhz sha256=[::r54_sha256 $audited_dcp] path=$audited_dcp"
+        }
         set flow_stage finalize
     } elseif {$mode in {fresh_full from_synth}} {
         if {[string match "C*" $experiment]} {
