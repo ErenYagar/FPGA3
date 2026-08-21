@@ -13,7 +13,7 @@ wire core_clk;
 wire mmcm_clkfb_raw;
 wire mmcm_clkfb;
 wire mmcm_locked;
-reg [3:0] reset_sync_r;
+reg [3:0] reset_sync_r = 4'b0000;
 reg [27:0] heartbeat_r;
 
 MMCME2_BASE #(
@@ -49,9 +49,12 @@ MMCME2_BASE #(
 BUFG u_feedback_buf (.I(mmcm_clkfb_raw), .O(mmcm_clkfb));
 BUFG u_core_clk_buf (.I(core_clk_mmcm), .O(core_clk));
 
-always @(posedge core_clk or negedge mmcm_locked)
+// Keep the reset delivered to the AES core fully synchronous.  In
+// particular, an asynchronously reset synchronizer FF must not feed the
+// reset pins of the inferred S-box RAMBs (Vivado REQP-1840).
+always @(posedge core_clk)
 begin
-    if(!mmcm_locked)
+    if(!mmcm_locked || !rst_btn)
         reset_sync_r <= 4'b0000;
     else
         reset_sync_r <= {reset_sync_r[2:0], 1'b1};
