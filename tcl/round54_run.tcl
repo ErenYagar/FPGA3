@@ -8,6 +8,10 @@
 # Exit 0: all requested gates pass, including setup when routed.
 # Exit 2: legal routed design with clean hold/security gates but setup is open.
 # Exit 1: provenance, structural, tool, legality, hold, or DRC failure.
+#
+# Optional clock profile:
+#   set R54_CLOCK_MHZ=175
+# If unset, the historical 200 MHz contract remains the default.
 
 proc ::r54_fail {message} {
     puts stderr "ROUND54_RUN_SUMMARY status=ERROR"
@@ -69,10 +73,21 @@ set script_dir [file dirname [file normalize [info script]]]
 set repo_dir [file normalize [file join $script_dir ..]]
 set rtl_dir [file join $repo_dir engrenring rtl source]
 set ooc_dir [file join $repo_dir engrenring synth_1g axi_ooc]
-set xdc_file [file join $ooc_dir axi_200mhz_ooc.xdc]
 set top_name aes_gcm_axi_top
 set part_name xc7a100tcsg324-1
-set period_ns 5.000
+set clock_mhz 200
+if {[info exists ::env(R54_CLOCK_MHZ)]} {
+    set clock_mhz $::env(R54_CLOCK_MHZ)
+}
+if {$clock_mhz eq "200"} {
+    set period_ns 5.000
+    set xdc_file [file join $ooc_dir axi_200mhz_ooc.xdc]
+} elseif {$clock_mhz eq "175"} {
+    set period_ns 5.714
+    set xdc_file [file join $ooc_dir axi_175mhz_ooc.xdc]
+} else {
+    ::r54_fail "unsupported R54_CLOCK_MHZ '$clock_mhz'; expected 175 or 200"
+}
 set allowed_directives {Explore AggressiveExplore MoreGlobalIterations HigherDelayCost}
 
 set usage "<experiment> <fresh_full|from_synth|from_placed|audit_dcp> <label> <expected_core_sha256> ?input_dcp expected_dcp_sha256 stage directive?"
@@ -164,11 +179,12 @@ set checkpoint_dir [file join $output_dir checkpoints]
 file mkdir $report_dir
 file mkdir $checkpoint_dir
 source [file join $script_dir round54_reports.tcl]
+set ::r53_hg_expected_period_ns $period_ns
 source [file join $script_dir round54_hard_gate.tcl]
 
 set provenance [dict create experiment $experiment mode $mode label $label \
     git_branch $git_branch git_commit $git_commit vivado_version [version -short] \
-    top $top_name part $part_name period_ns $period_ns \
+    top $top_name part $part_name clock_mhz $clock_mhz period_ns $period_ns \
     core_sha256 [::r54_sha256 $core_file] xdc_sha256 [::r54_sha256 $xdc_file] \
     input_dcp $input_dcp input_dcp_sha256 $input_dcp_actual_sha \
     input_stage $input_stage route_directive $route_directive]
@@ -247,6 +263,11 @@ if {[catch {
     } else {
         set flow_stage open_checkpoint
         open_checkpoint $input_dcp
+        if {$clock_mhz ne "200"} {
+            set flow_stage apply_clock_profile
+            reset_timing
+            read_xdc $xdc_file
+        }
         set final_metrics [::r54_audit $experiment $input_stage $report_dir]
     }
 

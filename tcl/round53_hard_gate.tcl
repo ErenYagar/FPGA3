@@ -130,10 +130,15 @@ proc ::r53_hg::_check_clock {} {
     }
     set clock [_require_one [get_clocks -quiet aclk] "aclk clock"]
     set period [expr {double([get_property PERIOD $clock])}]
-    if {abs($period - 5.000) > 0.0005} {
-        _fail "aclk period is $period ns, expected 5.000 ns"
+    set expected_period 5.000
+    if {[info exists ::r53_hg_expected_period_ns]} {
+        set expected_period [expr {double($::r53_hg_expected_period_ns)}]
     }
-    _log [format "ROUND53_HG_CLOCK name=%s period_ns=%.3f" $clock $period]
+    if {abs($period - $expected_period) > 0.0005} {
+        _fail "aclk period is $period ns, expected $expected_period ns"
+    }
+    _log [format "ROUND53_HG_CLOCK name=%s period_ns=%.3f expected_period_ns=%.3f" \
+        $clock $period $expected_period]
 }
 
 proc ::r53_hg::_check_exceptions {} {
