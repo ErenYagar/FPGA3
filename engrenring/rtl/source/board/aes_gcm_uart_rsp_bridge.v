@@ -105,6 +105,11 @@ localparam [1:0] FIELD_AAD  = 2'd1;
 localparam [1:0] FIELD_DATA = 2'd2;
 localparam [1:0] FIELD_TAG  = 2'd3;
 
+localparam [8:0] MEM_IV_BASE   = 9'd0;
+localparam [8:0] MEM_AAD_BASE  = 9'd128;
+localparam [8:0] MEM_DATA_BASE = 9'd256;
+localparam [8:0] MEM_TAG_BASE  = 9'd384;
+
 wire [7:0] rx_data;
 wire       rx_valid;
 wire       rx_busy;
@@ -128,21 +133,18 @@ reg        mode_loaded_r;
 reg [255:0] key_cfg_r;
 reg [8:0]  key_len_r;
 reg        key_loaded_r;
-reg [1023:0] iv_cfg_r;
 reg [10:0] iv_len_r;
 reg        iv_loaded_r;
-reg [1023:0] aad_cfg_r;
 reg [10:0] aad_len_r;
 reg        aad_loaded_r;
-reg [1023:0] pt_cfg_r;
 reg [10:0] pt_len_r;
 reg        pt_loaded_r;
-reg [1023:0] ct_cfg_r;
 reg [10:0] ct_len_r;
 reg        ct_loaded_r;
-reg [127:0] tag_cfg_r;
 reg [7:0] tag_len_r;
 reg        tag_loaded_r;
+
+(* ram_style = "distributed" *) reg [7:0] input_mem [0:399];
 
 reg [1:0]  rx_state_r;
 reg [7:0]  rx_cmd_r;
@@ -158,6 +160,7 @@ reg [3:0] key_word_index_r;
 reg [8:0] stream_total_bytes_r;
 reg [8:0] stream_field_bytes_r;
 reg [1:0] stream_field_r;
+reg [8:0] stream_addr_r;
 reg [8:0] key_delay_r;
 reg [23:0] result_watchdog_r;
 reg [3:0] cooldown_r;
@@ -170,12 +173,15 @@ reg        wr_busy_r;
 reg        wr_done_r;
 reg        wr_error_r;
 
-reg [1023:0] data_capture_r;
+(* ram_style = "distributed" *) reg [7:0] data_capture_mem [0:127];
 reg [7:0]    data_count_r;
 reg          data_done_r;
-reg [127:0]  tag_capture_r;
+(* ram_style = "distributed" *) reg [7:0] tag_capture_mem [0:15];
 reg [4:0]    tag_count_r;
 reg          tag_done_r;
+reg [7:0]    expected_data_bytes_r;
+reg [4:0]    expected_tag_bytes_r;
+reg [3:0]    expected_last_user_r;
 reg [7:0]    result_code_r;
 reg          result_done_r;
 reg          capture_error_r;
@@ -184,7 +190,6 @@ reg       frame_active_r;
 reg [1:0] frame_phase_r;
 reg [7:0] frame_type_r;
 reg [15:0] frame_len_r;
-reg [1023:0] frame_payload_r;
 reg [7:0] frame_payload_bytes_r;
 reg [7:0] frame_byte_index_r;
 reg       send_status_pending_r;
@@ -228,11 +233,7 @@ wire run_fields_ready = mode_loaded_r && key_loaded_r && iv_loaded_r &&
 assign s_axi_araddr  = 7'd0;
 assign s_axi_arvalid = 1'b0;
 assign s_axi_rready  = 1'b0;
-assign s_axis_tdata  = (stream_field_r == FIELD_IV)  ? iv_cfg_r[1023:1016] :
-                       (stream_field_r == FIELD_AAD) ? aad_cfg_r[1023:1016] :
-                       (stream_field_r == FIELD_DATA) ?
-                           (mode_cfg_r ? ct_cfg_r[1023:1016] : pt_cfg_r[1023:1016]) :
-                       tag_cfg_r[127:120];
+assign s_axis_tdata  = input_mem[stream_addr_r];
 assign s_axis_tvalid = (eng_state_r == ENG_STREAM);
 assign s_axis_tlast  = (eng_state_r == ENG_STREAM) &&
                        (stream_total_bytes_r == 9'd1);
@@ -257,19 +258,14 @@ begin
         key_cfg_r            <= 256'd0;
         key_len_r            <= 9'd0;
         key_loaded_r         <= 1'b0;
-        iv_cfg_r             <= 1024'd0;
         iv_len_r             <= 11'd0;
         iv_loaded_r          <= 1'b0;
-        aad_cfg_r            <= 1024'd0;
         aad_len_r            <= 11'd0;
         aad_loaded_r         <= 1'b0;
-        pt_cfg_r             <= 1024'd0;
         pt_len_r             <= 11'd0;
         pt_loaded_r          <= 1'b0;
-        ct_cfg_r             <= 1024'd0;
         ct_len_r             <= 11'd0;
         ct_loaded_r          <= 1'b0;
-        tag_cfg_r            <= 128'd0;
         tag_len_r            <= 8'd0;
         tag_loaded_r         <= 1'b0;
         rx_state_r           <= RX_CMD;
@@ -285,6 +281,7 @@ begin
         stream_total_bytes_r <= 9'd0;
         stream_field_bytes_r <= 9'd0;
         stream_field_r       <= FIELD_IV;
+        stream_addr_r        <= MEM_IV_BASE;
         key_delay_r          <= 9'd0;
         result_watchdog_r    <= 24'd0;
         cooldown_r           <= 4'd0;
@@ -295,12 +292,13 @@ begin
         wr_busy_r            <= 1'b0;
         wr_done_r            <= 1'b0;
         wr_error_r           <= 1'b0;
-        data_capture_r       <= 1024'd0;
         data_count_r         <= 8'd0;
         data_done_r          <= 1'b0;
-        tag_capture_r        <= 128'd0;
         tag_count_r          <= 5'd0;
         tag_done_r           <= 1'b0;
+        expected_data_bytes_r<= 8'd0;
+        expected_tag_bytes_r <= 5'd0;
+        expected_last_user_r <= 4'd0;
         result_code_r        <= 8'hff;
         result_done_r        <= 1'b0;
         capture_error_r      <= 1'b0;
@@ -310,7 +308,6 @@ begin
         frame_phase_r        <= 2'd0;
         frame_type_r         <= 8'd0;
         frame_len_r          <= 16'd0;
-        frame_payload_r      <= 1024'd0;
         frame_payload_bytes_r<= 8'd0;
         frame_byte_index_r   <= 8'd0;
         send_status_pending_r<= 1'b0;
@@ -384,8 +381,12 @@ begin
                 end
                 default:
                 begin
-                    tx_data_r       <= frame_payload_r[1023:1016];
-                    frame_payload_r <= {frame_payload_r[1015:0], 8'd0};
+                    case(frame_type_r)
+                        RSP_STATUS: tx_data_r <= response_status_r;
+                        RSP_DATA:   tx_data_r <= data_capture_mem[frame_byte_index_r];
+                        RSP_TAG:    tx_data_r <= tag_capture_mem[frame_byte_index_r[3:0]];
+                        default:    tx_data_r <= 8'd0;
+                    endcase
                     tx_start_r <= 1'b1;
                     if(frame_byte_index_r == (frame_payload_bytes_r - 8'd1))
                     begin
@@ -424,19 +425,16 @@ begin
                         case(rx_cmd_r)
                             CMD_AAD:
                             begin
-                                aad_cfg_r    <= 1024'd0;
                                 aad_len_r    <= 11'd0;
                                 aad_loaded_r <= 1'b1;
                             end
                             CMD_PT:
                             begin
-                                pt_cfg_r    <= 1024'd0;
                                 pt_len_r    <= 11'd0;
                                 pt_loaded_r <= 1'b1;
                             end
                             CMD_CT:
                             begin
-                                ct_cfg_r    <= 1024'd0;
                                 ct_len_r    <= 11'd0;
                                 ct_loaded_r <= 1'b1;
                             end
@@ -465,11 +463,6 @@ begin
                         rx_state_r <= RX_PAYLOAD;
                         case(rx_cmd_r)
                             CMD_KEY: key_cfg_r <= 256'd0;
-                            CMD_IV:  iv_cfg_r  <= 1024'd0;
-                            CMD_AAD: aad_cfg_r <= 1024'd0;
-                            CMD_PT:  pt_cfg_r  <= 1024'd0;
-                            CMD_CT:  ct_cfg_r  <= 1024'd0;
-                            CMD_TAG: tag_cfg_r <= 128'd0;
                             default:
                             begin
                             end
@@ -480,18 +473,12 @@ begin
                 begin
                     case(rx_cmd_r)
                         CMD_MODE: mode_cfg_r <= rx_data[0];
-                        CMD_KEY:
-                            key_cfg_r[255-rx_byte_index_r*8 -: 8] <= rx_data;
-                        CMD_IV:
-                            iv_cfg_r[1023-rx_byte_index_r*8 -: 8] <= rx_data;
-                        CMD_AAD:
-                            aad_cfg_r[1023-rx_byte_index_r*8 -: 8] <= rx_data;
-                        CMD_PT:
-                            pt_cfg_r[1023-rx_byte_index_r*8 -: 8] <= rx_data;
-                        CMD_CT:
-                            ct_cfg_r[1023-rx_byte_index_r*8 -: 8] <= rx_data;
-                        CMD_TAG:
-                            tag_cfg_r[127-rx_byte_index_r*8 -: 8] <= rx_data;
+                        CMD_KEY: key_cfg_r <= {key_cfg_r[247:0], rx_data};
+                        CMD_IV:  input_mem[MEM_IV_BASE + rx_byte_index_r] <= rx_data;
+                        CMD_AAD: input_mem[MEM_AAD_BASE + rx_byte_index_r] <= rx_data;
+                        CMD_PT:  input_mem[MEM_DATA_BASE + rx_byte_index_r] <= rx_data;
+                        CMD_CT:  input_mem[MEM_DATA_BASE + rx_byte_index_r] <= rx_data;
+                        CMD_TAG: input_mem[MEM_TAG_BASE + rx_byte_index_r] <= rx_data;
                         default:
                         begin
                         end
@@ -508,6 +495,14 @@ begin
                                 key_loaded_r <= (rx_len_r == 16'd128) ||
                                                 (rx_len_r == 16'd192) ||
                                                 (rx_len_r == 16'd256);
+                                case(rx_len_r)
+                                    16'd128:
+                                        key_cfg_r <= {key_cfg_r[119:0], rx_data, 128'd0};
+                                    16'd192:
+                                        key_cfg_r <= {key_cfg_r[183:0], rx_data, 64'd0};
+                                    default:
+                                        key_cfg_r <= {key_cfg_r[247:0], rx_data};
+                                endcase
                             end
                             CMD_IV:
                             begin
@@ -549,27 +544,25 @@ begin
 
         if(capture_active_r && m_axis_data_tvalid)
         begin
-            data_capture_r[1023-data_count_r*8 -: 8] <= m_axis_data_tdata;
+            data_capture_mem[data_count_r] <= m_axis_data_tdata;
             data_count_r   <= data_count_r + 8'd1;
             if(m_axis_data_tlast)
             begin
                 data_done_r <= 1'b1;
-                if((data_count_r + 8'd1) !=
-                   byte_count_from_bits({5'd0, mode_cfg_r ? ct_len_r : pt_len_r}))
+                if((data_count_r + 8'd1) != expected_data_bytes_r)
                     capture_error_r <= 1'b1;
-                if(m_axis_data_tuser != (((mode_cfg_r ? ct_len_r : pt_len_r) & 11'd7) == 0 ?
-                                          4'd8 : (mode_cfg_r ? ct_len_r[3:0] : pt_len_r[3:0])))
+                if(m_axis_data_tuser != expected_last_user_r)
                     capture_error_r <= 1'b1;
             end
         end
         if(capture_active_r && m_axis_tag_tvalid)
         begin
-            tag_capture_r[127-tag_count_r*8 -: 8] <= m_axis_tag_tdata;
+            tag_capture_mem[tag_count_r[3:0]] <= m_axis_tag_tdata;
             tag_count_r   <= tag_count_r + 5'd1;
             if(m_axis_tag_tlast)
             begin
                 tag_done_r <= 1'b1;
-                if((tag_count_r + 5'd1) != byte_count_from_bits({8'd0, tag_len_r}))
+                if((tag_count_r + 5'd1) != expected_tag_bytes_r)
                     capture_error_r <= 1'b1;
             end
         end
@@ -608,12 +601,15 @@ begin
                                             (mode_cfg_r ? byte_count_from_bits({8'd0, tag_len_r}) : 0);
                     stream_field_r       <= FIELD_IV;
                     stream_field_bytes_r <= byte_count_from_bits({5'd0, iv_len_r});
-                    data_capture_r       <= 1024'd0;
+                    stream_addr_r        <= MEM_IV_BASE;
                     data_count_r         <= 8'd0;
                     data_done_r          <= 1'b0;
-                    tag_capture_r        <= 128'd0;
                     tag_count_r          <= 5'd0;
                     tag_done_r           <= 1'b0;
+                    expected_data_bytes_r<= byte_count_from_bits({5'd0, mode_cfg_r ? ct_len_r : pt_len_r});
+                    expected_tag_bytes_r <= byte_count_from_bits({8'd0, tag_len_r});
+                    expected_last_user_r <= ((mode_cfg_r ? ct_len_r : pt_len_r) & 11'd7) == 0 ?
+                                            4'd8 : (mode_cfg_r ? ct_len_r[3:0] : pt_len_r[3:0]);
                     result_code_r        <= 8'hff;
                     result_done_r        <= 1'b0;
                     capture_error_r      <= 1'b0;
@@ -779,6 +775,7 @@ begin
                     begin
                         stream_field_r <= FIELD_IV;
                         stream_field_bytes_r <= byte_count_from_bits({5'd0, iv_len_r});
+                        stream_addr_r <= MEM_IV_BASE;
                         eng_state_r <= ENG_STREAM;
                     end
                 end
@@ -787,18 +784,6 @@ begin
             begin
                 if(s_axis_tvalid && s_axis_tready)
                 begin
-                    case(stream_field_r)
-                        FIELD_IV:   iv_cfg_r <= {iv_cfg_r[1015:0], 8'd0};
-                        FIELD_AAD:  aad_cfg_r <= {aad_cfg_r[1015:0], 8'd0};
-                        FIELD_DATA:
-                        begin
-                            if(mode_cfg_r)
-                                ct_cfg_r <= {ct_cfg_r[1015:0], 8'd0};
-                            else
-                                pt_cfg_r <= {pt_cfg_r[1015:0], 8'd0};
-                        end
-                        default: tag_cfg_r <= {tag_cfg_r[119:0], 8'd0};
-                    endcase
                     if(s_axis_tlast)
                     begin
                         result_watchdog_r <= 24'd0;
@@ -808,7 +793,10 @@ begin
                     begin
                         stream_total_bytes_r <= stream_total_bytes_r - 9'd1;
                         if(stream_field_bytes_r != 9'd1)
+                        begin
                             stream_field_bytes_r <= stream_field_bytes_r - 9'd1;
+                            stream_addr_r <= stream_addr_r + 9'd1;
+                        end
                         else
                         begin
                             case(stream_field_r)
@@ -818,16 +806,19 @@ begin
                                     begin
                                         stream_field_r <= FIELD_AAD;
                                         stream_field_bytes_r <= byte_count_from_bits({5'd0, aad_len_r});
+                                        stream_addr_r <= MEM_AAD_BASE;
                                     end
                                     else if((mode_cfg_r ? ct_len_r : pt_len_r) != 11'd0)
                                     begin
                                         stream_field_r <= FIELD_DATA;
                                         stream_field_bytes_r <= byte_count_from_bits({5'd0, mode_cfg_r ? ct_len_r : pt_len_r});
+                                        stream_addr_r <= MEM_DATA_BASE;
                                     end
                                     else
                                     begin
                                         stream_field_r <= FIELD_TAG;
                                         stream_field_bytes_r <= byte_count_from_bits({8'd0, tag_len_r});
+                                        stream_addr_r <= MEM_TAG_BASE;
                                     end
                                 end
                                 FIELD_AAD:
@@ -836,17 +827,20 @@ begin
                                     begin
                                         stream_field_r <= FIELD_DATA;
                                         stream_field_bytes_r <= byte_count_from_bits({5'd0, mode_cfg_r ? ct_len_r : pt_len_r});
+                                        stream_addr_r <= MEM_DATA_BASE;
                                     end
                                     else
                                     begin
                                         stream_field_r <= FIELD_TAG;
                                         stream_field_bytes_r <= byte_count_from_bits({8'd0, tag_len_r});
+                                        stream_addr_r <= MEM_TAG_BASE;
                                     end
                                 end
                                 FIELD_DATA:
                                 begin
                                     stream_field_r <= FIELD_TAG;
                                     stream_field_bytes_r <= byte_count_from_bits({8'd0, tag_len_r});
+                                    stream_addr_r <= MEM_TAG_BASE;
                                 end
                                 default:
                                     stream_field_bytes_r <= 9'd0;
@@ -938,7 +932,6 @@ begin
                         frame_phase_r         <= 2'd0;
                         frame_type_r          <= RSP_STATUS;
                         frame_len_r           <= 16'd8;
-                        frame_payload_r       <= {response_status_r, 1016'd0};
                         frame_payload_bytes_r <= 8'd1;
                         frame_byte_index_r    <= 8'd0;
                         send_status_pending_r <= 1'b0;
@@ -949,7 +942,6 @@ begin
                         frame_phase_r         <= 2'd0;
                         frame_type_r          <= RSP_DATA;
                         frame_len_r           <= {5'd0, mode_cfg_r ? ct_len_r : pt_len_r};
-                        frame_payload_r       <= data_capture_r;
                         frame_payload_bytes_r <= byte_count_from_bits({5'd0, mode_cfg_r ? ct_len_r : pt_len_r});
                         frame_byte_index_r    <= 8'd0;
                         send_data_pending_r   <= 1'b0;
@@ -960,7 +952,6 @@ begin
                         frame_phase_r         <= 2'd0;
                         frame_type_r          <= RSP_TAG;
                         frame_len_r           <= {8'd0, tag_len_r};
-                        frame_payload_r       <= {tag_capture_r, 896'd0};
                         frame_payload_bytes_r <= byte_count_from_bits({8'd0, tag_len_r});
                         frame_byte_index_r    <= 8'd0;
                         send_tag_pending_r    <= 1'b0;
