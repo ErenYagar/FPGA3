@@ -230,3 +230,29 @@ No timing exception was added.  The archived reclocked DCP is
 This establishes security/legal internal timing closure at 175 MHz only;
 PartPin remains NO and the original >1 Gbit/s throughput gate is not met at
 the lower frequency.
+
+## Round55 throughput candidate audit
+
+Round55-T adds two fast CTR contexts and a two-entry data-block queue.  Each
+fast AES context and its pending result register reset synchronously on raw
+ZEROIZE.  Both queue payload entries, indices, byte counts, last markers, and
+valid count clear on the existing `queue_clear`, covering protocol abort and
+ZEROIZE.  The ordered data and keystream indices are required to match before
+consumption, preventing duplicate, lost, or cross-record ciphertext.
+
+The repeated-ZEROIZE directed test injects nonzero sensitive values into both
+data queue entries, both fast AES states, and both fast result buffers, then
+proves they are zero and invalid on the raw ZEROIZE edge.  Existing abort
+cardinality, descriptor admission, non-96-bit IV, GHASH-slot stall, public
+visibility, key-mid-expansion, Round48, and Round49 gates all pass.  The
+routed hard gate independently reports direct raw-ZEROIZE reachability,
+complete ciphertext clear mapping, no unsafe CDC, no latch or multiple
+driver, no route/DRC error, and positive internal setup and hold slack.
+
+The exact commit passes NIST525 `525/0`, NIST5255 `5255/0`, and the final
+NIST run `47250/0` at 17,740,527 cycles.  The R54-D-only
+`CLEAR_HEAD_ON_CLEAR` test is N/A because that rejected parameter is absent
+from this baseline; the retained FIFO count/out-valid, abort-clear, ZEROIZE,
+and stale-output visibility gates remain active and pass.  Security and
+internal timing promotion are **PASS** at 175 MHz.  PartPin remains **NO**
+pending an approved identity-matched production map.

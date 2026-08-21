@@ -479,3 +479,55 @@ Gbit/s.  Therefore timing passes while the original throughput gate fails.
 The full 47,250-vector NIST run remains unnecessary until that remaining
 system-level gate is resolved or the >1 Gbit/s requirement is explicitly
 changed.
+
+## Round55 175 MHz throughput closure
+
+Round55-T commit `94aa57628bdadd42756c4be5c3426c05f55d6c48` resolves the
+remaining 175 MHz throughput failure without increasing the clock.  A
+two-entry sensitive data-block queue decouples byte admission from the first
+keystream result.  Two dedicated one-round-per-clock AES engines service CTR
+block indices 0 and 1; the existing registered-S-box engine retains H, tag
+mask, and subsequent CTR work.  Ordered queue indices pair each data block
+with the corresponding keystream FIFO head, so the change does not reorder
+ciphertext, plaintext, GHASH, or final-length processing.
+
+At the strict 175 MHz testbench clock, all six modes now exceed the original
+1 Gbit/s gate:
+
+| Mode | Encrypt cycles / Gbit/s | Decrypt cycles / Gbit/s |
+|---|---:|---:|
+| AES-128 | 16,820 / 1.065398 | 17,039 / 1.051705 |
+| AES-192 | 16,820 / 1.065398 | 17,039 / 1.051705 |
+| AES-256 | 16,820 / 1.065398 | 17,039 / 1.051705 |
+
+This is a fresh synth/place/route using the baseline directives, not a
+reclocked or reused lucky route.  The core SHA-256 is
+`5503394198EA4662BC065D5BBE07040C693BEEEB417D1B88B8CCD04DBDED80CA`.
+Checkpoint identities are:
+
+| Stage | SHA-256 |
+|---|---|
+| synth | `7AEED1908BD6D8EDBBB0C51C82A9BEE0FF5865C2580A279090E329200498AF6F` |
+| placed | `72ADBBFF762D1296235D0D6783B86877E88B23E4A251E9B24EA3BDF34498272A` |
+| routed | `1A48461B9047E2967B9836E34B8809DF0CB2605508428F6DB2944F01B0DB9765` |
+
+Routed internal timing closes at WNS `+0.056 ns`, TNS `0`, FEP `0`, WHS
+`+0.053 ns`, and THS `0`.  All 16,327 routable nets are complete; route
+errors, DRC Error/Critical Warning, critical check-timing categories, CDC
+failures, latches, and multiple drivers are zero.  The candidate uses 11,600
+LUTs, 8,410 FFs, 10 RAMB18s, and 227 control sets.  Compared with the prior
+175 MHz source, this spends 3,230 additional LUTs and 1,046 additional FFs
+to remove the first-block latency bottleneck; RAMB18 use remains unchanged.
+
+The final non-D regression profile passes compile/elaboration, smoke at 7,676
+cycles, Round48, Round49, every applicable Round53 ZEROIZE/stall/capacity
+test, dedicated data-queue and fast-AES ZEROIZE clearing, NIST525 at 145,808
+cycles, and NIST5255 at 1,594,798 cycles.  After internal closure, the full
+six-file NIST run passes 47,250/47,250 with zero failures at 17,740,527
+cycles.  The rejected R54-D-only FIFO specialization test remains explicitly
+N/A; the retained abort, ZEROIZE, FIFO visibility, and queue-clear gates pass.
+
+Round55-T therefore passes the 175 MHz internal timing and >1 Gbit/s
+throughput gates.  It is not a 1 GHz clock implementation.  PartPin remains
+**NO** until an approved production map matches this placed-DCP identity and
+passes strict replay.
