@@ -34,6 +34,11 @@
 !/engrenring/synth_1g/*.tcl
 !/engrenring/synth_1g/*.xdc
 !/engrenring/synth_1g/axi_ooc/
+!/engrenring/synth_1g/board/
+
+/engrenring/synth_1g/board/*
+!/engrenring/synth_1g/board/*.tcl
+!/engrenring/synth_1g/board/*.xdc
 
 /engrenring/synth_1g/axi_ooc/*
 !/engrenring/synth_1g/axi_ooc/*.tcl
