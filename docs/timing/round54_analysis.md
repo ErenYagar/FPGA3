@@ -440,3 +440,34 @@ smoke, throughput, Round48/49/53, repeated-ZEROIZE prep-tag clear, NIST525,
 and NIST5255.  The R54-D-only FIFO testbench was excluded because it
 intentionally instantiates D's rejected `CLEAR_HEAD_ON_CLEAR` parameter;
 the retained FIFO clear/security regressions remain in the passing R53 set.
+
+## 175 MHz timing experiment
+
+The user-selected 175 MHz profile uses `5.714 ns`, which is slightly stricter
+than the exact 175 MHz period of `5.714285... ns`.  It preserves the original
+1 ns input/output boundary budgets and adds no false path, multicycle, clock
+group, max/min delay, case analysis, or disabled-timing exception.
+
+The exact promoted GI routed DCP
+`2C10BCA0BAD8A8ED3407B2F3FF6FC0FFD378A9FDB6FF2ED65F0293150573433A`
+was reopened, reset to the complete 175 MHz XDC, and audited without changing
+placement or routing.  Internal timing closes at WNS `+0.568 ns`, TNS `0`,
+FEP `0`, WHS `+0.050 ns`, THS `0`.  All 13,583 routable nets remain fully
+routed; route errors, DRC Error/Critical Warning, critical check_timing
+categories, CDC failures, latches, and multiple drivers are zero.  The full
+Round53/Round54 security and replica-mapping hard gates pass.  The archived
+175 MHz routed DCP SHA-256 is
+`EC5C296177A30C3268A20B30A419A8ADC7B284EE49EC443CC0969ADA3165AA9B`.
+
+This is a valid **175 MHz internal timing PASS**, not a 200 MHz closure and
+not a fresh 175 MHz placement/route.  Reusing the already-routed 200 MHz DCP
+is conservative for implementation and the clock was recomputed by Vivado,
+not estimated from the former slack.
+
+The original overall promotion gate still requires every mode above
+1 Gbit/s.  Cycle signatures are unchanged, but at 175 MHz the six measured
+rates are approximately `0.947/0.936`, `0.918/0.908`, and `0.891/0.881`
+Gbit/s.  Therefore timing passes while the original throughput gate fails.
+The full 47,250-vector NIST run remains unnecessary until that remaining
+system-level gate is resolved or the >1 Gbit/s requirement is explicitly
+changed.

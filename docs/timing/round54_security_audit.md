@@ -218,3 +218,15 @@ cycles, and NIST5255 `5255/0` at 1,615,588 cycles.  The D-only FIFO testbench
 is not applicable because GI deliberately does not contain D's rejected
 `CLEAR_HEAD_ON_CLEAR` parameter; this exclusion is explicit in the runner
 and does not remove the retained FIFO clear/abort/ZEROIZE gates.
+
+The subsequent 175 MHz audit changes constraints only.  It uses the same
+promoted RTL and exact GI physical netlist, so all previously passed cycle and
+security regressions remain applicable.  Vivado rechecked the routed DCP at
+the strict `5.714 ns` period and passed ZEROIZE direct-cone, prep-tag mapping,
+descriptor admission, ciphertext clear, public-idle, input-mode replica,
+CDC, latch, multiple-driver, DRC, methodology, route, setup, and hold gates.
+No timing exception was added.  The archived reclocked DCP is
+`EC5C296177A30C3268A20B30A419A8ADC7B284EE49EC443CC0969ADA3165AA9B`.
+This establishes security/legal internal timing closure at 175 MHz only;
+PartPin remains NO and the original >1 Gbit/s throughput gate is not met at
+the lower frequency.
