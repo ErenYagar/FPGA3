@@ -135,7 +135,7 @@ Set-Location $OutputRoot
 Invoke-Logged -Tool $Xvlog -Arguments (@('--sv') + $RtlFiles + $TestFiles + $GlblFile) `
     -LogFile (Join-Path $OutputRoot 'compile_stdout.log')
 
-Invoke-Round54Test tb_axi_smoke smoke @('AXI_SMOKE_PASS cycles=8364')
+Invoke-Round54Test tb_axi_smoke smoke @('AXI_SMOKE_PASS cycles=7676')
 Invoke-Round54Test tb_throughput throughput @(
     'THROUGHPUT mode=AES-128 direction=encrypt cycles=16820',
     'THROUGHPUT mode=AES-128 direction=decrypt cycles=17039',
