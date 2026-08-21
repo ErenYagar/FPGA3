@@ -152,6 +152,7 @@ Invoke-Round54Test tb_round49_residual_directed round49 @(
     'ROUND49_RESIDUAL_DIRECTED_PASS'
 )
 $Round53CoreSignatures = @(
+    'ROUND55_THROUGHPUT_ZEROIZE_PASS dataq=0 fast_contexts=0 fast_results=0',
     'ROUND53_CORE_ZEROIZE_PASS result=13 visible_fires=1',
     'ROUND53_ZSEQ_ADMISSION_PASS held_until_abort=1 admitted_next_edge=1',
     'ROUND53_DESCRIPTOR_ZEROIZE_COLLISION_PASS'
@@ -171,7 +172,7 @@ Invoke-Round54Test tb_round53_key_midzeroize_directed round53_key @(
 Invoke-Round54Test tb_round53_non96_ghash_zeroize_directed round53_non96 @(
     'ROUND53_NON96_GHASH_ZEROIZE_PASS',
     'ROUND53_GHASH_SLOT_STALL_PASS',
-    'ROUND53_AES_DATA_CAPACITY_STALL_PASS'
+    'ROUND55_AES_DATA_BUFFER_PASS input_fires=28 data_blocks=1 stall_cycles=0'
 )
 Invoke-Round54Test tb_round53_zeroize_public_directed round53_public @(
     'ROUND53_PUBLIC_ZEROIZE_PASS idle_results=0 accepted=2 abort_results=2'

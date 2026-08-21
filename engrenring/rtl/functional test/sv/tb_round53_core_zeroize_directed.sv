@@ -271,6 +271,20 @@ begin
         // writer from the retained first_zeroize_event_w-qualified writer.
         force dut.prep_tag_bytes = 9'h1a5;
     end
+    // Test-only sensitive-state injection proves the new throughput queue and
+    // both low-latency AES contexts obey every raw ZEROIZE pulse, including a
+    // repeated pulse while the first zeroize sequence is already active.
+    dut.dataq_count_r = 2'd2;
+    dut.dataq0_block_r = 128'h00112233445566778899aabbccddeeff;
+    dut.dataq1_block_r = 128'hffeeddccbbaa99887766554433221100;
+    dut.aes_first_result_valid_r = 1'b1;
+    dut.aes_first_result_block_r = 128'h0123456789abcdef0123456789abcdef;
+    dut.aes_second_result_valid_r = 1'b1;
+    dut.aes_second_result_block_r = 128'hfedcba9876543210fedcba9876543210;
+    dut.u_aes_first_engine.busy_r = 1'b1;
+    dut.u_aes_first_engine.state_r = 128'h11111111111111111111111111111111;
+    dut.u_aes_second_engine.busy_r = 1'b1;
+    dut.u_aes_second_engine.state_r = 128'h22222222222222222222222222222222;
     zeroize = 1'b1;
     m_axis_result_tready = 1'b1;
     #1;
@@ -288,6 +302,17 @@ begin
                dut.prep_tag_bytes);
     if(expect_local_prep_clear)
         $display("ROUND54_PREP_TAG_REPEATED_ZEROIZE_PASS same_edge_clear=1 value=000");
+    if((dut.dataq_count_r !== 2'd0) ||
+       (dut.dataq0_block_r !== 128'd0) ||
+       (dut.dataq1_block_r !== 128'd0) ||
+       dut.aes_first_result_valid_r || dut.aes_second_result_valid_r ||
+       (dut.aes_first_result_block_r !== 128'd0) ||
+       (dut.aes_second_result_block_r !== 128'd0) ||
+       dut.u_aes_first_engine.busy_r || dut.u_aes_second_engine.busy_r ||
+       (dut.u_aes_first_engine.state_r !== 128'd0) ||
+       (dut.u_aes_second_engine.state_r !== 128'd0))
+        $fatal(1, "ROUND55_THROUGHPUT_ZEROIZE_SCRUB_FAILED");
+    $display("ROUND55_THROUGHPUT_ZEROIZE_PASS dataq=0 fast_contexts=0 fast_results=0");
     @(negedge clk);
     zeroize = 1'b0;
 

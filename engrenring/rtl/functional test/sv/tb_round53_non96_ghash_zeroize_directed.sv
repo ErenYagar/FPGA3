@@ -75,7 +75,6 @@ integer gh_block_commit_count = 0;
 integer gh_first_stall_cycle = -1;
 integer gh_release_cycle = -1;
 integer data_capacity_stall_cycles = 0;
-integer aes_capacity_stall_cycles = 0;
 integer data_block_commit_count = 0;
 integer data_first_stall_cycle = -1;
 integer data_release_cycle = -1;
@@ -226,8 +225,6 @@ begin
         if(data_capacity_stall_cycles == 0)
             data_first_stall_cycle = cycle_count;
         data_capacity_stall_cycles = data_capacity_stall_cycles + 1;
-        if(!dut.ks_block_ready_next_w)
-            aes_capacity_stall_cycles = aes_capacity_stall_cycles + 1;
         data_release_pending = 1'b1;
     end
     if((coverage_phase == 2) && s_axis_tvalid && s_axis_tready &&
@@ -304,7 +301,6 @@ begin
     gh_release_cycle = -1;
     gh_release_pending = 1'b0;
     data_capacity_stall_cycles = 0;
-    aes_capacity_stall_cycles = 0;
     data_block_commit_count = 0;
     data_first_stall_cycle = -1;
     data_release_cycle = -1;
@@ -570,9 +566,9 @@ begin
     $display("ROUND53_GHASH_SLOT_STALL_PASS iv_bytes=17 stall_cycles=%0d first_cycle=%0d release_cycle=%0d block_commits=2 input_fires=17 tag=16 result=00",
              gh_slot_stall_cycles, gh_first_stall_cycle, gh_release_cycle);
 
-    // The immediately following 16-byte DATA block reaches its final byte
-    // before the prefetched AES keystream is available.  READY must remain
-    // low at that boundary, then commit the held final byte exactly once.
+    // The two-entry data queue must admit the immediately following 16-byte
+    // DATA block without waiting for AES, then commit it exactly once when the
+    // ordered keystream arrives.
     clear_observations();
     cmd_iv_bits = 11'd96;
     cmd_data_bits = 11'd128;
@@ -594,8 +590,8 @@ begin
     coverage_phase = 0;
 
     if(input_fire_count != 28 || data_block_commit_count != 1 ||
-       data_capacity_stall_cycles <= 0 || aes_capacity_stall_cycles <= 0 ||
-       data_first_stall_cycle < 0 || data_release_cycle < 0 ||
+       data_capacity_stall_cycles != 0 ||
+       data_first_stall_cycle >= 0 || data_release_cycle >= 0 ||
        stalled_input_pending ||
        data_fire_count != 16 || data_last_count != 1 ||
        (captured_data_last_user !== 4'd8) ||
@@ -609,9 +605,9 @@ begin
        record_active || output_pending || m_axis_data_tvalid ||
        m_axis_tag_tvalid || m_axis_result_tvalid)
         $fatal(1,
-               "DATA_CAPACITY_STALL_COVERAGE input=%0d commits=%0d stalls=%0d aes=%0d first=%0d release=%0d held=%b data=%0d/%0d/u%0d tag=%0d/%0d result=%0d/%0d/%02x events=%0d:%02x,%02x,%02x active=%b pending=%b",
+               "DATA_BUFFER_COVERAGE input=%0d commits=%0d stalls=%0d first=%0d release=%0d held=%b data=%0d/%0d/u%0d tag=%0d/%0d result=%0d/%0d/%02x events=%0d:%02x,%02x,%02x active=%b pending=%b",
                input_fire_count, data_block_commit_count,
-               data_capacity_stall_cycles, aes_capacity_stall_cycles,
+               data_capacity_stall_cycles,
                data_first_stall_cycle, data_release_cycle,
                stalled_input_pending,
                data_fire_count, data_last_count, captured_data_last_user,
@@ -620,8 +616,8 @@ begin
                terminal_event_count, terminal_event_history[0],
                terminal_event_history[1], terminal_event_history[2],
                record_active, output_pending);
-    $display("ROUND53_AES_DATA_CAPACITY_STALL_PASS input_fires=28 data_blocks=1 total_stall_cycles=%0d aes_stall_cycles=%0d first_cycle=%0d release_cycle=%0d data=16 tag=16 result=00 order=D,T,R",
-             data_capacity_stall_cycles, aes_capacity_stall_cycles,
+    $display("ROUND55_AES_DATA_BUFFER_PASS input_fires=28 data_blocks=1 stall_cycles=%0d first_cycle=%0d release_cycle=%0d data=16 tag=16 result=00 order=D,T,R",
+             data_capacity_stall_cycles,
              data_first_stall_cycle, data_release_cycle);
     $finish;
 end
