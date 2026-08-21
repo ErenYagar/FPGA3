@@ -203,6 +203,14 @@ begin
     send_packet(8'h04, aad_bits, aad_value);
     send_packet(decrypt_mode ? 8'h06 : 8'h05, data_bits, input_data);
     send_packet(8'h07, tag_bits, decrypt_mode ? input_tag : 2048'd0);
+    if(u_bridge.key_cfg_r !==
+       (key_value[255:0] << (256 - key_bits)))
+        $fatal(1, "UART key buffer mismatch bits=%0d got=%064x expected=%064x",
+               key_bits, u_bridge.key_cfg_r,
+               (key_value[255:0] << (256 - key_bits)));
+    if(u_bridge.iv_cfg_r !==
+       (iv_value[1023:0] << (1024 - ((iv_bits + 7) / 8) * 8)))
+        $fatal(1, "UART IV buffer mismatch bits=%0d", iv_bits);
     send_packet(8'h08, 0, 2048'd0);
 
     recv_frame(frame_type, frame_bits, frame_payload);

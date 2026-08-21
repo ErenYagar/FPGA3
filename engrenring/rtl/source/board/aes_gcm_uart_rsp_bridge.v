@@ -100,6 +100,11 @@ localparam [5:0] ENG_WAIT_RESULT     = 6'd17;
 localparam [5:0] ENG_RESPOND         = 6'd18;
 localparam [5:0] ENG_COOLDOWN        = 6'd19;
 
+localparam [1:0] FIELD_IV   = 2'd0;
+localparam [1:0] FIELD_AAD  = 2'd1;
+localparam [1:0] FIELD_DATA = 2'd2;
+localparam [1:0] FIELD_TAG  = 2'd3;
+
 wire [7:0] rx_data;
 wire       rx_valid;
 wire       rx_busy;
@@ -150,8 +155,9 @@ reg [7:0]  status_only_code_r;
 
 reg [5:0] eng_state_r;
 reg [3:0] key_word_index_r;
-reg [8:0] stream_index_r;
 reg [8:0] stream_total_bytes_r;
+reg [8:0] stream_field_bytes_r;
+reg [1:0] stream_field_r;
 reg [8:0] key_delay_r;
 reg [23:0] result_watchdog_r;
 reg [3:0] cooldown_r;
@@ -208,91 +214,6 @@ begin
 end
 endfunction
 
-function [7:0] get_buffer_byte_1024;
-input [1023:0] value;
-input [15:0] bits;
-input [8:0] index;
-integer total_bytes;
-integer shift_amount;
-begin
-    total_bytes = byte_count_from_bits(bits);
-    if(index < total_bytes)
-    begin
-        shift_amount = (total_bytes - 1 - index) * 8;
-        get_buffer_byte_1024 = (value >> shift_amount) & 8'hff;
-    end
-    else
-        get_buffer_byte_1024 = 8'd0;
-end
-endfunction
-
-function [7:0] get_buffer_byte_256;
-input [255:0] value;
-input [8:0] bits;
-input [8:0] index;
-integer total_bytes;
-integer shift_amount;
-begin
-    total_bytes = (bits + 9'd7) / 9'd8;
-    if(index < total_bytes)
-    begin
-        shift_amount = (total_bytes - 1 - index) * 8;
-        get_buffer_byte_256 = (value >> shift_amount) & 8'hff;
-    end
-    else
-        get_buffer_byte_256 = 8'd0;
-end
-endfunction
-
-function [31:0] get_key_word;
-input [3:0] word_index;
-reg [8:0] byte_index;
-begin
-    byte_index = {word_index, 2'b00};
-    get_key_word = {
-        get_buffer_byte_256(key_cfg_r, key_len_r, byte_index),
-        get_buffer_byte_256(key_cfg_r, key_len_r, byte_index + 9'd1),
-        get_buffer_byte_256(key_cfg_r, key_len_r, byte_index + 9'd2),
-        get_buffer_byte_256(key_cfg_r, key_len_r, byte_index + 9'd3)
-    };
-end
-endfunction
-
-function [7:0] get_stream_byte;
-input [8:0] index;
-integer iv_bytes;
-integer aad_bytes;
-integer data_bytes;
-integer local_index;
-begin
-    iv_bytes = byte_count_from_bits({5'd0, iv_len_r});
-    aad_bytes = byte_count_from_bits({5'd0, aad_len_r});
-    data_bytes = mode_cfg_r ? byte_count_from_bits({5'd0, ct_len_r}) :
-                              byte_count_from_bits({5'd0, pt_len_r});
-    if(index < iv_bytes)
-        get_stream_byte = get_buffer_byte_1024(iv_cfg_r, {5'd0, iv_len_r}, index);
-    else if(index < (iv_bytes + aad_bytes))
-    begin
-        local_index = index - iv_bytes;
-        get_stream_byte = get_buffer_byte_1024(aad_cfg_r, {5'd0, aad_len_r}, local_index);
-    end
-    else if(index < (iv_bytes + aad_bytes + data_bytes))
-    begin
-        local_index = index - iv_bytes - aad_bytes;
-        if(mode_cfg_r)
-            get_stream_byte = get_buffer_byte_1024(ct_cfg_r, {5'd0, ct_len_r}, local_index);
-        else
-            get_stream_byte = get_buffer_byte_1024(pt_cfg_r, {5'd0, pt_len_r}, local_index);
-    end
-    else
-    begin
-        local_index = index - iv_bytes - aad_bytes - data_bytes;
-        get_stream_byte = get_buffer_byte_1024({896'd0, tag_cfg_r},
-                                                {8'd0, tag_len_r}, local_index);
-    end
-end
-endfunction
-
 wire run_fields_ready = mode_loaded_r && key_loaded_r && iv_loaded_r &&
                         aad_loaded_r && tag_loaded_r &&
                         (mode_cfg_r ? ct_loaded_r : pt_loaded_r) &&
@@ -307,10 +228,14 @@ wire run_fields_ready = mode_loaded_r && key_loaded_r && iv_loaded_r &&
 assign s_axi_araddr  = 7'd0;
 assign s_axi_arvalid = 1'b0;
 assign s_axi_rready  = 1'b0;
-assign s_axis_tdata  = get_stream_byte(stream_index_r);
+assign s_axis_tdata  = (stream_field_r == FIELD_IV)  ? iv_cfg_r[1023:1016] :
+                       (stream_field_r == FIELD_AAD) ? aad_cfg_r[1023:1016] :
+                       (stream_field_r == FIELD_DATA) ?
+                           (mode_cfg_r ? ct_cfg_r[1023:1016] : pt_cfg_r[1023:1016]) :
+                       tag_cfg_r[127:120];
 assign s_axis_tvalid = (eng_state_r == ENG_STREAM);
 assign s_axis_tlast  = (eng_state_r == ENG_STREAM) &&
-                       (stream_index_r == (stream_total_bytes_r - 9'd1));
+                       (stream_total_bytes_r == 9'd1);
 assign m_axis_data_tready   = 1'b1;
 assign m_axis_tag_tready    = 1'b1;
 assign m_axis_result_tready = 1'b1;
@@ -357,8 +282,9 @@ begin
         status_only_code_r   <= STAT_BAD_CFG;
         eng_state_r          <= ENG_IDLE;
         key_word_index_r     <= 4'd0;
-        stream_index_r       <= 9'd0;
         stream_total_bytes_r <= 9'd0;
+        stream_field_bytes_r <= 9'd0;
+        stream_field_r       <= FIELD_IV;
         key_delay_r          <= 9'd0;
         result_watchdog_r    <= 24'd0;
         cooldown_r           <= 4'd0;
@@ -458,9 +384,8 @@ begin
                 end
                 default:
                 begin
-                    tx_data_r <= get_buffer_byte_1024(frame_payload_r,
-                                                       frame_len_r,
-                                                       frame_byte_index_r);
+                    tx_data_r       <= frame_payload_r[1023:1016];
+                    frame_payload_r <= {frame_payload_r[1015:0], 8'd0};
                     tx_start_r <= 1'b1;
                     if(frame_byte_index_r == (frame_payload_bytes_r - 8'd1))
                     begin
@@ -555,12 +480,18 @@ begin
                 begin
                     case(rx_cmd_r)
                         CMD_MODE: mode_cfg_r <= rx_data[0];
-                        CMD_KEY:  key_cfg_r  <= {key_cfg_r[247:0], rx_data};
-                        CMD_IV:   iv_cfg_r   <= {iv_cfg_r[1015:0], rx_data};
-                        CMD_AAD:  aad_cfg_r  <= {aad_cfg_r[1015:0], rx_data};
-                        CMD_PT:   pt_cfg_r   <= {pt_cfg_r[1015:0], rx_data};
-                        CMD_CT:   ct_cfg_r   <= {ct_cfg_r[1015:0], rx_data};
-                        CMD_TAG:  tag_cfg_r  <= {tag_cfg_r[119:0], rx_data};
+                        CMD_KEY:
+                            key_cfg_r[255-rx_byte_index_r*8 -: 8] <= rx_data;
+                        CMD_IV:
+                            iv_cfg_r[1023-rx_byte_index_r*8 -: 8] <= rx_data;
+                        CMD_AAD:
+                            aad_cfg_r[1023-rx_byte_index_r*8 -: 8] <= rx_data;
+                        CMD_PT:
+                            pt_cfg_r[1023-rx_byte_index_r*8 -: 8] <= rx_data;
+                        CMD_CT:
+                            ct_cfg_r[1023-rx_byte_index_r*8 -: 8] <= rx_data;
+                        CMD_TAG:
+                            tag_cfg_r[127-rx_byte_index_r*8 -: 8] <= rx_data;
                         default:
                         begin
                         end
@@ -618,7 +549,7 @@ begin
 
         if(capture_active_r && m_axis_data_tvalid)
         begin
-            data_capture_r <= {data_capture_r[1015:0], m_axis_data_tdata};
+            data_capture_r[1023-data_count_r*8 -: 8] <= m_axis_data_tdata;
             data_count_r   <= data_count_r + 8'd1;
             if(m_axis_data_tlast)
             begin
@@ -633,7 +564,7 @@ begin
         end
         if(capture_active_r && m_axis_tag_tvalid)
         begin
-            tag_capture_r <= {tag_capture_r[119:0], m_axis_tag_tdata};
+            tag_capture_r[127-tag_count_r*8 -: 8] <= m_axis_tag_tdata;
             tag_count_r   <= tag_count_r + 5'd1;
             if(m_axis_tag_tlast)
             begin
@@ -671,11 +602,12 @@ begin
                     key_mode            <= (key_len_r == 9'd128) ? 3'd0 :
                                            (key_len_r == 9'd192) ? 3'd1 : 3'd2;
                     key_word_index_r     <= 4'd0;
-                    stream_index_r       <= 9'd0;
                     stream_total_bytes_r <= byte_count_from_bits({5'd0, iv_len_r}) +
                                             byte_count_from_bits({5'd0, aad_len_r}) +
                                             byte_count_from_bits({5'd0, mode_cfg_r ? ct_len_r : pt_len_r}) +
                                             (mode_cfg_r ? byte_count_from_bits({8'd0, tag_len_r}) : 0);
+                    stream_field_r       <= FIELD_IV;
+                    stream_field_bytes_r <= byte_count_from_bits({5'd0, iv_len_r});
                     data_capture_r       <= 1024'd0;
                     data_count_r         <= 8'd0;
                     data_done_r          <= 1'b0;
@@ -696,7 +628,7 @@ begin
             ENG_KEY_WORD:
             begin
                 wr_address_r <= 7'h20 + {key_word_index_r, 2'b00};
-                wr_value_r   <= get_key_word(key_word_index_r);
+                wr_value_r   <= key_cfg_r[255:224];
                 wr_request_r <= 1'b1;
                 eng_state_r  <= ENG_KEY_WORD_WAIT;
             end
@@ -716,6 +648,7 @@ begin
                     else
                     begin
                         key_word_index_r <= key_word_index_r + 4'd1;
+                        key_cfg_r <= {key_cfg_r[223:0], 32'd0};
                         eng_state_r <= ENG_KEY_WORD;
                     end
                 end
@@ -844,7 +777,8 @@ begin
                     end
                     else
                     begin
-                        stream_index_r <= 9'd0;
+                        stream_field_r <= FIELD_IV;
+                        stream_field_bytes_r <= byte_count_from_bits({5'd0, iv_len_r});
                         eng_state_r <= ENG_STREAM;
                     end
                 end
@@ -853,13 +787,72 @@ begin
             begin
                 if(s_axis_tvalid && s_axis_tready)
                 begin
+                    case(stream_field_r)
+                        FIELD_IV:   iv_cfg_r <= {iv_cfg_r[1015:0], 8'd0};
+                        FIELD_AAD:  aad_cfg_r <= {aad_cfg_r[1015:0], 8'd0};
+                        FIELD_DATA:
+                        begin
+                            if(mode_cfg_r)
+                                ct_cfg_r <= {ct_cfg_r[1015:0], 8'd0};
+                            else
+                                pt_cfg_r <= {pt_cfg_r[1015:0], 8'd0};
+                        end
+                        default: tag_cfg_r <= {tag_cfg_r[119:0], 8'd0};
+                    endcase
                     if(s_axis_tlast)
                     begin
                         result_watchdog_r <= 24'd0;
                         eng_state_r <= ENG_WAIT_RESULT;
                     end
                     else
-                        stream_index_r <= stream_index_r + 9'd1;
+                    begin
+                        stream_total_bytes_r <= stream_total_bytes_r - 9'd1;
+                        if(stream_field_bytes_r != 9'd1)
+                            stream_field_bytes_r <= stream_field_bytes_r - 9'd1;
+                        else
+                        begin
+                            case(stream_field_r)
+                                FIELD_IV:
+                                begin
+                                    if(aad_len_r != 11'd0)
+                                    begin
+                                        stream_field_r <= FIELD_AAD;
+                                        stream_field_bytes_r <= byte_count_from_bits({5'd0, aad_len_r});
+                                    end
+                                    else if((mode_cfg_r ? ct_len_r : pt_len_r) != 11'd0)
+                                    begin
+                                        stream_field_r <= FIELD_DATA;
+                                        stream_field_bytes_r <= byte_count_from_bits({5'd0, mode_cfg_r ? ct_len_r : pt_len_r});
+                                    end
+                                    else
+                                    begin
+                                        stream_field_r <= FIELD_TAG;
+                                        stream_field_bytes_r <= byte_count_from_bits({8'd0, tag_len_r});
+                                    end
+                                end
+                                FIELD_AAD:
+                                begin
+                                    if((mode_cfg_r ? ct_len_r : pt_len_r) != 11'd0)
+                                    begin
+                                        stream_field_r <= FIELD_DATA;
+                                        stream_field_bytes_r <= byte_count_from_bits({5'd0, mode_cfg_r ? ct_len_r : pt_len_r});
+                                    end
+                                    else
+                                    begin
+                                        stream_field_r <= FIELD_TAG;
+                                        stream_field_bytes_r <= byte_count_from_bits({8'd0, tag_len_r});
+                                    end
+                                end
+                                FIELD_DATA:
+                                begin
+                                    stream_field_r <= FIELD_TAG;
+                                    stream_field_bytes_r <= byte_count_from_bits({8'd0, tag_len_r});
+                                end
+                                default:
+                                    stream_field_bytes_r <= 9'd0;
+                            endcase
+                        end
+                    end
                 end
             end
             ENG_WAIT_RESULT:
@@ -945,7 +938,7 @@ begin
                         frame_phase_r         <= 2'd0;
                         frame_type_r          <= RSP_STATUS;
                         frame_len_r           <= 16'd8;
-                        frame_payload_r       <= {1016'd0, response_status_r};
+                        frame_payload_r       <= {response_status_r, 1016'd0};
                         frame_payload_bytes_r <= 8'd1;
                         frame_byte_index_r    <= 8'd0;
                         send_status_pending_r <= 1'b0;
@@ -967,7 +960,7 @@ begin
                         frame_phase_r         <= 2'd0;
                         frame_type_r          <= RSP_TAG;
                         frame_len_r           <= {8'd0, tag_len_r};
-                        frame_payload_r       <= {896'd0, tag_capture_r};
+                        frame_payload_r       <= {tag_capture_r, 896'd0};
                         frame_payload_bytes_r <= byte_count_from_bits({8'd0, tag_len_r});
                         frame_byte_index_r    <= 8'd0;
                         send_tag_pending_r    <= 1'b0;
@@ -984,7 +977,16 @@ begin
                 if(!frame_active_r && !tx_busy)
                 begin
                     if(cooldown_r == 4'd8)
+                    begin
+                        mode_loaded_r <= 1'b0;
+                        key_loaded_r  <= 1'b0;
+                        iv_loaded_r   <= 1'b0;
+                        aad_loaded_r  <= 1'b0;
+                        pt_loaded_r   <= 1'b0;
+                        ct_loaded_r   <= 1'b0;
+                        tag_loaded_r  <= 1'b0;
                         eng_state_r <= ENG_IDLE;
+                    end
                     else
                         cooldown_r <= cooldown_r + 4'd1;
                 end
