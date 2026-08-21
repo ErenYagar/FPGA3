@@ -33,8 +33,9 @@ foreach ($Tool in @($Xvlog, $Xelab, $Xsim)) {
 $Branch = (git -C $RepoRoot branch --show-current).Trim()
 $Commit = (git -C $RepoRoot rev-parse HEAD).Trim()
 $Status = (git -C $RepoRoot status --porcelain) -join "`n"
-if ($Branch -notlike 'timing/round54-*') {
-    throw "Not on a Round54 branch: $Branch"
+if (($Branch -notlike 'timing/round54-*') -and
+    ($Branch -notlike 'timing/round55-*')) {
+    throw "Not on a Round54/Round55 timing branch: $Branch"
 }
 if ($Status) {
     throw "Working tree is not clean:`n$Status"
@@ -55,6 +56,7 @@ Copy-Item -LiteralPath (Join-Path $TestRoot 'rsp') -Destination $LocalRspDirecto
 $RtlFiles = @(
     (Join-Path $RtlRoot 'aes_core\sbox.v'),
     (Join-Path $RtlRoot 'stream_aes\aes_block_engine.v'),
+    (Join-Path $RtlRoot 'stream_aes\aes_first_block_engine.v'),
     (Join-Path $RtlRoot 'stream_aes\aes_key_context.v'),
     (Join-Path $RtlRoot 'stream_ghash\ghash16.v'),
     (Join-Path $RtlRoot 'stream_axi\axi_lite_regs.v'),
@@ -135,13 +137,13 @@ Invoke-Logged -Tool $Xvlog -Arguments (@('--sv') + $RtlFiles + $TestFiles + $Glb
 
 Invoke-Round54Test tb_axi_smoke smoke @('AXI_SMOKE_PASS cycles=8364')
 Invoke-Round54Test tb_throughput throughput @(
-    'THROUGHPUT mode=AES-128 direction=encrypt cycles=18920',
-    'THROUGHPUT mode=AES-128 direction=decrypt cycles=19139',
-    'THROUGHPUT mode=AES-192 direction=encrypt cycles=19520',
-    'THROUGHPUT mode=AES-192 direction=decrypt cycles=19739',
-    'THROUGHPUT mode=AES-256 direction=encrypt cycles=20120',
-    'THROUGHPUT mode=AES-256 direction=decrypt cycles=20339',
-    'THROUGHPUT_PASS all key modes >= 1.0 Gbps'
+    'THROUGHPUT mode=AES-128 direction=encrypt cycles=16820',
+    'THROUGHPUT mode=AES-128 direction=decrypt cycles=17039',
+    'THROUGHPUT mode=AES-192 direction=encrypt cycles=16820',
+    'THROUGHPUT mode=AES-192 direction=decrypt cycles=17039',
+    'THROUGHPUT mode=AES-256 direction=encrypt cycles=16820',
+    'THROUGHPUT mode=AES-256 direction=decrypt cycles=17039',
+    'THROUGHPUT_PASS clock_mhz=175 all key modes > 1.0 Gbps'
 )
 Invoke-Round54Test tb_round48_boundary_directed round48 @(
     'ROUND48_BOUNDARY_DIRECTED_PASS'

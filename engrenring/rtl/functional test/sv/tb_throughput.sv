@@ -1,6 +1,8 @@
 `timescale 1ns / 1ps
 
-module tb_throughput;
+module tb_throughput #(
+    parameter integer CLOCK_MHZ = 175
+);
 
 localparam integer PACKETS = 100;
 localparam integer DATA_BYTES = 128;
@@ -8,7 +10,7 @@ localparam integer TAG_BYTES = 16;
 localparam [1:0] OKAY = 2'b00;
 
 reg aclk = 0;
-always #2.5 aclk = ~aclk;
+always #(500.0 / CLOCK_MHZ) aclk = ~aclk;
 reg aresetn = 0;
 reg [2:0] key_mode = 0;
 
@@ -263,11 +265,11 @@ begin
     end
     while(result_count != PACKETS) @(posedge aclk);
     elapsed = measure_end - measure_start + 1;
-    throughput = (PACKETS * 1024.0 * 0.2) / elapsed;
+    throughput = (PACKETS * 1024.0 * CLOCK_MHZ / 1000.0) / elapsed;
     $display("THROUGHPUT mode=AES-%0d direction=encrypt cycles=%0d gbps=%0.6f",
              (key_mode == 0) ? 128 : ((key_mode == 1) ? 192 : 256),
              elapsed, throughput);
-    if(throughput < 1.0)
+    if(throughput <= 1.0)
         $fatal(1, "ENCRYPT_THROUGHPUT_BELOW_1GBPS");
     if(data_count != PACKETS*DATA_BYTES || tag_count != PACKETS*TAG_BYTES)
         $fatal(1, "ENCRYPT_OUTPUT_COUNT_ERROR data=%0d tag=%0d",
@@ -295,11 +297,11 @@ begin
     end
     while(data_count != PACKETS*DATA_BYTES) @(posedge aclk);
     elapsed = measure_end - measure_start + 1;
-    throughput = (PACKETS * 1024.0 * 0.2) / elapsed;
+    throughput = (PACKETS * 1024.0 * CLOCK_MHZ / 1000.0) / elapsed;
     $display("THROUGHPUT mode=AES-%0d direction=decrypt cycles=%0d gbps=%0.6f",
              (key_mode == 0) ? 128 : ((key_mode == 1) ? 192 : 256),
              elapsed, throughput);
-    if(throughput < 1.0)
+    if(throughput <= 1.0)
         $fatal(1, "DECRYPT_THROUGHPUT_BELOW_1GBPS");
     if(result_count != PACKETS || tag_count != 0)
         $fatal(1, "DECRYPT_OUTPUT_COUNT_ERROR result=%0d tag=%0d",
@@ -344,7 +346,8 @@ begin
 
     if(error_count != 0)
         $fatal(1, "THROUGHPUT_DATA_ERRORS count=%0d", error_count);
-    $display("THROUGHPUT_PASS all key modes >= 1.0 Gbps");
+    $display("THROUGHPUT_PASS clock_mhz=%0d all key modes > 1.0 Gbps",
+             CLOCK_MHZ);
     $finish;
 end
 

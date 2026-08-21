@@ -299,6 +299,16 @@ wire [127:0] aes_engine_out;
 wire aes_engine_offer_w;
 wire aes_engine_accept_w;
 wire [127:0] aes_engine_in;
+wire aes_first_ready;
+wire aes_first_busy;
+wire aes_first_done;
+wire [127:0] aes_first_out;
+wire aes_first_start_w;
+wire aes_second_ready;
+wire aes_second_busy;
+wire aes_second_done;
+wire [127:0] aes_second_out;
+wire aes_second_start_w;
 
 aes_block_engine u_aes_engine (
     .clk(clk), .rst_n(rst_n && !zeroize), .start(aes_engine_offer_w),
@@ -308,20 +318,68 @@ aes_block_engine u_aes_engine (
     .block_out(aes_engine_out)
 );
 
+aes_first_block_engine u_aes_first_engine (
+    .clk(clk), .rst_n(rst_n && !zeroize), .start(aes_first_start_w),
+    .key_size(expanded_key_size), .round_keys(round_keys),
+    .block_in(aes_prod_data[267:140]), .ready(aes_first_ready),
+    .busy(aes_first_busy), .done(aes_first_done),
+    .block_out(aes_first_out)
+);
+
+aes_first_block_engine u_aes_second_engine (
+    .clk(clk), .rst_n(rst_n && !zeroize), .start(aes_second_start_w),
+    .key_size(expanded_key_size), .round_keys(round_keys),
+    .block_in(aes_prod_data[267:140]), .ready(aes_second_ready),
+    .busy(aes_second_busy), .done(aes_second_done),
+    .block_out(aes_second_out)
+);
+
 // AES request format:
 // {pad, kind, AES input, XOR payload, byte count, last, block index, bank}
 reg          aes_prod_valid;
 reg [271:0]  aes_prod_data;
 wire         aes_prod_ready;
+wire         aesq_in_ready;
 wire [271:0] aesq_out;
 wire         aesq_valid;
 wire         aesq_ready;
 wire [2:0]   aesq_count;
+wire aes_first_select_w = aes_prod_valid &&
+                          (aes_prod_data[270:268] == AES_KIND_CTR_PREFETCH) &&
+                          (aes_prod_data[5:1] == 5'd0);
+wire aes_second_select_w = aes_prod_valid &&
+                           (aes_prod_data[270:268] == AES_KIND_CTR_PREFETCH) &&
+                           (aes_prod_data[5:1] == 5'd1);
+reg          aes_first_result_valid_r;
+reg [127:0]  aes_first_result_block_r;
+reg          aes_first_result_last_r;
+reg          aes_second_result_valid_r;
+reg [127:0]  aes_second_result_block_r;
+reg          aes_second_result_last_r;
+wire         aes_first_service_ready_w = aes_first_ready &&
+                                                 !aes_first_result_valid_r;
+wire         aes_second_service_ready_w = aes_second_ready &&
+                                                   !aes_second_result_valid_r;
+assign aes_first_start_w = aes_first_select_w &&
+                           aes_first_service_ready_w &&
+                           crypto_event_enable_w && !queue_clear;
+assign aes_second_start_w = aes_second_select_w &&
+                            aes_second_service_ready_w &&
+                            crypto_event_enable_w && !queue_clear;
+assign aes_prod_ready = aes_first_select_w ?
+                        (aes_first_service_ready_w &&
+                         crypto_event_enable_w && !queue_clear) :
+                        aes_second_select_w ?
+                        (aes_second_service_ready_w &&
+                         crypto_event_enable_w && !queue_clear) :
+                        aesq_in_ready;
 
 stream_fifo #(.WIDTH(272), .DEPTH(4), .ADDR_W(2)) u_aes_request_fifo (
     .clk(clk), .rst_n(rst_n), .clear(queue_clear),
-    .in_data(aes_prod_data), .in_valid(aes_prod_valid),
-    .in_ready(aes_prod_ready), .out_data(aesq_out),
+    .in_data(aes_prod_data),
+    .in_valid(aes_prod_valid && !aes_first_select_w &&
+              !aes_second_select_w),
+    .in_ready(aesq_in_ready), .out_data(aesq_out),
     .out_valid(aesq_valid), .out_ready(aesq_ready), .count(aesq_count)
 );
 
@@ -445,21 +503,85 @@ wire [127:0] aes_res_masked  = aes_res_last ?
 // and is consumed in block-index order by ST_DATA.  This removes the final
 // input block from the AES recurrence latency without changing the AES
 // engine initiation interval.
-wire [133:0] ks_fifo_in_data = {aes_res_block, aes_res_index, aes_res_last};
-wire         ks_fifo_in_valid = aes_result_out_valid &&
-                                (aes_res_kind == AES_KIND_CTR_PREFETCH);
+wire [133:0] ks_fifo_in_data = aes_first_result_valid_r ?
+                               {aes_first_result_block_r, 5'd0,
+                                aes_first_result_last_r} :
+                               aes_second_result_valid_r ?
+                               {aes_second_result_block_r, 5'd1,
+                                aes_second_result_last_r} :
+                               {aes_res_block, aes_res_index, aes_res_last};
+wire         ks_fifo_in_valid = aes_first_result_valid_r ||
+                                aes_second_result_valid_r ||
+                                (aes_result_out_valid &&
+                                 (aes_res_kind == AES_KIND_CTR_PREFETCH));
 wire         ks_fifo_in_ready;
 wire [133:0] ks_fifo_out;
 wire         ks_fifo_out_valid;
 wire         ks_fifo_out_ready;
 wire [4:0]   ks_fifo_count;
 reg          ks_pop_pending_r;
-reg          ks_block_ready_r;
 (* keep = "true", equivalent_register_removal = "no" *)
 reg          data_block_capacity_r;
 wire [127:0] ks_head_block = ks_fifo_out[133:6];
 wire [4:0]   ks_head_index = ks_fifo_out[5:1];
 wire         ks_head_last  = ks_fifo_out[0];
+
+// Two completed input blocks may wait here for the first counter-mode AES
+// result.  AES has a longer first-result latency than its steady-state
+// initiation interval; decoupling block admission prevents that latency from
+// stalling the byte stream.  These registers hold plaintext during encryption,
+// so protocol abort and ZEROIZE both erase their payloads synchronously.
+reg [1:0]   dataq_count_r;
+reg [127:0] dataq0_block_r;
+reg [127:0] dataq1_block_r;
+reg [4:0]   dataq0_index_r;
+reg [4:0]   dataq1_index_r;
+reg [4:0]   dataq0_bytes_r;
+reg [4:0]   dataq1_bytes_r;
+reg         dataq0_last_r;
+reg         dataq1_last_r;
+reg         dataq0_init_r;
+reg         dataq1_init_r;
+wire [127:0] dataq_head_block_w = dataq0_block_r;
+wire [4:0]   dataq_head_index_w = dataq0_index_r;
+wire [4:0]   dataq_head_bytes_w = dataq0_bytes_r;
+wire         dataq_head_last_w  = dataq0_last_r;
+wire         dataq_head_init_w  = dataq0_init_r;
+
+always @(posedge clk)
+begin
+    if(!rst_n || queue_clear)
+    begin
+        aes_first_result_valid_r <= 1'b0;
+        aes_first_result_block_r <= 128'd0;
+        aes_first_result_last_r  <= 1'b0;
+        aes_second_result_valid_r <= 1'b0;
+        aes_second_result_block_r <= 128'd0;
+        aes_second_result_last_r  <= 1'b0;
+    end
+    else
+    begin
+        if(aes_first_result_valid_r && ks_fifo_in_ready)
+            aes_first_result_valid_r <= 1'b0;
+        if(aes_second_result_valid_r && ks_fifo_in_ready &&
+           !aes_first_result_valid_r)
+            aes_second_result_valid_r <= 1'b0;
+        if(aes_first_done)
+        begin
+            aes_first_result_valid_r <= 1'b1;
+            aes_first_result_block_r <= aes_first_out;
+        end
+        if(aes_first_start_w)
+            aes_first_result_last_r <= aes_prod_data[6];
+        if(aes_second_done)
+        begin
+            aes_second_result_valid_r <= 1'b1;
+            aes_second_result_block_r <= aes_second_out;
+        end
+        if(aes_second_start_w)
+            aes_second_result_last_r <= aes_prod_data[6];
+    end
+end
 
 stream_fifo #(.WIDTH(134), .DEPTH(16), .ADDR_W(4)) u_keystream_fifo (
     .clk(clk), .rst_n(rst_n), .clear(queue_clear),
@@ -539,8 +661,10 @@ wire         ctq_ready;
 wire [2:0]   ctq_count;
 
 assign aes_result_out_ready_w = aes_result_out_valid &&
-                                ((aes_res_kind != AES_KIND_CTR_PREFETCH) ||
-                                 ks_fifo_in_ready);
+                                 ((aes_res_kind != AES_KIND_CTR_PREFETCH) ||
+                                  (ks_fifo_in_ready &&
+                                   !aes_first_result_valid_r &&
+                                   !aes_second_result_valid_r));
 
 stream_fifo #(.WIDTH(134), .DEPTH(4), .ADDR_W(2)) u_ciphertext_fifo (
     .clk(clk), .rst_n(rst_n), .clear(queue_clear),
@@ -738,12 +862,12 @@ wire [127:0] completed_input_block_w = put_block_byte(
     input_block, block_byte_index,
     completing_field_byte ? mask_final_byte(s_axis_tdata, rec_data_bits) :
                             s_axis_tdata);
-wire [127:0] data_result_xor_w = ks_head_block ^ completed_input_block_w;
 wire [4:0] completed_data_bytes_w = completing_field_byte ?
                                     final_block_bytes(rec_data_bits) : 5'd16;
-wire [127:0] data_result_w = completing_field_byte ?
+wire [127:0] data_result_xor_w = ks_head_block ^ dataq_head_block_w;
+wire [127:0] data_result_w = dataq_head_last_w ?
                              mask_result_block(data_result_xor_w,
-                                               completed_data_bytes_w,
+                                               dataq_head_bytes_w,
                                                rec_data_bits) :
                              data_result_xor_w;
 
@@ -775,10 +899,15 @@ wire tag_mismatch_w = |tag_byte_mismatch_r;
 wire data_block_fire_w = input_fire && (state == ST_DATA) &&
                          completing_block_byte;
 wire ks_head_matches_data_w = ks_fifo_out_valid &&
-                              (ks_head_index == data_block_index);
-wire ks_block_ready_next_w = ks_block_ready_r || ks_head_matches_data_w;
+                              (ks_head_index == dataq_head_index_w);
 wire data_sink_ready_raw_w = rec_decrypt ? gh_input_slot_free_r :
-                                          (!ct_prod_valid && !gh_aes_valid);
+                                           (!ct_prod_valid && !gh_aes_valid);
+wire data_block_consume_w = (dataq_count_r != 2'd0) &&
+                            ks_head_matches_data_w &&
+                            data_sink_ready_raw_w &&
+                            !queue_clear && !zeroize_busy_r &&
+                            (state != ST_ABORT_WAIT) &&
+                            (state != ST_DRAIN);
 assign ks_fifo_out_ready = ks_pop_pending_r;
 
 // The current keystream head is consumed by the data path on the block's
@@ -789,25 +918,7 @@ begin
     if(!rst_n || queue_clear)
         ks_pop_pending_r <= 1'b0;
     else
-        ks_pop_pending_r <= input_fire && (state == ST_DATA) &&
-                            completing_block_byte;
-end
-
-// Qualify the ordered keystream head once per data block.  Full blocks have
-// fifteen byte clocks in which the next registered FIFO head can be checked,
-// so only a short first/partial block can incur an extra wait cycle.  The
-// final-byte ready path itself now depends on this one-bit register rather
-// than the 134-bit FIFO head and its index comparator.
-always @(posedge clk)
-begin
-    if(!rst_n || queue_clear)
-        ks_block_ready_r <= 1'b0;
-    else if(state != ST_DATA)
-        ks_block_ready_r <= 1'b0;
-    else if(input_fire && completing_block_byte)
-        ks_block_ready_r <= 1'b0;
-    else if(ks_head_matches_data_w)
-        ks_block_ready_r <= 1'b1;
+        ks_pop_pending_r <= data_block_consume_w;
 end
 
 // Prequalify the complete data-block commit condition while the preceding
@@ -821,11 +932,8 @@ begin
         data_block_capacity_r <= 1'b0;
     else if(state != ST_DATA)
         data_block_capacity_r <= 1'b0;
-    else if(data_block_fire_w)
-        data_block_capacity_r <= 1'b0;
     else
-        data_block_capacity_r <= ks_block_ready_next_w &&
-                                 data_sink_ready_raw_w;
+        data_block_capacity_r <= (dataq_count_r != 2'd2);
 end
 
 wire expected_record_last = record_last_r;
@@ -835,11 +943,99 @@ wire framing_abort_event_w = (input_field_mode_r != IFM_DRAIN) &&
                              (early_tlast_now || late_tlast_now);
 wire data_block_index_advance_w = data_block_fire_w &&
                                   !early_tlast_now && !late_tlast_now;
-wire plain_write_capture_w = data_block_fire_w && rec_decrypt &&
-                             !early_tlast_now && !late_tlast_now &&
+wire data_block_enqueue_w = data_block_index_advance_w &&
+                            !queue_clear && !zeroize_busy_r;
+wire plain_write_capture_w = data_block_consume_w && rec_decrypt &&
                              !queue_clear && !zeroize_busy_r;
 wire normal_crypto_state = (state != ST_ABORT_WAIT) &&
                            (state != ST_DRAIN);
+
+// The queue can accept and retire a block on the same edge.  When full, the
+// old second entry becomes the new head and the arriving block replaces the
+// tail.  Payload clearing is deliberate: encryption entries contain plaintext.
+always @(posedge clk)
+begin
+    if(!rst_n || queue_clear)
+    begin
+        dataq_count_r  <= 2'd0;
+        dataq0_block_r <= 128'd0;
+        dataq1_block_r <= 128'd0;
+        dataq0_index_r <= 5'd0;
+        dataq1_index_r <= 5'd0;
+        dataq0_bytes_r <= 5'd0;
+        dataq1_bytes_r <= 5'd0;
+        dataq0_last_r  <= 1'b0;
+        dataq1_last_r  <= 1'b0;
+        dataq0_init_r  <= 1'b0;
+        dataq1_init_r  <= 1'b0;
+    end
+    else
+    begin
+        case({data_block_enqueue_w, data_block_consume_w})
+            2'b10:
+            begin
+                if(dataq_count_r == 2'd0)
+                begin
+                    dataq0_block_r <= completed_input_block_w;
+                    dataq0_index_r <= data_block_index;
+                    dataq0_bytes_r <= completed_data_bytes_w;
+                    dataq0_last_r  <= completing_field_byte;
+                    dataq0_init_r  <= main_init_pending &&
+                                      (data_block_index == 5'd0);
+                end
+                else
+                begin
+                    dataq1_block_r <= completed_input_block_w;
+                    dataq1_index_r <= data_block_index;
+                    dataq1_bytes_r <= completed_data_bytes_w;
+                    dataq1_last_r  <= completing_field_byte;
+                    dataq1_init_r  <= main_init_pending &&
+                                      (data_block_index == 5'd0);
+                end
+                dataq_count_r <= dataq_count_r + 2'd1;
+            end
+            2'b01:
+            begin
+                if(dataq_count_r == 2'd2)
+                begin
+                    dataq0_block_r <= dataq1_block_r;
+                    dataq0_index_r <= dataq1_index_r;
+                    dataq0_bytes_r <= dataq1_bytes_r;
+                    dataq0_last_r  <= dataq1_last_r;
+                    dataq0_init_r  <= dataq1_init_r;
+                end
+                dataq_count_r <= dataq_count_r - 2'd1;
+            end
+            2'b11:
+            begin
+                if(dataq_count_r == 2'd1)
+                begin
+                    dataq0_block_r <= completed_input_block_w;
+                    dataq0_index_r <= data_block_index;
+                    dataq0_bytes_r <= completed_data_bytes_w;
+                    dataq0_last_r  <= completing_field_byte;
+                    dataq0_init_r  <= main_init_pending &&
+                                      (data_block_index == 5'd0);
+                end
+                else
+                begin
+                    dataq0_block_r <= dataq1_block_r;
+                    dataq0_index_r <= dataq1_index_r;
+                    dataq0_bytes_r <= dataq1_bytes_r;
+                    dataq0_last_r  <= dataq1_last_r;
+                    dataq0_init_r  <= dataq1_init_r;
+                    dataq1_block_r <= completed_input_block_w;
+                    dataq1_index_r <= data_block_index;
+                    dataq1_bytes_r <= completed_data_bytes_w;
+                    dataq1_last_r  <= completing_field_byte;
+                    dataq1_init_r  <= main_init_pending &&
+                                      (data_block_index == 5'd0);
+                end
+            end
+            default: ;
+        endcase
+    end
+end
 wire tag_beat_fire_w = tag_input_capture_w;
 wire tag_final_legal_w = tag_beat_fire_w && completing_field_byte &&
                          !early_tlast_now && !late_tlast_now;
@@ -864,10 +1060,11 @@ wire normal_byte_commit_w = input_fire && input_field_normal_w &&
                             !early_tlast_now && !late_tlast_now;
 wire block_phase_commit_w = normal_byte_commit_w && input_field_block_w;
 wire field_end_commit_w = normal_byte_commit_w && completing_field_byte;
-wire gh_input_write_w = normal_byte_commit_w && completing_block_byte &&
-    ((input_field_mode_r == IFM_IVHASH) ||
-     (input_field_mode_r == IFM_AAD) ||
-     ((input_field_mode_r == IFM_DATA) && rec_decrypt));
+wire gh_input_write_w =
+    (normal_byte_commit_w && completing_block_byte &&
+     ((input_field_mode_r == IFM_IVHASH) ||
+      (input_field_mode_r == IFM_AAD))) ||
+    (data_block_consume_w && rec_decrypt);
 wire [8:0] field_after_iv_bytes_w =
     (prep_aad_bytes != 9'd0) ? prep_aad_bytes :
     (prep_data_bytes != 9'd0) ? prep_data_bytes : prep_tag_bytes;
@@ -1222,6 +1419,9 @@ assign output_pending = result_valid_r || ctq_valid || plainq_valid ||
                         (plain_out_state != PO_IDLE) ||
                         tagq_valid || tag_prod_valid || (bank_allocated != 0) ||
                         abort_terminator_pending || enc_result_pending ||
+                        (dataq_count_r != 0) ||
+                        aes_first_busy || aes_first_result_valid_r ||
+                        aes_second_busy || aes_second_result_valid_r ||
                         ks_fifo_out_valid ||
                         ctr_issue_pending_r ||
                         iv96_ctr_load_pending_r ||
@@ -1244,7 +1444,11 @@ assign queue_clear = zeroize || abort_queue_clear;
 wire older_encryption_completion_pending = tagq_valid || tag_prod_valid ||
                                              enc_result_pending ||
                                              result_valid_r;
-wire abort_crypto_drained_w = !aes_engine_busy && !ghash_busy &&
+wire abort_crypto_drained_w = !aes_engine_busy && !aes_first_busy &&
+                              !aes_second_busy &&
+                              !aes_first_result_valid_r &&
+                              !aes_second_result_valid_r && !ghash_busy &&
+                              (dataq_count_r == 0) &&
                               (aesq_count == 0) &&
                               (aes_meta_count == 0) &&
                               !aes_meta_stage_valid_r &&
@@ -1573,7 +1777,7 @@ begin
             if(plain_write_capture_w)
             begin
                 plain_write_bank_r  <= rec_bank;
-                plain_write_index_r <= data_block_index[3:0];
+                plain_write_index_r <= dataq_head_index_w[3:0];
                 plain_write_data_r  <= data_result_w;
             end
         end
@@ -1920,6 +2124,38 @@ begin
                     ctr_issue_pending_r <= 1'b0;
             end
 
+            // Pair the oldest admitted data block with the ordered keystream
+            // head.  Authentication, ciphertext production and plaintext-bank
+            // writes all remain in original block order.  The trailing length
+            // request is released only after the final queued block commits.
+            if(data_block_consume_w)
+            begin
+                if(rec_decrypt)
+                begin
+                    gh_input_valid <= 1'b1;
+                    gh_input_data  <= {GH_KIND_MSG_DATA,
+                                      dataq_head_init_w,
+                                      dataq_head_block_w};
+                end
+                else
+                begin
+                    ct_prod_valid <= 1'b1;
+                    ct_prod_data  <= {data_result_w,
+                                      dataq_head_bytes_w,
+                                      dataq_head_last_w};
+                    gh_aes_valid <= 1'b1;
+                    gh_aes_data  <= {GH_KIND_MSG_DATA,
+                                     dataq_head_init_w,
+                                     data_result_w};
+                end
+                main_init_pending <= 1'b0;
+                if(dataq_head_last_w)
+                begin
+                    all_cipher_blocks_ready <= 1'b1;
+                    message_length_pending  <= 1'b1;
+                end
+            end
+
             if(iv_length_pending && !gh_ctrl_valid && !queue_clear &&
                normal_crypto_state)
             begin
@@ -2256,30 +2492,6 @@ begin
                                 s_axis_tdata);
                             if(completing_block_byte)
                             begin
-                                if(rec_decrypt)
-                                begin
-                                    gh_input_valid <= 1'b1;
-                                    gh_input_data  <= {GH_KIND_MSG_DATA,
-                                                      main_init_pending,
-                                                      completed_input_block_w};
-                                end
-                                else
-                                begin
-                                    ct_prod_valid <= 1'b1;
-                                    ct_prod_data  <= {data_result_w,
-                                                      completed_data_bytes_w,
-                                                      completing_field_byte};
-                                    gh_aes_valid <= 1'b1;
-                                    gh_aes_data  <= {GH_KIND_MSG_DATA,
-                                                      main_init_pending,
-                                                      data_result_w};
-                                end
-                                main_init_pending <= 1'b0;
-                                if(completing_field_byte)
-                                begin
-                                    all_cipher_blocks_ready <= 1'b1;
-                                    message_length_pending <= 1'b1;
-                                end
                                 input_block       <= 128'd0;
                                 block_byte_index <= 4'd0;
                             end
@@ -2291,7 +2503,6 @@ begin
                                 field_received <= 9'd0;
                                 if(rec_decrypt)
                                 begin
-                                    message_length_pending <= 1'b1;
                                     field_last_r <=
                                         (prep_tag_bytes == 9'd1);
                                     state <= ST_TAG_IN;

@@ -129,6 +129,7 @@ if {$mode eq "fresh_full"} {
 set rtl_files [list \
     [file join $rtl_dir aes_core sbox.v] \
     [file join $rtl_dir stream_aes aes_block_engine.v] \
+    [file join $rtl_dir stream_aes aes_first_block_engine.v] \
     [file join $rtl_dir stream_aes aes_key_context.v] \
     [file join $rtl_dir stream_ghash ghash16.v] \
     [file join $rtl_dir stream_axi axi_lite_regs.v] \
@@ -149,8 +150,9 @@ if {[catch {
     set git_commit [string trim [exec git -C $repo_dir rev-parse HEAD]]
     set git_status [string trim [exec git -C $repo_dir status --porcelain]]
 } git_error]} {::r54_fail "Git provenance failed: $git_error"}
-if {![string match "timing/round54-*" $git_branch]} {
-    ::r54_fail "branch '$git_branch' is not a Round54 branch"
+if {![string match "timing/round54-*" $git_branch] &&
+    ![string match "timing/round55-*" $git_branch]} {
+    ::r54_fail "branch '$git_branch' is not a Round54/Round55 timing branch"
 }
 if {$git_status ne ""} {
     ::r54_fail "working tree is not clean: $git_status"
