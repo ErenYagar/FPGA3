@@ -23,7 +23,8 @@ if {![regexp {^[A-Za-z0-9_]+$} $place_directive]} {
 }
 
 set hash_command "(Get-FileHash -Algorithm SHA256 -LiteralPath '$input_dcp').Hash"
-set actual_hash [string toupper [string trim [exec powershell.exe -NoProfile -NonInteractive -Command $hash_command]]]
+set powershell_exe {C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe}
+set actual_hash [string toupper [string trim [exec $powershell_exe -NoProfile -NonInteractive -Command $hash_command]]]
 if {$actual_hash ne $expected_hash} {
     error "Synth checkpoint SHA-256 mismatch: expected=$expected_hash actual=$actual_hash"
 }
