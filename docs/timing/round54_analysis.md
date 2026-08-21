@@ -464,6 +464,14 @@ not a fresh 175 MHz placement/route.  Reusing the already-routed 200 MHz DCP
 is conservative for implementation and the clock was recomputed by Vivado,
 not estimated from the former slack.
 
+Vivado's unfiltered OOC timing summary still reports 1,143 input-boundary
+hold failures (WHS `-1.101 ns`).  The reported examples are input ports such
+as `s_axi_wdata`, `s_axis_tdata`, and `aresetn` into internal FDRE/RAMD32
+pins, with zero source-clock delay in the standalone OOC model.  They are not
+register-to-register paths and therefore do not contradict the explicitly
+scoped internal closure result.  No exception is used to hide them; external
+I/O hold closure remains an integration/production-clock and PartPin task.
+
 The original overall promotion gate still requires every mode above
 1 Gbit/s.  Cycle signatures are unchanged, but at 175 MHz the six measured
 rates are approximately `0.947/0.936`, `0.918/0.908`, and `0.891/0.881`
