@@ -188,7 +188,7 @@ Invoke-Round54Test tb_nist nist525 @(
     'NIST_LIMITED_DONE pass=525 fail=0 total=525'
 ) @('MAX_VECTORS_525', 'RSP_DIR_rsp')
 Invoke-Round54Test tb_nist nist5255 @(
-    'NIST_TOTAL_SUMMARY pass=5255 fail=0 total=5255 cycles=1615588',
+    'NIST_TOTAL_SUMMARY pass=5255 fail=0 total=5255 cycles=1594798',
     'NIST_LIMITED_DONE pass=5255 fail=0 total=5255'
 ) @('MAX_VECTORS_5255', 'RSP_DIR_rsp')
 
