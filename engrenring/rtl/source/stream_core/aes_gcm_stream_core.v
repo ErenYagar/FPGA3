@@ -309,6 +309,7 @@ wire aes_second_busy;
 wire aes_second_done;
 wire [127:0] aes_second_out;
 wire aes_second_start_w;
+reg [271:0] aes_prod_data;
 
 aes_block_engine u_aes_engine (
     .clk(clk), .rst_n(rst_n && !zeroize), .start(aes_engine_offer_w),
@@ -337,7 +338,6 @@ aes_first_block_engine u_aes_second_engine (
 // AES request format:
 // {pad, kind, AES input, XOR payload, byte count, last, block index, bank}
 reg          aes_prod_valid;
-reg [271:0]  aes_prod_data;
 wire         aes_prod_ready;
 wire         aesq_in_ready;
 wire [271:0] aesq_out;
