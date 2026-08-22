@@ -1,0 +1,487 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-23T00:47:04+08:00",
+  "overall_status": "175MHZ_STATIC_SIGNOFF_SIMULATION_UVM_RESET_AND_HARDWARE_NIST_PASS_FORMAL_SUBSET_PARTIAL",
+  "repository": {
+    "branch": "verify/sva-uvm-board",
+    "build_base_commit": "ece78ce9677872d0d20da3b785ab83a48b6a8492",
+    "cryptographic_datapath_commit": "a6f19472ecc619925b373b1db801911c54062a90",
+    "promotion_commit": "4246ebc7a72ce8eb1a49d56969aae6e151578c11",
+    "identity_note": "Source and verification are committed at the promotion commit. The immutable v8 implementation DCP was generated from the listed build base plus exact SHA-256-identified execution inputs; later evidence summaries do not change that DCP identity."
+  },
+  "target": {
+    "top": "arty_a7_100t_aes_gcm_uart_rsp_top",
+    "part": "xc7a100tcsg324-1",
+    "input_clock_mhz": 100,
+    "core_clock_mhz": 175,
+    "core_clock_period_ns": 5.714,
+    "uart_port": "COM4",
+    "uart_baud": 115200
+  },
+  "tools": {
+    "vivado_xsim": {
+      "version": "2021.1",
+      "sw_build": 3247384,
+      "ip_build": 3246043
+    },
+    "yosys": {
+      "version": "0.33",
+      "git_sha1": "2584903a060"
+    },
+    "python": {
+      "version": "3.13.13"
+    }
+  },
+  "build_inputs": [
+    {
+      "path": "engrenring/rtl/source/board/arty_a7_100t_aes_gcm_uart_rsp_top.v",
+      "sha256": "FA6E19757BABC3D6FA66879C45A99320ECC4CB2C6861A6C2523E8E5E577389C5"
+    },
+    {
+      "path": "engrenring/rtl/source/board/uart_rx.v",
+      "sha256": "3DC746D15DBEB4D68FD475E99E9B772466D20F5FC6A76DF5D160B9271A942EDF"
+    },
+    {
+      "path": "engrenring/synth_1g/board/arty_a7_100t_aes_gcm_uart_rsp.xdc",
+      "sha256": "7EF65C0482EF5111355AB1D7190C00DFAA37CA988A1678279762EFD19DFA40AE"
+    },
+    {
+      "path": "verification/board/provenance/run_arty_a7_100t_uart_rsp_v8_execution.tcl",
+      "sha256": "02DD9892D48F8FCFB16A1C4BD88FF43882C5F52CE1890108F522CD965BCECA0A"
+    },
+    {
+      "path": "verification/board/audit_routed_board.tcl",
+      "sha256": "62C653E5E49723A51726B92B0D475BA11C55F24A3648D59359A2ABCE99C9286E"
+    }
+  ],
+  "current_flow_scripts": {
+    "fresh_build_tcl_sha256": "C8CEE93D3D93223926B000A521EF82E413B0855A68FB46B3B9EB23C1F811E18A",
+    "fresh_build_change_after_v8": "The current script repairs Tcl object-list canonicalization at post-route reset and I/O gates and emits a strict-audit-required promotion marker. It was not used to generate the immutable v8 DCP.",
+    "strict_audit_tcl_sha256": "62C653E5E49723A51726B92B0D475BA11C55F24A3648D59359A2ABCE99C9286E"
+  },
+  "build_input_identity_scope": "RTL and constraints identify the routed design, SHA-256 02DD9892... identifies the fresh-build Tcl that generated the v8 DCP, SHA-256 C8CEE93D... identifies the current repaired strict-audit-required fresh-build driver, and the audit Tcl SHA-256 identifies the final v8c strict audit. A later script repair does not retroactively identify the routed DCP.",
+  "implementation": {
+    "status": "PASS",
+    "fresh_build_label": "ece78ce_uart_rsp_175_resetqual4_final_v8",
+    "audit_label": "ece78ce_uart_rsp_175_resetqual4_audit_v8c",
+    "audit_mode": "verified_routed_dcp_audit",
+    "flow": {
+      "opt_design": "ExploreWithRemap",
+      "place_design": "ExtraNetDelay_high",
+      "pre_route_phys_opt_design": "AggressiveExplore",
+      "route_design": "Explore",
+      "post_route_phys_opt_design": "AggressiveExplore"
+    },
+    "checkpoints": {
+      "synth": {
+        "path": "engrenring/synth_1g/board/output/ece78ce_uart_rsp_175_resetqual4_final_v8/arty_a7_100t_aes_gcm_uart_rsp_top_synth.dcp",
+        "sha256": "C5D9858BDD097622C7AA76A1843CB3D49EF7646470BC4ACDAF9BDB27882914E6"
+      },
+      "placed": {
+        "path": "engrenring/synth_1g/board/output/ece78ce_uart_rsp_175_resetqual4_final_v8/arty_a7_100t_aes_gcm_uart_rsp_top_placed.dcp",
+        "sha256": "82BAA9B402F825B3127202255F5787BA82A8E7F34291A0DDA5F4C86689C4119D"
+      },
+      "routed": {
+        "path": "engrenring/synth_1g/board/output/ece78ce_uart_rsp_175_resetqual4_final_v8/arty_a7_100t_aes_gcm_uart_rsp_top_routed.dcp",
+        "sha256": "A91758ED87EB56648EEF0CAB67B2C50D198D00A2D5088E624B507687D99C016B"
+      }
+    },
+    "timing": {
+      "setup_wns_ns": 0.029,
+      "setup_tns_ns": 0.0,
+      "setup_failing_endpoints": 0,
+      "hold_whs_ns": 0.044,
+      "hold_ths_ns": 0.0,
+      "hold_failing_endpoints": 0,
+      "pulse_wpws_ns": 1.607,
+      "pulse_tpws_ns": 0.0,
+      "pulse_failing_endpoints": 0
+    },
+    "routing": {
+      "routable_nets": 17758,
+      "fully_routed_nets": 17758,
+      "unrouted_nets": 0,
+      "route_errors": 0
+    },
+    "hard_gates": {
+      "drc_errors": 0,
+      "drc_critical_warnings": 0,
+      "methodology_errors": 0,
+      "methodology_critical_warnings": 0,
+      "methodology_ordinary_warnings": 2,
+      "cdc_expected_schema_pass": true,
+      "cdc_top_level_synchronizers": 2,
+      "cdc_unsafe_categories": 0,
+      "check_timing_zero_categories": 10,
+      "check_timing_false_path_input_allowlist": 2,
+      "check_timing_false_path_output_allowlist": 5
+    },
+    "reset_physical_audit": {
+      "request_function": "LUT2_AND",
+      "request_sync_stages": 2,
+      "release_qualifier_logical_stages": 4,
+      "release_stage3_physical_cells": 4,
+      "stage3_endpoint_sum": 13162,
+      "stage3_endpoint_union": 13161,
+      "stage3_reconvergent_endpoint": "u_aes_gcm/u_core/gh_ctrl_valid_reg/D",
+      "stage2_approved_early_endpoint": "u_aes_gcm/u_core/u_key_context/u_key_sbox1/GEN_REGISTERED_OUTPUT.co_r_reg/ENARDEN",
+      "mmcm_locked_sta_model": "structural_only_exact_fanout_gate",
+      "stage3_mapping": [
+        {
+          "cell": "reset_qual_r_reg[3]",
+          "loc": "SLICE_X49Y132",
+          "bel": "SLICEL.DFF",
+          "endpoint_count": 57
+        },
+        {
+          "cell": "reset_qual_r_reg[3]_rep",
+          "loc": "SLICE_X49Y132",
+          "bel": "SLICEL.BFF",
+          "endpoint_count": 1290
+        },
+        {
+          "cell": "reset_qual_r_reg[3]_rep__0",
+          "loc": "SLICE_X49Y132",
+          "bel": "SLICEL.CFF",
+          "endpoint_count": 8553
+        },
+        {
+          "cell": "reset_qual_r_reg[3]_rep__1",
+          "loc": "SLICE_X49Y132",
+          "bel": "SLICEL.AFF",
+          "endpoint_count": 3262
+        }
+      ]
+    },
+    "utilization": {
+      "lut_total": 12411,
+      "lut_logic": 11333,
+      "lutram": 1078,
+      "ff": 9029,
+      "ramb18": 10,
+      "dsp": 0
+    },
+    "vectorless_power": {
+      "confidence": "Medium",
+      "total_w": 0.461,
+      "dynamic_w": 0.363,
+      "static_w": 0.099,
+      "junction_temperature_c": 27.1,
+      "measured_on_board": false
+    },
+    "artifacts": {
+      "evidence_directory": "engrenring/synth_1g/board/output/ece78ce_uart_rsp_175_resetqual4_audit_v8c",
+      "bitstream": {
+        "path": "engrenring/synth_1g/board/output/ece78ce_uart_rsp_175_resetqual4_audit_v8c/arty_a7_100t_aes_gcm_uart_rsp_top.bit",
+        "bytes": 3825918,
+        "sha256": "DC951AAE0D388DA54836AD5950CA87CB8EEE4A94E5E7EFBB1A685439F0934942"
+      },
+      "binary": {
+        "path": "engrenring/synth_1g/board/output/ece78ce_uart_rsp_175_resetqual4_audit_v8c/arty_a7_100t_aes_gcm_uart_rsp_top.bin",
+        "bytes": 3825788,
+        "sha256": "8A19D8E5900063B64922DC9B9AD323F953386367CA1D4FA1A61935543B4332F3"
+      },
+      "signoff_metrics_sha256": "CBC7D4F16D9D54A67CC6B10E4A9DC612888112933D6263F3F2D69932FB0946CB",
+      "timing_report_sha256": "13885FEB000CAE1D120456C0D01CB5E8DA98742E557DA4567C74C169829BB379",
+      "utilization_report_sha256": "B43ABD66D016F55E20162B950A47B0EEABBF77234C463BE855AE6CCFA0044DA0",
+      "power_report_sha256": "687014688995046BACE3FFA09CB4E3E3B76A551B0F9A1D3C92C7C6874A9EF351",
+      "route_report_sha256": "5588C95BD9AD4B571B5EB535DEAA0F78F7DB78F84E56B6C4608EA1D2611F2569",
+      "drc_report_sha256": "43D5E554BCB47C680CCD5E94BE501BA23EBCE26B1E04512AB31E9515B117C867",
+      "methodology_report_sha256": "A80B78B0C6E7ED4D1AE4F9EF37C60F885670AA134771145B437E23E8D17014F9",
+      "cdc_report_sha256": "DA5C4FCE87D7690F9164670F00D073CF12003D689D03BA304EB448A3355DCB22",
+      "check_timing_report_sha256": "043FD5C662EF6FD8403A0848AE168BBAEDBFA200A4FDEB4EE85BCA030761F951",
+      "clock_utilization_report_sha256": "67640CD2CC4716F14A05703C052E71A991A2193D90EB9AEDB41F97725C4EFEDC",
+      "exceptions_coverage_report_sha256": "79E86BC8A8FBD2698610F9D6D91846BB29F14F059E0B137DD7DCB02C2952A21B",
+      "exceptions_summary_report_sha256": "0552F0B47CFEBE29E1EACED0240E23F35029BA6A2556227E23E18BB217097254"
+    },
+    "hardware_payload_equivalence": {
+      "status": "PASS",
+      "hardware_tested_audit_label": "ece78ce_uart_rsp_175_resetqual4_audit_v8a",
+      "hardware_tested_bitstream_sha256": "22791C17939C1BBC43539C35ABB19C31896425D26AA4721D5E4D4D3ACC5A686E",
+      "hardware_tested_binary_sha256": "8A19D8E5900063B64922DC9B9AD323F953386367CA1D4FA1A61935543B4332F3",
+      "strict_audit_label": "ece78ce_uart_rsp_175_resetqual4_audit_v8c",
+      "strict_audit_bitstream_sha256": "DC951AAE0D388DA54836AD5950CA87CB8EEE4A94E5E7EFBB1A685439F0934942",
+      "strict_audit_binary_sha256": "8A19D8E5900063B64922DC9B9AD323F953386367CA1D4FA1A61935543B4332F3",
+      "binary_exact_match": true,
+      "bitstream_file_exact_match": false,
+      "claim_note": "The v8c and hardware-tested v8a .bin configuration payloads are byte-identical; their .bit file hashes differ, so the .bit containers are not claimed identical."
+    }
+  },
+  "verification": {
+    "uvm_xsim": {
+      "status": "PASS",
+      "uvm_version": "1.2",
+      "runner": {
+        "path": "verification/scripts/run_uvm_xsim.sh",
+        "sha256": "835A229F948EFE26C8909D10C2D3DA0A2343E829BB95F7D202FD3D3CE8D03A56"
+      },
+      "seeds": [175001, 175019, 175039],
+      "records_per_seed": 8,
+      "scoreboard_checked": 24,
+      "scoreboard_failed": 0,
+      "uvm_errors": 0,
+      "uvm_fatals": 0,
+      "coverage_model": "maintained_required_functional_bins",
+      "coverage_pct_per_seed": [100.0, 100.0, 100.0],
+      "evidence_directory": "verification/results/uvm/xsim_20260823_004035",
+      "compile_inputs": {
+        "path": "verification/results/uvm/xsim_20260823_004035/compile_inputs.sha256",
+        "sha256": "D36DA381A5326EEBB1DABDA4AD63D45421ACE5E433CE38A3EF80494002233292",
+        "input_count": 15
+      },
+      "summary_json": {
+        "path": "verification/results/uvm/xsim_20260823_004035/summary.json",
+        "sha256": "F5B8E59504D967B6841AD73E0B6E3D8361162E251CF7FED2F303682C8B8500AF"
+      },
+      "summary_csv": {
+        "path": "verification/results/uvm/xsim_20260823_004035/summary.csv",
+        "sha256": "F46216BF196C08ED466200EE34E3F2A7B626EB376E7C0F8A758DCB47B3225641"
+      },
+      "run_log_path": "verification/results/uvm/run_uvm_xsim_20260823_004035.log",
+      "run_log_sha256": "6AC1D83E3C90615448F6391350707963D544F4D42CB7FC6205A7A0C3B7189EC5",
+      "limitations": "Functional coverage is for the maintained scenario model; code coverage, assertion coverage, random output backpressure, ZEROIZE injection, queue saturation, and TLAST fault injection are not claimed."
+    },
+    "uvm_modelsim": {
+      "status": "PASS",
+      "simulator": "ModelSim ALTERA STARTER EDITION 10.5b",
+      "uvm_version": "1.2",
+      "runner": {
+        "path": "verification/scripts/run_uvm_regression.sh",
+        "sha256": "60FF702071E1C5B5F5DB3A7C004EC0FAF1332B76AB18C484C632622218A72C2F"
+      },
+      "mode": "deterministic_uvm_1_2",
+      "scoreboard_checked": 1,
+      "scoreboard_failed": 0,
+      "uvm_errors": 0,
+      "uvm_fatals": 0,
+      "full_constrained_random": "NOT_RUN",
+      "functional_coverage": "NOT_COLLECTED",
+      "limitation_reason": "modelsim_starter_license",
+      "evidence_directory": "verification/results/uvm/modelsim_20260823_004145",
+      "run_log_path": "verification/results/uvm/run_uvm_regression_20260823_004145.log",
+      "run_log_sha256": "01EF5B244A0C6C8FA8FD812E7C7F7437E3EE017CEF67D43EF5A46E783404D0DE"
+    },
+    "formal": {
+      "status": "PARTIAL_PASS",
+      "runner": {
+        "path": "verification/scripts/run_formal.sh",
+        "sha256": "DFE86E69B3213764B6FFFB903C5653F6B6DF282FEC96295ED36FEE2B8371B0F8"
+      },
+      "engine": "yosys_sat",
+      "proofs": [
+        {
+          "name": "ghash_shift_power",
+          "assertions": 17,
+          "assumptions": 0,
+          "status": "PASS"
+        },
+        {
+          "name": "aes_sbox_algebraic",
+          "assertions": 2,
+          "assumptions": 0,
+          "status": "PASS"
+        }
+      ],
+      "assertions_total": 19,
+      "failed": 0,
+      "closure_claimed": false,
+      "run_log_sha256": "C1FB4DA19869532E1831069A635BF71F7C6714237DD5C08C7EDF6A16CCBC0C96",
+      "limitations": "Sequential GHASH/control, FIFO/ZEROIZE, whole AES-GCM equivalence, liveness, CDC, timing, power, and side-channel properties are not proved by this subset."
+    },
+    "board_reset_xsim": {
+      "status": "PASS",
+      "runner": {
+        "path": "verification/scripts/run_board_reset_xsim.sh",
+        "sha256": "A6D51C91669C94066F0BC600AE616136BA86EBE41691DE9EDB4F467CE7ABFD35"
+      },
+      "testbench": {
+        "path": "verification/board/tb_board_reset_qualifier.sv",
+        "sha256": "77EE92995E9CB3E1A8F6C23FBC41C5C9FAE6B1B7860200095CEE8CCF02D47841"
+      },
+      "button_pulse_samples_rejected": [1, 2, 3],
+      "mmcm_lock_pulse_samples_rejected": [1, 2, 3],
+      "alternating_chatter_rejected": true,
+      "continuous_valid_release_edges": 6,
+      "invalid_request_assertion_edges": 3,
+      "run_log": {
+        "path": "verification/results/board/reset_xsim_20260823_004201/run.log",
+        "sha256": "D01050A0A6592BB549F1978A123B4C669A326A9AE6F882B57FEE989E7B3C1879"
+      },
+      "simulation_log": {
+        "path": "verification/results/board/reset_xsim_20260823_004201/simulation.log",
+        "sha256": "78106EEE91399C6849721C53949B3DBA7D9D1ED1A3F0831A080C87E90A5F0A68"
+      }
+    },
+    "simulated_nist_47250": {
+      "status": "PASS",
+      "runner": {
+        "path": "verification/scripts/run_nist.sh",
+        "sha256": "C1CBC5A84F0A6FCFC8076CD95F7408D181F7BB99A7B109B2190E76D31FEF8800"
+      },
+      "requested": 47250,
+      "pass": 47250,
+      "fail": 0,
+      "cycles": 17740527,
+      "run_log_path": "verification/results/nist/run_nist.log",
+      "run_log_sha256": "5EDC8CEE2AFF8D05D6538B8CFE911D8B775FFECED758FCBFD36786D9045BBCE3"
+    },
+    "integrated_run_all": {
+      "status": "PARTIAL_PASS",
+      "runner": {
+        "path": "verification/scripts/run_all.sh",
+        "sha256": "19A84B7013742E4BB76E1F839743AF4482C49041698C84E5962201A89F2E75BD"
+      },
+      "passed_suites": 5,
+      "partial_suites": 1,
+      "not_run_suites": 0,
+      "failed_suites": 0,
+      "total_suites": 6,
+      "partial_suite": "formal",
+      "formal_scope": "combinational subset only; full sequential closure is not claimed",
+      "run_log_path": "verification/results/run_all.log",
+      "run_log_sha256": "14F4244DE577CF1B1D80B7B2A9FBE1E6B33A07AF5629341A7F523DFA3DB8D7CA"
+    },
+    "board_programming": {
+      "status": "PASS",
+      "runner": {
+        "path": "verification/board/program_board.tcl",
+        "sha256": "F1D011D3D6FCD4F5152F6EB54F7CE8AB8C0B9D289FB3550B9A82D9E01342F0C1"
+      },
+      "target": "Digilent/210319BE76DEA",
+      "device": "xc7a100t_0",
+      "bitstream_sha256": "22791C17939C1BBC43539C35ABB19C31896425D26AA4721D5E4D4D3ACC5A686E",
+      "program_log_sha256": "4301F53AFF229FD358B699E63BA199A7718DEDE96E7756BE01F2E13FAB4135D4",
+      "readback_attestation_claimed": false
+    },
+    "board_six_mode_smoke": {
+      "status": "PASS",
+      "executed": 6,
+      "pass": 6,
+      "fail": 0,
+      "bitstream_sha256": "22791C17939C1BBC43539C35ABB19C31896425D26AA4721D5E4D4D3ACC5A686E",
+      "evidence_directory": "engrenring/synth_1g/board/output/ece78ce_uart_rsp_175_resetqual4_audit_v8a",
+      "modes": [
+        {
+          "name": "gcmEncryptExtIV128",
+          "executed": 1,
+          "pass": 1,
+          "fail": 0,
+          "summary_sha256": "E9E3F0A559F72F80FED30A2CFE5032A41DC1059C9B162EBB2F3E205923147F43"
+        },
+        {
+          "name": "gcmEncryptExtIV192",
+          "executed": 1,
+          "pass": 1,
+          "fail": 0,
+          "summary_sha256": "59302E63FF01217976B5ED8BCF0A912DB76AE6F561241B02CCBF0C275C9F97D1"
+        },
+        {
+          "name": "gcmEncryptExtIV256",
+          "executed": 1,
+          "pass": 1,
+          "fail": 0,
+          "summary_sha256": "6E24130EACB915FBE0C815129133C363E35A309B5D4F75E022F71DD71692064B"
+        },
+        {
+          "name": "gcmDecrypt128",
+          "executed": 1,
+          "pass": 1,
+          "fail": 0,
+          "summary_sha256": "3CBD2433BC12722E378DBDE4E5FE95D6505596B5E5D457EF049773D04F3B2160"
+        },
+        {
+          "name": "gcmDecrypt192",
+          "executed": 1,
+          "pass": 1,
+          "fail": 0,
+          "summary_sha256": "5C2F9032456986F4516C8D029E33A1B7287174557C181F3F80CA22ABDC2445F2"
+        },
+        {
+          "name": "gcmDecrypt256",
+          "executed": 1,
+          "pass": 1,
+          "fail": 0,
+          "summary_sha256": "C0F2446C56DA0121F6EA640AFA075269F8E8B9202593EBEC280F7029D446976A"
+        }
+      ],
+      "run_log_sha256": "519C9820BED299203A8C04380E159A4F7A256098A028D112E215822324194CD1"
+    },
+    "board_full_nist_47250": {
+      "status": "PASS",
+      "runner": {
+        "path": "engrenring/synth_1g/board/run_nist_rsp_uart.py",
+        "sha256": "639BC490C9A54348423D7BAFF2A56490CD914FDC2F9C14C0B58754AD214EA3FA"
+      },
+      "requested_vectors": 47250,
+      "executed": 47250,
+      "pass": 47250,
+      "fail": 0,
+      "first_failure": null,
+      "elapsed_s": 1208.505,
+      "port": "COM4",
+      "line_reconciliation": {
+        "status": "PASS",
+        "second_independent_review_status": "PASS",
+        "jsonl_lines": 47250,
+        "global_index_first": 0,
+        "global_index_last": 47249,
+        "unique_global_indices": 47250,
+        "violations": {
+          "status": 0,
+          "data": 0,
+          "tag": 0,
+          "total": 0
+        },
+        "source_counts": {
+          "gcmEncryptExtIV128.rsp": 7875,
+          "gcmEncryptExtIV192.rsp": 7875,
+          "gcmEncryptExtIV256.rsp": 7875,
+          "gcmDecrypt128.rsp": 7875,
+          "gcmDecrypt192.rsp": 7875,
+          "gcmDecrypt256.rsp": 7875
+        },
+        "classification_counts": {
+          "encrypt": 23625,
+          "decrypt": 23625,
+          "decrypt_success": 11717,
+          "expected_auth_failure": 11908
+        }
+      },
+      "bitstream_sha256": "22791C17939C1BBC43539C35ABB19C31896425D26AA4721D5E4D4D3ACC5A686E",
+      "evidence_path": "engrenring/synth_1g/board/output/ece78ce_uart_rsp_175_resetqual4_audit_v8a/hw_nist_47250.jsonl",
+      "summary_path": "engrenring/synth_1g/board/output/ece78ce_uart_rsp_175_resetqual4_audit_v8a/hw_nist_47250.summary.json",
+      "run_log_path": "engrenring/synth_1g/board/output/ece78ce_uart_rsp_175_resetqual4_audit_v8a/hw_nist_47250_run.log",
+      "summary_present": true,
+      "evidence_sha256": "56DA5E1B7110AE8A5622B5847211A842C4D2A2A22A08EE02AA7D32EFB0C59761",
+      "summary_sha256": "5DF2EA729BBD0C19C6677AFD13F73DD4F04BB53694B9552A3FF4D9D464604D06",
+      "run_log_sha256": "B861E8500B214CB85A98A1FDC231C3E097DDA60F237EA3A49021E6BCECEFEEB4",
+      "claim_note": "The final summary, exact bitstream identity, 47,250 JSONL rows, contiguous unique indices, six equal source counts, outcome classes, and zero status/data/tag violations were reconciled and a second independent review passed."
+    }
+  },
+  "rejected_or_nonpromoted_history": [
+    {
+      "label": "strict_v3",
+      "reason": "Timing and hardware-vector checks passed, but CDC reported 5 Critical and 3 Warning paths."
+    },
+    {
+      "label": "cdc_final_v5",
+      "reason": "Completed 47,250 hardware vectors with zero failures, but a pure four-FF shift could convert a one-sample run-request pulse into a delayed one-cycle reset release."
+    },
+    {
+      "label": "resetqual_final_v6",
+      "reason": "Separated synchronization and qualification but retained only a two-stage qualifier, weakening the required four-sample qualification; its full hardware NIST run was not completed."
+    },
+    {
+      "label": "resetqual4_final_v7",
+      "reason": "The routed design met timing, but the build stopped on a Tcl ASYNC_REG boolean-representation gate before bitstream generation."
+    },
+    {
+      "label": "resetqual4_final_v8",
+      "reason": "Fresh implementation produced the promoted routed DCP, but the wrapper stopped on a Tcl list/string-representation comparison after reports; v8a subsequently hash-verified that immutable routed DCP and produced the hardware-tested payload."
+    },
+    {
+      "label": "resetqual4_audit_v8b",
+      "reason": "The strict audit attempt stopped because its Tcl gate misclassified the hierarchical UART CE tie to VCC; this was an audit-script string handling failure, not a routed-DCP fault. v8c corrected the gate and passed on the same routed DCP SHA-256."
+    }
+  ]
+}
