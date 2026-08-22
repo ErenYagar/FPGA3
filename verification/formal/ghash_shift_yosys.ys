@@ -1,0 +1,5 @@
+read_verilog -formal -sv engrenring/rtl/source/stream_ghash/ghash16.v verification/formal/ghash_shift_formal.sv
+prep -top ghash_shift_formal
+flatten
+opt_clean
+sat -verify -prove-asserts

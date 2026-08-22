@@ -1,18 +1,38 @@
 # Formal targets
 
-Status on 2026-08-22: **NOT RUN**. No `jg`, `qverify`, or OneSpin executable
-is installed on this workstation.
+The maintained open-source subset runs with Yosys 0.33 and its built-in SAT
+engine. From Windows Git Bash, the runner automatically dispatches to the
+installed WSL copy of Yosys when no native executable is available:
 
-The portable property sources target, in order:
+```text
+bash verification/scripts/run_formal.sh
+```
 
-1. `ghash16_gf_shift_power`, with all `k=0..16` compared against an
-   independent repeated one-bit NIST shift.
-2. `ghash16` digit transitions and full 128-bit recurrence.
-3. `stream_fifo` count, ready/valid, clear, and retained-head behavior.
-4. `aes_key_context` control sequencing and ZEROIZE behavior.
-5. `aes_gcm_stream_core` GHASH request queue retention and handshake mapping.
+The dispatch preserves the repository path and the inner process exit code.
+Calling the same runner directly inside WSL remains supported.
 
-Run `verification/scripts/run_formal.sh`. It queries an installed supported
-tool's version/help before any vendor-specific project syntax is generated.
-No vendor project file is checked in because no supported formal tool was
-available to validate its syntax.
+The runner executes two assumption-free combinational proofs:
+
+1. `ghash16_gf_shift_power`: all 17 production instances `POWER=0..16` are
+   equivalent, for every 128-bit input, to an independent repeated one-bit
+   NIST SP 800-38D right-shift/reduction reference.
+2. `sbox` with `REGISTERED=0`: every input byte equals an independent
+   GF(2^8) inverse plus AES affine-transform reference, and two distinct input
+   bytes cannot produce the same output.
+
+The raw Yosys logs are written to `verification/results/formal/` and the
+runner rejects missing assertions or missing SAT success markers. Logs are
+runtime evidence and remain ignored by Git; the compact result summary is
+tracked.
+
+This is deliberately **not full formal closure**. The existing sequential
+targets below remain portable property sources but have not been proved by
+this Yosys subset:
+
+- `ghash16` eight-digit state transitions and full recurrence.
+- `stream_fifo` count, ready/valid, clear, and retained-head behavior.
+- `aes_key_context` sequencing and ZEROIZE behavior.
+- `aes_gcm_stream_core` GHASH queue retention and handshake mapping.
+
+Those SVA targets use constructs outside this small Yosys adapter and still
+need a validated sequential adapter/solver or a commercial formal tool.

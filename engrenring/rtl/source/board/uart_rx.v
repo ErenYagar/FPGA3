@@ -20,7 +20,9 @@ reg [1:0]  state;
 reg [15:0] clk_cnt;
 reg [3:0]  bit_idx;
 reg [7:0]  shreg;
+(* ASYNC_REG = "TRUE" *)
 reg        rx_meta;
+(* ASYNC_REG = "TRUE" *)
 reg        rx_sync;
 
 always @(posedge clk)

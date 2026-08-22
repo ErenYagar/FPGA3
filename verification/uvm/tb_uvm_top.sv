@@ -53,6 +53,7 @@ module tb_uvm_top;
     end
 
     initial begin
+        string selected_test;
         uvm_config_db#(virtual axi_lite_if)::set(null,"uvm_test_top.env.axi_lite*","vif",control_if);
         uvm_config_db#(virtual axis_input_if)::set(null,"uvm_test_top.env.input_axis*","vif",input_if);
         uvm_config_db#(virtual axis_output_if #(4))::set(null,"uvm_test_top.env.data_output*","vif",data_if);
@@ -63,6 +64,8 @@ module tb_uvm_top;
         uvm_config_db#(virtual axis_output_if #(4))::set(null,"uvm_test_top.env.reconstruction","data_vif",data_if);
         uvm_config_db#(virtual axis_output_if #(4))::set(null,"uvm_test_top.env.reconstruction","tag_vif",tag_if);
         uvm_config_db#(virtual axis_output_if #(4))::set(null,"uvm_test_top.env.reconstruction","result_vif",result_if);
-        run_test("aesgcm_uvm_test");
+        if(!$value$plusargs("UVM_TESTNAME_%s",selected_test))
+            selected_test="aesgcm_uvm_test";
+        run_test(selected_test);
     end
 endmodule

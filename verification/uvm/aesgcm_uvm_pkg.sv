@@ -350,7 +350,10 @@ package aesgcm_uvm_pkg;
                 payload_q,recv_q,expected_data,expected_tag,auth_ok);
             checked++;
             if((!tr.decrypt || auth_ok) && tr.observed_data!=expected_data) begin
-                failed++; `uvm_error("DATA","payload mismatch")
+                failed++; `uvm_error("DATA",$sformatf(
+                    "payload mismatch expected_size=%0d observed_size=%0d expected=%p observed=%p",
+                    expected_data.size(),tr.observed_data.size(),
+                    expected_data,tr.observed_data))
             end
             if(tr.decrypt && !auth_ok && tr.observed_data.size()!=0) begin
                 failed++; `uvm_error("DATA","unauthenticated plaintext was released")
@@ -376,6 +379,8 @@ package aesgcm_uvm_pkg;
         int unsigned samples;
         function new(string n,uvm_component p);super.new(n,p);endfunction
         function void write(aesgcm_record_item t);samples++;endfunction
+        function real coverage_percent();return 0.0;endfunction
+        function bit required_bins_covered();return 0;endfunction
         function void report_phase(uvm_phase phase);
             `uvm_info("COVERAGE",$sformatf("NOT_COLLECTED modelsim_starter samples=%0d",samples),UVM_LOW)
         endfunction
@@ -383,40 +388,49 @@ package aesgcm_uvm_pkg;
 `else
     class aesgcm_coverage extends uvm_subscriber #(aesgcm_record_item);
         `uvm_component_utils(aesgcm_coverage)
-        int key_mode_s,enc_dec_s,tag_s,iv_s,aad_s,data_s,partial_s,result_s;
-        int bp_s,depth_s,zeroize_s,auth_s,digit_s,fault_s,state_s;
+        int unsigned samples;
+        int key_mode_s,mode_s,iv_kind_s,aad_kind_s,data_kind_s,auth_s;
         covergroup cg;
+            option.per_instance=1;
             cp_key: coverpoint key_mode_s { bins aes128={0};bins aes192={1};bins aes256={2}; }
-            cp_enc: coverpoint enc_dec_s { bins enc={0};bins dec={1}; }
-            cp_tag: coverpoint tag_s { bins legal[]={32,64,96,104,112,120,128}; }
-            cp_iv: coverpoint iv_s { bins boundary[]={1,7,8,9,95,96,97,127,128,129,2047}; }
-            cp_aad: coverpoint aad_s { bins boundary[]={0,1,7,8,9,127,128,129,255,256,257,2047}; }
-            cp_data: coverpoint data_s { bins boundary[]={0,1,7,8,9,127,128,129,255,256,257,2047}; }
-            cp_partial: coverpoint partial_s { bins valid_bits[]={[0:7]}; }
-            cp_result: coverpoint result_s { bins codes[]={[0:15]}; }
-            cp_bp: coverpoint bp_s { bins channels[]={[0:4]}; }
-            cp_depth: coverpoint depth_s { bins depth[]={[0:4]}; }
-            cp_zeroize: coverpoint zeroize_s { bins phases[]={[0:7]}; }
-            cp_auth: coverpoint auth_s { bins fail={0};bins pass={1}; }
-            cp_digit: coverpoint digit_s { bins digits[]={[0:7]}; }
-            cp_fault: coverpoint fault_s { bins kinds[]={[0:4]}; }
-            cp_state: coverpoint state_s { bins states[]={[0:15]}; }
-            cx_key_enc_tag: cross cp_key,cp_enc,cp_tag;
-            cx_key_iv: cross cp_key,cp_iv;
-            cx_enc_data: cross cp_enc,cp_data;
-            cx_result_fault: cross cp_result,cp_fault;
-            cx_zeroize_state: cross cp_zeroize,cp_state;
-            cx_bp_enc: cross cp_bp,cp_enc;
+            cp_mode: coverpoint mode_s { bins encrypt={0};bins decrypt={1}; }
+            cp_iv_kind: coverpoint iv_kind_s {
+                bins standard_96={0};bins non_96={1};
+            }
+            cp_aad_kind: coverpoint aad_kind_s {
+                bins empty={0};bins short={1};bins one_block={2};bins multi_block={3};
+            }
+            cp_data_kind: coverpoint data_kind_s {
+                bins empty={0};bins short={1};bins one_block={2};bins multi_block={3};
+            }
+            cp_auth: coverpoint auth_s iff(mode_s==1) {
+                bins fail={0};bins pass={1};
+            }
+            cx_key_mode: cross cp_key,cp_mode;
+            cx_mode_iv: cross cp_mode,cp_iv_kind;
+            cx_mode_data: cross cp_mode,cp_data_kind;
         endgroup
         function new(string n,uvm_component p);super.new(n,p);cg=new;endfunction
+        function int length_kind(int unsigned bits);
+            if(bits==0)return 0;
+            if(bits<128)return 1;
+            if(bits==128)return 2;
+            return 3;
+        endfunction
         function void write(aesgcm_record_item t);
-            key_mode_s=t.key_mode;enc_dec_s=t.decrypt;tag_s=t.tag_bits;
-            iv_s=t.iv_bits;aad_s=t.aad_bits;data_s=t.data_bits;
-            partial_s=t.data_bits%8;bp_s=t.backpressure_channel;
-            depth_s=t.queue_depth;zeroize_s=t.zeroize_phase;
-            fault_s=t.injected_fault;digit_s=t.ghash_digit_index;
-            result_s=(t.observed_result.size()?t.observed_result[0]:-1);
-            auth_s=(result_s==0||result_s==1);state_s=0;cg.sample();
+            samples++;
+            key_mode_s=t.key_mode;mode_s=t.decrypt;
+            iv_kind_s=(t.iv_bits==96)?0:1;
+            aad_kind_s=length_kind(t.aad_bits);
+            data_kind_s=length_kind(t.data_bits);
+            auth_s=(t.observed_result.size()&&t.observed_result[0]==8'h01);
+            cg.sample();
+        endfunction
+        function real coverage_percent();return cg.get_inst_coverage();endfunction
+        function bit required_bins_covered();return coverage_percent()>=99.99;endfunction
+        function void report_phase(uvm_phase phase);
+            `uvm_info("COVERAGE",$sformatf("samples=%0d coverage_pct=%0.2f required_bins=%s",
+                samples,coverage_percent(),required_bins_covered()?"COVERED":"MISSING"),UVM_LOW)
         endfunction
     endclass
 `endif
@@ -478,6 +492,18 @@ package aesgcm_uvm_pkg;
             else if(current.decrypt && index<(iv_n+aad_n+data_n+current.received_tag.size()))
                 current.received_tag[index-iv_n-aad_n-data_n]=data;
         endfunction
+        function bit current_outputs_complete();
+            int unsigned data_bytes,tag_bytes;
+            if(current==null||current.observed_result.size()!=1)return 0;
+            data_bytes=(current.data_bits+7)/8;
+            tag_bytes=(current.tag_bits+7)/8;
+            if(current.decrypt)begin
+                if(current.observed_result[0]!=8'h01)return 1;
+                return current.observed_data.size()==data_bytes;
+            end
+            return current.observed_data.size()==data_bytes&&
+                   current.observed_tag.size()==tag_bytes;
+        endfunction
         task run_phase(uvm_phase phase);
             forever begin
                 @(control_vif.monitor_cb);
@@ -487,14 +513,19 @@ package aesgcm_uvm_pkg;
                     observe_write(control_vif.monitor_cb.awaddr,control_vif.monitor_cb.wdata);
                 if(input_vif.monitor_cb.tvalid&&input_vif.monitor_cb.tready)
                     observe_input(input_vif.monitor_cb.tdata);
-                if(current!=null&&data_vif.monitor_cb.tvalid&&data_vif.monitor_cb.tready)
-                    current.observed_data.push_back(data_vif.monitor_cb.tdata);
-                if(current!=null&&tag_vif.monitor_cb.tvalid&&tag_vif.monitor_cb.tready)
-                    current.observed_tag.push_back(tag_vif.monitor_cb.tdata);
-                if(current!=null&&result_vif.monitor_cb.tvalid&&result_vif.monitor_cb.tready) begin
-                    current.observed_result.push_back(result_vif.monitor_cb.tdata);
-                    ap.write(current);current=null;
+                if(data_vif.monitor_cb.tvalid&&data_vif.monitor_cb.tready)begin
+                    if(current==null)`uvm_error("ORPHAN_DATA","data beat without active record")
+                    else current.observed_data.push_back(data_vif.monitor_cb.tdata);
                 end
+                if(tag_vif.monitor_cb.tvalid&&tag_vif.monitor_cb.tready)begin
+                    if(current==null)`uvm_error("ORPHAN_TAG","tag beat without active record")
+                    else current.observed_tag.push_back(tag_vif.monitor_cb.tdata);
+                end
+                if(result_vif.monitor_cb.tvalid&&result_vif.monitor_cb.tready)begin
+                    if(current==null)`uvm_error("ORPHAN_RESULT","result beat without active record")
+                    else current.observed_result.push_back(result_vif.monitor_cb.tdata);
+                end
+                if(current_outputs_complete())begin ap.write(current);current=null;end
             end
         endtask
     endclass
@@ -588,7 +619,12 @@ package aesgcm_uvm_pkg;
         endtask
         task send_byte(byte unsigned data,bit last);
             axis_byte_item tr=axis_byte_item::type_id::create("byte");
-            tr.data=data;tr.last=last;tr.gap_cycles=0;
+            tr.data=data;tr.last=last;
+            if(record.input_gap_percent!=0&&
+               $urandom_range(99,0)<record.input_gap_percent)
+                tr.gap_cycles=$urandom_range(3,1);
+            else
+                tr.gap_cycles=0;
             start_item(tr,-1,p_sequencer.input_seqr);
             finish_item(tr);
         endtask
@@ -625,6 +661,98 @@ package aesgcm_uvm_pkg;
     `DECLARE_AESGCM_SEQUENCE(full_throughput_sequence)
     `undef DECLARE_AESGCM_SEQUENCE
 
+    class aesgcm_constrained_random_sequence extends aesgcm_virtual_sequence_base;
+        `uvm_object_utils(aesgcm_constrained_random_sequence)
+        int unsigned scenario_index;
+        bit auth_fail_goal;
+        function new(string n="aesgcm_constrained_random_sequence");super.new(n);endfunction
+
+        function string scenario_name();
+            case(scenario_index)
+                0:return "aes128_encrypt_empty";
+                1:return "aes128_decrypt_short";
+                2:return "aes192_encrypt_block";
+                3:return "aes192_decrypt_multi";
+                4:return "aes256_encrypt_short";
+                5:return "aes256_decrypt_block_bad_tag";
+                6:return "aes128_encrypt_multi";
+                7:return "aes128_decrypt_empty";
+                default:return "invalid";
+            endcase
+        endfunction
+
+        function bit randomize_record(
+            int unsigned key_goal,
+            bit decrypt_goal,
+            int unsigned iv_kind_goal,
+            int unsigned aad_kind_goal,
+            int unsigned data_kind_goal
+        );
+            return record.randomize() with {
+                key_mode==local::key_goal;
+                decrypt==local::decrypt_goal;
+                tag_bits==128;
+                if(local::iv_kind_goal==0)iv_bits==96;
+                else iv_bits inside {64,128};
+                if(local::aad_kind_goal==0)aad_bits==0;
+                else if(local::aad_kind_goal==1)aad_bits inside {8,64,120};
+                else if(local::aad_kind_goal==2)aad_bits==128;
+                else aad_bits inside {136,256,512};
+                if(local::data_kind_goal==0)data_bits==0;
+                else if(local::data_kind_goal==1)data_bits inside {8,64,120};
+                else if(local::data_kind_goal==2)data_bits==128;
+                else data_bits inside {136,256,512};
+                input_gap_percent inside {0,25,50};
+                backpressure_channel==BP_NONE;
+                backpressure_percent==0;
+                zeroize_phase==ZP_NONE;
+                injected_fault==FAULT_NONE;
+            };
+        endfunction
+
+        function void prepare_decrypt_input();
+            byte_queue_t iv_q,aad_q,plaintext_q,no_tag_q,ciphertext_q,tag_q;
+            bit auth_ok;
+            foreach(record.iv[i])iv_q.push_back(record.iv[i]);
+            foreach(record.aad[i])aad_q.push_back(record.aad[i]);
+            foreach(record.payload[i])plaintext_q.push_back(record.payload[i]);
+            aesgcm_reference_model::predict(record.key_mode,record.key,1'b0,
+                record.tag_bits,record.iv_bits,record.aad_bits,record.data_bits,
+                iv_q,aad_q,plaintext_q,no_tag_q,ciphertext_q,tag_q,auth_ok);
+            record.payload=new[ciphertext_q.size()];
+            foreach(record.payload[i])record.payload[i]=ciphertext_q[i];
+            record.received_tag=new[tag_q.size()];
+            foreach(record.received_tag[i])record.received_tag[i]=tag_q[i];
+            if(auth_fail_goal&&record.received_tag.size()!=0)
+                record.received_tag[0]^=8'h01;
+        endfunction
+
+        virtual function void configure();
+            bit randomized;
+            record=aesgcm_record_item::type_id::create("record");
+            auth_fail_goal=0;
+            case(scenario_index)
+                0:randomized=randomize_record(0,0,0,0,0);
+                1:randomized=randomize_record(0,1,1,1,1);
+                2:randomized=randomize_record(1,0,0,2,2);
+                3:randomized=randomize_record(1,1,1,3,3);
+                4:randomized=randomize_record(2,0,1,1,1);
+                5:begin randomized=randomize_record(2,1,0,2,2);auth_fail_goal=1;end
+                6:randomized=randomize_record(0,0,1,3,3);
+                7:randomized=randomize_record(0,1,0,0,0);
+                default:`uvm_fatal("SCENARIO",$sformatf("invalid scenario index %0d",scenario_index))
+            endcase
+            if(!randomized)
+                `uvm_fatal("RAND",$sformatf("scenario %0d randomization failed",scenario_index))
+            if(record.decrypt)prepare_decrypt_input();
+            `uvm_info("SCENARIO",$sformatf(
+                "index=%0d name=%s key_mode=%0d decrypt=%0d iv_bits=%0d aad_bits=%0d data_bits=%0d gap_pct=%0d auth_fail=%0d",
+                scenario_index,scenario_name(),record.key_mode,record.decrypt,
+                record.iv_bits,record.aad_bits,record.data_bits,
+                record.input_gap_percent,auth_fail_goal),UVM_LOW)
+        endfunction
+    endclass
+
     class aesgcm_uvm_test extends uvm_test;
         `uvm_component_utils(aesgcm_uvm_test)
         aesgcm_env env;
@@ -648,5 +776,73 @@ package aesgcm_uvm_pkg;
             disable fork;
             phase.drop_objection(this);
         endtask
+    endclass
+
+    class aesgcm_xsim_random_test extends uvm_test;
+        `uvm_component_utils(aesgcm_xsim_random_test)
+        aesgcm_env env;
+        int unsigned records_expected;
+        int unsigned run_seed;
+        int unsigned final_error_count;
+        int unsigned final_fatal_count;
+        real final_coverage;
+        bit final_pass;
+        function new(string n,uvm_component p);
+            super.new(n,p);records_expected=8;
+        endfunction
+        function void build_phase(uvm_phase phase);
+            env=aesgcm_env::type_id::create("env",this);
+            if(!$value$plusargs("UVM_SEED_%d",run_seed))run_seed=0;
+        endfunction
+        task run_phase(uvm_phase phase);
+            aesgcm_constrained_random_sequence seq;
+            int unsigned checked_before;
+            bit completed;
+            phase.raise_objection(this);
+            for(int unsigned i=0;i<records_expected;i++)begin
+                seq=aesgcm_constrained_random_sequence::type_id::create(
+                    $sformatf("scenario_%0d",i));
+                seq.scenario_index=i;
+                checked_before=env.scoreboard.checked;
+                completed=0;
+                fork
+                    begin
+                        seq.start(env.virtual_sequencer);
+                        wait(env.scoreboard.checked==checked_before+1);
+                        completed=1;
+                    end
+                    begin
+                        #100us;
+                        if(!completed)
+                            `uvm_fatal("TIMEOUT",$sformatf("scenario %0d did not complete",i))
+                    end
+                join_any
+                disable fork;
+            end
+            phase.drop_objection(this);
+        endtask
+        function void check_phase(uvm_phase phase);
+            final_coverage=env.coverage.coverage_percent();
+            if(env.scoreboard.checked!=records_expected)
+                `uvm_error("REGRESSION",$sformatf("checked=%0d expected=%0d",
+                    env.scoreboard.checked,records_expected))
+            if(!env.coverage.required_bins_covered())
+                `uvm_error("REGRESSION",$sformatf("required coverage missing: %0.2f%%",
+                    final_coverage))
+        endfunction
+        function void report_phase(uvm_phase phase);
+            uvm_report_server report_server;
+            report_server=uvm_report_server::get_server();
+            final_error_count=report_server.get_severity_count(UVM_ERROR);
+            final_fatal_count=report_server.get_severity_count(UVM_FATAL);
+            final_pass=(env.scoreboard.checked==records_expected)&&
+                       (env.scoreboard.failed==0)&&
+                       env.coverage.required_bins_covered()&&
+                       (final_error_count==0)&&(final_fatal_count==0);
+            $display("UVM_REGRESSION_RESULT status=%s seed=%0d records=%0d scoreboard_failed=%0d uvm_errors=%0d uvm_fatals=%0d coverage_pct=%0.2f",
+                final_pass?"PASS":"FAIL",run_seed,env.scoreboard.checked,
+                env.scoreboard.failed,final_error_count,final_fatal_count,
+                final_coverage);
+        endfunction
     endclass
 endpackage

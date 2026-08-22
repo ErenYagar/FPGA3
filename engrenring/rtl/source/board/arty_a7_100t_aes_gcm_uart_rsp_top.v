@@ -13,7 +13,9 @@ wire mmcm_clkfb;
 wire core_clk_raw;
 wire core_clk;
 wire mmcm_locked;
-reg [3:0] reset_sync_r = 4'b0000;
+(* ASYNC_REG = "TRUE" *)
+reg [1:0] run_req_sync_r = 2'b00;
+reg [3:0] reset_qual_r = 4'b0000;
 reg [25:0] heartbeat_r = 26'd0;
 
 MMCME2_BASE #(
@@ -43,25 +45,30 @@ MMCME2_BASE #(
 BUFG u_feedback_buf (.I(mmcm_clkfb_raw), .O(mmcm_clkfb));
 BUFG u_core_clk_buf (.I(core_clk_raw), .O(core_clk));
 
-// Keep all reset release and assertion synchronous to core_clk.  This avoids
-// turning reset fanout into asynchronous controls on inferred S-box BRAMs.
+// Synchronize the active-high run request, then require four consecutive
+// synchronized high samples before releasing reset.  Separating the 2-FF CDC
+// chain from the 4-FF qualifier rejects button/LOCKED pulses sampled high for
+// only 1--3 core-clock edges.  Both assertion and release of
+// the distributed reset remain synchronous to core_clk, so inferred S-box
+// BRAMs do not acquire asynchronous reset controls.
 always @(posedge core_clk)
 begin
-    if(!mmcm_locked || !rst_btn)
-        reset_sync_r <= 4'b0000;
+    run_req_sync_r <= {run_req_sync_r[0], (mmcm_locked && rst_btn)};
+    if(!run_req_sync_r[1])
+        reset_qual_r <= 4'b0000;
     else
-        reset_sync_r <= {reset_sync_r[2:0], 1'b1};
+        reset_qual_r <= {reset_qual_r[2:0], 1'b1};
 end
 
 always @(posedge core_clk)
 begin
-    if(!reset_sync_r[3])
+    if(!reset_qual_r[3])
         heartbeat_r <= 26'd0;
     else
         heartbeat_r <= heartbeat_r + 26'd1;
 end
 
-wire aresetn = reset_sync_r[3];
+wire aresetn = reset_qual_r[3];
 wire [2:0] key_mode;
 wire [6:0] awaddr;
 wire awvalid;

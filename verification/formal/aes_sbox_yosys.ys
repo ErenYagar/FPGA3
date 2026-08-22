@@ -1,0 +1,7 @@
+read_verilog -formal -sv engrenring/rtl/source/aes_core/sbox.v verification/formal/aes_sbox_formal.sv
+prep -top aes_sbox_formal
+flatten
+memory_map
+opt
+opt_clean
+sat -verify -prove-asserts

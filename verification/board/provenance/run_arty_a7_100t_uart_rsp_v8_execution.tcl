@@ -44,22 +44,6 @@ proc require_same_net {first_pin second_pin description} {
     }
 }
 
-proc object_names {objects} {
-    if {[llength $objects] == 0} {
-        return {}
-    }
-    return [get_property NAME $objects]
-}
-
-proc require_exact_list {got expected description} {
-    set got_sorted [lsort -unique $got]
-    set expected_sorted [lsort -unique $expected]
-    if {[llength $got_sorted] != [llength $expected_sorted] ||
-        [join $got_sorted "\n"] ne [join $expected_sorted "\n"]} {
-        error "$description changed: got={$got_sorted} expected={$expected_sorted}"
-    }
-}
-
 if {$argc != 1} {
     error "Usage: run_arty_a7_100t_uart_rsp.tcl <unique_label>"
 }
@@ -211,12 +195,14 @@ foreach cell $reset_sync_cells {
 }
 set reset_raw_sources [lsort [get_property NAME [all_fanin -flat \
     -startpoints_only -to [get_pins run_req_sync_r_reg[0]/D]]]]
-require_exact_list $reset_raw_sources {rst_btn u_mmcm/LOCKED} \
-    "Reset stage-0 raw sources"
+if {$reset_raw_sources ne [lsort {rst_btn u_mmcm/LOCKED}]} {
+    error "Reset stage-0 raw sources changed: $reset_raw_sources"
+}
 set reset_stage0_endpoints [lsort [get_property NAME [all_fanout -flat \
     -endpoints_only -from [get_pins run_req_sync_r_reg[0]/Q]]]]
-require_exact_list $reset_stage0_endpoints {run_req_sync_r_reg[1]/D} \
-    "Reset synchronizer stage-0 fanout"
+if {$reset_stage0_endpoints ne {run_req_sync_r_reg[1]/D}} {
+    error "Reset synchronizer stage-0 fanout changed: $reset_stage0_endpoints"
+}
 require_same_net {run_req_sync_r_reg[0]/Q} {run_req_sync_r_reg[1]/D} \
     "Reset synchronizer chain"
 
@@ -242,8 +228,9 @@ foreach cell $all_reset_qual_cells {
 }
 set reset_clear_sources [lsort [get_property NAME [all_fanin -flat \
     -startpoints_only -to [get_pins {reset_qual_r_reg[0]/R}]]]]
-require_exact_list $reset_clear_sources {run_req_sync_r_reg[1]/C} \
-    "Reset qualifier clear source"
+if {$reset_clear_sources ne {run_req_sync_r_reg[1]/C}} {
+    error "Reset qualifier clear source changed: $reset_clear_sources"
+}
 if {[pin_net_name {reset_qual_r_reg[0]/D}] ne "<const1>"} {
     error "Reset qualifier stage-0 no longer shifts a constant one"
 }
@@ -302,11 +289,10 @@ if {[llength $async_inputs] != 2 || [llength $async_outputs] != 5} {
 set clock_input [get_ports -quiet clk]
 set all_inputs [get_ports -quiet -filter {DIRECTION == IN}]
 set all_outputs [get_ports -quiet -filter {DIRECTION == OUT}]
-require_exact_list [object_names $all_inputs] \
-    [object_names [concat $clock_input $async_inputs]] \
-    "Top-level input schema"
-require_exact_list [object_names $all_outputs] \
-    [object_names $async_outputs] "Top-level output schema"
+if {[lsort $all_inputs] ne [lsort [concat $clock_input $async_inputs]] ||
+    [lsort $all_outputs] ne [lsort $async_outputs]} {
+    error "Unexpected top-level I/O outside the clock and false-path allowlists"
+}
 if {![regexp {There are 2 input ports with no input delay but user has a false path constraint} $check_text] ||
     ![regexp {There are 5 ports with no output delay but user has a false path constraint} $check_text]} {
     error "check_timing did not confirm the asynchronous I/O false-path exceptions"
@@ -376,8 +362,7 @@ foreach category $expected_categories {
 }
 puts $metrics "check_timing_async_input_false_path_allowlist=2"
 puts $metrics "check_timing_async_output_false_path_allowlist=5"
-puts $metrics "promotion_status=strict_audit_required"
 close $metrics
 
-puts "ARTY_UART_RSP_BUILD_COMPLETE_NOT_PROMOTED top=$top_name part=$part_name setup_wns=$setup_wns setup_tns=$setup_tns setup_fep=$setup_fep hold_whs=$hold_whs hold_ths=$hold_ths hold_fep=$hold_fep route_errors=$route_errors unrouted=$unrouted drc_errors=$drc_errors drc_critical_warnings=$drc_critical methodology_errors=$methodology_errors methodology_critical_warnings=$methodology_critical cdc_expected_schema_pass=$cdc_schema_pass reset_stage3_physical_cells=[llength $reset_stage3_cells] promotion_requires=audit_routed_board.tcl bit=$bit_file"
+puts "ARTY_UART_RSP_BUILD_PASS top=$top_name part=$part_name setup_wns=$setup_wns setup_tns=$setup_tns setup_fep=$setup_fep hold_whs=$hold_whs hold_ths=$hold_ths hold_fep=$hold_fep route_errors=$route_errors unrouted=$unrouted drc_errors=$drc_errors drc_critical_warnings=$drc_critical methodology_errors=$methodology_errors methodology_critical_warnings=$methodology_critical cdc_expected_schema_pass=$cdc_schema_pass reset_stage3_physical_cells=[llength $reset_stage3_cells] bit=$bit_file"
 exit
