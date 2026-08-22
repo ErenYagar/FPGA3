@@ -8,12 +8,23 @@
 !/engrenring/
 !/docs/
 !/tcl/
+!/verification/
 
 # Reviewable timing-closure evidence and reproducible Tcl entry points.
 /docs/*
 !/docs/timing/
 !/docs/timing/**
 !/tcl/**
+!/verification/**
+
+# Verification runs keep their raw logs and simulator databases locally.
+# Commit only compact, reviewable result summaries.
+/verification/results/**
+!/verification/results/
+!/verification/results/**/
+!/verification/results/**/*.md
+!/verification/results/**/*.json
+!/verification/results/**/*.csv
 
 # Maintained RTL and verification inputs.
 /engrenring/*
