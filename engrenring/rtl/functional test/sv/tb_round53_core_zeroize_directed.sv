@@ -15,7 +15,7 @@ module tb_round53_core_zeroize_directed;
 localparam [7:0] RESULT_ZEROIZE_ABORT = 8'h13;
 
 reg clk = 1'b0;
-always #2.5 clk = ~clk;
+always #2.857 clk = ~clk;
 
 reg rst_n = 1'b0;
 reg key_commit = 1'b0;

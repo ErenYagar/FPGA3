@@ -1,16 +1,17 @@
 # AES-GCM verification status
 
-- RTL under test: unmodified git SHA
-  `4a215983f3774c49e833cfe3715a019748200c73`
+- Production RTL content under test:
+  `a6f19472ecc619925b373b1db801911c54062a90`
 - Production simulation/implementation top: `aes_gcm_axi_top`
 - Production GHASH: `engrenring/rtl/source/stream_ghash/ghash16.v`
 - Legacy `engrenring/rtl/source/AESGCM_IO/GHASH.v`: excluded
+- Production timing target: 175 MHz, 5.714 ns
 - Primary tool: XSim/Vivado 2021.1, SW Build 3247384, IP Build 3246043
 
 Tool inventory:
 
 - XSim/Vivado: 2021.1, available and used
-- ModelSim Starter: 10.5b, available but not used for these results
+- ModelSim Starter: 10.5b, used with its bundled UVM 1.2 source
 - Questa and VCS: not found
 - JasperGold/`jg`, `qverify`, and OneSpin: not found
 
@@ -19,25 +20,33 @@ Tool inventory:
 | GHASH baseline | PASS | 66 tests, digit latency 8, external II 9 |
 | AXI smoke baseline | PASS | 7,676 cycles |
 | Six-mode throughput at 175 MHz | PASS | 1.051705--1.065398 Gbit/s |
+| Promoted non-D directed regression | PASS | 8/8 applicable tests; Round48/49/53 plus current FIFO clear/refill gates |
+| Limited NIST cycle signatures | PASS | 525/0 at 145,808 cycles; 5,255/0 at 1,594,798 cycles |
 | Full NIST RSP regression | PASS | 47,250 pass, 0 fail |
 | SVA smoke | PASS | 37 properties, 0 assertion failures |
 | Independent AES-GCM reference model | PASS | FIPS-197 AES and SP 800-38D GCM |
-| Full UVM regression | NOT RUN | no UVM 1.2 library available |
+| Deterministic ModelSim UVM 1.2 smoke | PASS | one fixed AES-128 record; scoreboard checked 1, failed 0; UVM error/fatal 0/0 |
+| Constrained-random UVM regression | NOT RUN | ModelSim Starter verification license unavailable; scenario classes are scaffolding |
 | Formal proof | NOT RUN | no supported formal tool installed |
 | Board shell compile/elaboration | PASS | production RTL elaborated in XSim |
-| Board shell OOC synthesis | PASS | input/output storage each mapped to one RAMB18E1 |
-| Fresh 200 MHz implementation | FAIL | WNS -0.615 ns, TNS -131.872 ns, FEP 1,462 |
-| Bitstream / board programming | NOT RUN | approved board wrapper/XDC not available |
-| Board NIST vectors | NOT RUN | board was not programmed by this flow |
+| Generic board-shell 175 MHz OOC synthesis | PASS | required input/output RAMB18 mapping 1/1; DCP `1F47062D...F710`; not timing signoff |
+| Fresh 175 MHz internal implementation | PASS | WNS +0.056 ns, TNS/FEP 0; internal WHS +0.053 ns, THS/FEP 0 |
+| Parent/board boundary hold signoff | NOT RUN | identity-matched PartPin map and parent timing model unavailable |
+| Retained 175 MHz Arty bitstream (`63824ad`) | PASS | setup WNS +0.010 ns; hold WHS +0.011 ns; DRC error/critical warning 0/0 |
+| Retained hardware NIST (`63824ad`) | PASS | COM4, 47,250 pass / 0 fail |
+| Current `a6f1947` board rebuild/program | NOT RUN | current source differs only by declaration order, but exact-hash board rerun is pending |
 
 Execution/coverage counts:
 
 | Evidence type | Passed | Failed | Inconclusive/not collected |
 |---|---:|---:|---:|
-| Baseline NIST vectors | 47,250 | 0 | 0 |
+| Current 175 MHz NIST vectors | 47,250 | 0 | 0 |
+| Applicable 175 MHz directed tests | 8 | 0 | 0 |
+| Rejected Round54-D specialization comparison | 0 | 0 | N/A for promoted non-D RTL |
 | SVA smoke properties | 37 | 0 | 0 |
-| Full UVM tests | 0 | 0 | NOT RUN |
-| Formal properties | 0 | 0 | 0 (tool unavailable; all NOT RUN) |
+| Deterministic UVM tests | 1 | 0 | 0 |
+| Constrained-random UVM tests | 0 | 0 | NOT RUN |
+| Formal properties | 0 | 0 | all NOT RUN (tool unavailable) |
 | Functional coverage | -- | -- | NOT COLLECTED |
 | Code coverage | -- | -- | NOT COLLECTED |
 | UVM assertion coverage | -- | -- | NOT COLLECTED |
@@ -50,26 +59,49 @@ test measured eight digit cycles and a minimum external request interval of
 nine cycles. These are test-level measured cycles; no unmeasured board latency
 or throughput is inferred.
 
-Routed utilization is 11,792 total LUTs (10,828 logic and 964 LUTRAM), 8,447
-FFs, 10 RAMB18, and zero DSPs. The 200 MHz report has WNS -0.615 ns, TNS
--131.872 ns, and 1,462 failing setup endpoints. Vectorless total power is
-0.446 W at Medium confidence; this is an implementation estimate, not a board
-power measurement.
+The promoted non-D directed profile also passed every applicable Round48,
+Round49, and Round53 test, including repeated prep-tag ZEROIZE, key scrub,
+non-96-bit IV/GHASH interruption, GHASH-slot stall, descriptor admission,
+abort cardinality, and public-output visibility. The current FIFO bench also
+passes abort/ZEROIZE clear, clear priority, immediate refill, stale-fire
+prevention, and global head scrub. Only Round54-D's rejected
+`CLEAR_HEAD_ON_CLEAR` specialization comparison remains N/A.
 
-The routed 200 MHz design is legal (16,434/16,434 routable nets fully routed,
-zero routing errors, and zero DRC Error/Critical Warning violations), but it
-does **not** meet setup timing. Synthesis, placement, route legality, or OOC
-synthesis success must not be interpreted as 200 MHz timing closure.
+The fresh 175 MHz routed implementation uses 11,600 LUTs (10,636 logic and 964
+LUTRAM), 8,410 FFs, 10 RAMB18, and zero DSPs. Vectorless total power is 0.389 W
+(0.304 W dynamic, 0.085 W static) at Medium confidence. This is an
+implementation estimate, not a board power measurement.
 
-Open issues are 200 MHz setup closure, an approved identity-matched PartPin
-map/board wrapper and XDC, full bitstream generation and board vectors, an
-installed UVM 1.2 library, and an installed supported formal tool. The OOC hold
-violations begin at external input ports with zero input delay and require the
-real board integration to sign off; they do not conceal the independent
-internal setup failure.
+Internal timing is closed: setup WNS is +0.056 ns with zero TNS/failing
+endpoints, and register-to-register WHS is +0.053 ns with zero internal
+THS/failing endpoints. All 16,327 routable nets are fully routed, routing
+errors are zero, DRC Error/Critical Warning is 0/0, methodology
+Error/Critical Warning is 0/0, and all 12 `check_timing` critical categories
+are zero.
+
+The standalone OOC boundary timing report still has WHS -1.216 ns, THS
+-916.429 ns, and 966 failing endpoints starting at external input ports with
+0.000 ns minimum delay. Without approved `HD.PARTPIN_LOCS` and the exact parent
+clock/routing model, these values are not board-signoff evidence. PartPin is
+therefore **NO** for this standalone OOC DCP.
+
+A separate retained production Arty UART/RSP build from commit `63824ad` is
+fully routed at 175 MHz with setup WNS +0.010 ns, hold WHS +0.011 ns, and zero
+DRC Error/Critical Warning. Its bitstream SHA-256 is
+`FE57A4276FD63656CAE6618BFAE1B677844A26F75BB5093CA0151A10C21E7586`.
+That bitstream was exercised on COM4 against all 47,250 NIST vectors with zero
+failures in 1,190.304 s. Current commit `a6f1947` differs from that board RTL
+only by a behavior-neutral declaration move, but exact-current-hash board
+rebuild/programming is still **NOT RUN** and is not inferred from the retained
+result.
+
+Open issues are an approved identity-matched PartPin map for standalone OOC
+reuse, a board-wrapper XDC and exact-current-hash board rebuild/programming, a
+fully licensed constrained-random/coverage simulator plus implementation of
+the named randomized scenarios, and an installed supported formal tool.
 
 The reusable verification deliverables are under `verification/sva/`,
 `verification/uvm/`, `verification/formal/`, `verification/board/`,
-`verification/vivado/`, and `verification/scripts/`. Committed Markdown
-summaries live under `verification/results/`; raw work products remain local
-and are ignored by Git.
+`verification/vivado/`, and `verification/scripts/`. Compact tracked summaries
+live under `verification/results/`; latest raw work products remain local and
+are ignored by Git.

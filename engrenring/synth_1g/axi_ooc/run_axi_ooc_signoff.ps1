@@ -39,7 +39,7 @@ param(
     [string]$ExpectedTop = 'aes_gcm_axi_top',
     [string]$ExpectedPart = 'xc7a100tcsg324-1',
     [string]$ExpectedVivadoVersion = '2021.1',
-    [double]$ExpectedClockPeriodNs = 5.000,
+    [double]$ExpectedClockPeriodNs = 5.714,
     [ValidatePattern('^[A-Za-z0-9_]+$')]
     [string]$RouteDirective = 'Explore'
 )
@@ -93,8 +93,8 @@ function Write-Tsv {
 }
 
 try {
-    if ($ExpectedClockPeriodNs -le 0.0) {
-        throw 'ExpectedClockPeriodNs must be positive.'
+    if ([math]::Abs($ExpectedClockPeriodNs - 5.714) -ge 0.0005) {
+        throw 'ExpectedClockPeriodNs must be the production 5.714 ns contract.'
     }
     if ($ExpectedTop -notmatch '^[A-Za-z0-9_]+$') {
         throw 'ExpectedTop contains unsupported characters.'

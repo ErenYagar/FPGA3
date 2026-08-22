@@ -11,7 +11,10 @@ Audit date: 2026-08-22 (Asia/Taipei)
   `tcl/report_round55_artifact_data.tcl` and
   `tcl/round55_rebuild_board_synth.tcl`.
 - Target part: `xc7a100tcsg324-1`.
-- Cryptographic RTL changed during this audit: **no**.
+- Cryptographic behavior changed during this audit: **no**. One declaration
+  was moved ahead of its primitive consumers in `aes_gcm_stream_core.v` so
+  ModelSim can elaborate the same RTL; no expression, priority, state, or
+  register behavior changed.
 
 ## Installed tools
 
@@ -33,19 +36,20 @@ been detected. Formal execution is `NOT RUN` unless the environment changes.
 
 There are two distinct build families:
 
-1. **Legacy `top` / `AESGCM_IO/GHASH.v` family.** The root
-   `engrenring/synth_1g/run_*.tcl` scripts still name legacy source files and
-   elaborate `top`. The named legacy production RTL is absent from the current
-   working tree, so this family is stale and cannot be used to verify the
-   production streaming design.
+1. **Legacy `top` / `AESGCM_IO/GHASH.v` family.** The retained
+   `engrenring/synth_1g/run_synth.tcl` names legacy source files and elaborates
+   `top`. The named legacy production RTL is absent from the current working
+   tree, so this flow is stale and cannot verify the production streaming
+   design. Obsolete 200 MHz 3/4-lane runners were removed after the audit.
 2. **Current streaming family.** The maintained flows elaborate
    `aes_gcm_axi_top` (or a board wrapper above it), compile
    `stream_ghash/ghash16.v`, and include the `stream_aes`, `stream_axi`, and
    `stream_core` sources. This is the production path.
 
 The audit therefore must not invoke `engrenring/synth_1g/run_synth.tcl` as the
-current build. A separate current-streaming 200 MHz script is required; legacy
-scripts will be left unchanged.
+current build. The maintained verification build uses the current streaming
+source list and the production 175 MHz constraint. Historical analysis remains
+available, while obsolete broken 200 MHz lane runners were removed.
 
 ## Complete RTL inventory
 
@@ -103,12 +107,9 @@ The legacy modules named by their synthesis scripts (`aes_core/AES_e.v`,
 
 ### Files that reference legacy `GHASH.v`
 
-All four are stale legacy build scripts and use top `top`:
-
-- `engrenring/synth_1g/run_synth.tcl`
-- `engrenring/synth_1g/run_synth_4lane.tcl`
-- `engrenring/synth_1g/run_impl_3lane.tcl`
-- `engrenring/synth_1g/run_impl_4lane.tcl`
+The retained stale `engrenring/synth_1g/run_synth.tcl` uses top `top`.
+The starting commit also contained broken 3/4-lane legacy runners; they and
+their obsolete 200 MHz constraint were removed from the maintained tree.
 
 No current RTL file defining legacy `GHASH` was found.
 
@@ -116,6 +117,7 @@ No current RTL file defining legacy `GHASH` was found.
 
 - `tcl/round53_run.tcl`
 - `tcl/round54_run.tcl`
+- `verification/vivado/run_streaming_175mhz.tcl`
 - `tcl/round54_regressions.ps1`
 - `tcl/round55_rebuild_board_synth.tcl`
 - `engrenring/synth_1g/axi_ooc/run_axi_ooc.tcl`
@@ -168,15 +170,12 @@ No `.f`, `.flist`, `.prj`, or ModelSim `.do` filelist was present.
 | Existing flow | Top / elaborated snapshot | GHASH selected | Classification |
 |---|---|---|---|
 | `synth_1g/run_synth.tcl` | `top` | missing `AESGCM_IO/GHASH.v` | legacy, broken |
-| `synth_1g/run_synth_4lane.tcl` | `top`, `LANES=4` | missing `AESGCM_IO/GHASH.v` | legacy, broken |
-| `synth_1g/run_impl_3lane.tcl` | `top`, `LANES=3` | missing `AESGCM_IO/GHASH.v` | legacy, broken |
-| `synth_1g/run_impl_4lane.tcl` | `top`, `LANES=4` | missing `AESGCM_IO/GHASH.v` | legacy, broken |
-| `synth_1g/run_route_4lane.tcl` | opens missing `top_4lane_synth.dcp` | inherited legacy netlist | legacy, broken |
 | `sim/tb_top.sv` | `tb_top` -> `top` | inherited legacy top | legacy, broken |
 | `sim/tb_top_1g_parallel.sv` | `tb_top_1g_parallel` -> `top` | inherited legacy top | legacy, broken |
-| `axi_ooc/run_axi_ooc.tcl` | `aes_gcm_axi_top` | `stream_ghash/ghash16.v` | current streaming |
-| `tcl/round53_run.tcl` | `aes_gcm_axi_top` | `stream_ghash/ghash16.v` | current streaming |
-| `tcl/round54_run.tcl` | `aes_gcm_axi_top` | `stream_ghash/ghash16.v` | current streaming |
+| `axi_ooc/run_axi_ooc.tcl` | `aes_gcm_axi_top` | `stream_ghash/ghash16.v` | current streaming, 175 MHz |
+| `verification/vivado/run_streaming_175mhz.tcl` | `aes_gcm_axi_top` | `stream_ghash/ghash16.v` | maintained strict 175 MHz verification flow |
+| `tcl/round53_run.tcl` | `aes_gcm_axi_top` | `stream_ghash/ghash16.v` | historical timing evidence |
+| `tcl/round54_run.tcl` | `aes_gcm_axi_top` | `stream_ghash/ghash16.v` | retained experiment driver, locked to 175 MHz |
 | `round54_regressions.ps1` | individual `tb_*` tops | `stream_ghash/ghash16.v` | current streaming simulation |
 | `board/run_arty_a7_100t_selftest.tcl` | `arty_a7_100t_aes_gcm_selftest_top` | `stream_ghash/ghash16.v` | current streaming board |
 | `board/run_arty_a7_100t_uart_rsp.tcl` | `arty_a7_100t_aes_gcm_uart_rsp_top` | `stream_ghash/ghash16.v` | current streaming board |
@@ -192,8 +191,8 @@ The production streaming compile order used by the existing regression is:
 5. `stream_ghash/ghash16.v`
 6. `stream_axi/axi_lite_regs.v`
 7. `stream_axi/axis_output_skid_8.v`
-8. `stream_core/aes_gcm_stream_core.v`
-9. `stream_core/stream_fifo.v`
+8. `stream_core/stream_fifo.v`
+9. `stream_core/aes_gcm_stream_core.v`
 10. `aes_gcm_axi_top.v`
 
 ## Baseline mapping

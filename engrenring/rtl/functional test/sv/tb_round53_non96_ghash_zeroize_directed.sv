@@ -16,7 +16,7 @@ localparam [7:0] EVENT_TAG_LAST = 8'h54;
 localparam [7:0] EVENT_RESULT = 8'h52;
 
 reg clk = 1'b0;
-always #2.5 clk = ~clk;
+always #2.857 clk = ~clk;
 
 reg rst_n = 1'b0;
 reg key_commit = 1'b0;

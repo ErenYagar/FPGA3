@@ -245,7 +245,7 @@ package aesgcm_reference_model_pkg;
             return y;
         endfunction
 
-        static task automatic crypt_payload(
+        static function automatic void crypt_payload(
             input bit [2:0] key_mode,
             input bit [255:0] key,
             input bit [127:0] j0,
@@ -272,9 +272,9 @@ package aesgcm_reference_model_pkg;
                 mask = 8'hff << (8-valid_bits);
                 output_bytes[byte_count-1] &= mask;
             end
-        endtask
+        endfunction
 
-        static task automatic predict(
+        static function automatic void predict(
             input bit [2:0] key_mode,
             input bit [255:0] key,
             input bit decrypt,
@@ -310,6 +310,6 @@ package aesgcm_reference_model_pkg;
                     if (received_tag[i] !== result_tag[i])
                         authentication_ok = 0;
             end
-        endtask
+        endfunction
     endclass
 endpackage

@@ -28,7 +28,7 @@ localparam [7:0] RESULT_DEC_AUTH_OK = 8'h01;
 localparam [7:0] RESULT_DEC_AUTH_FAIL = 8'h02;
 
 reg aclk = 1'b0;
-always #2.5 aclk = ~aclk;
+always #2.857 aclk = ~aclk;
 
 reg aresetn = 1'b0;
 reg [2:0] key_mode = 3'd0;

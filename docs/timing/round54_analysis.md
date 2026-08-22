@@ -1,5 +1,9 @@
 # Round54 200 MHz internal timing closure
 
+> Historical investigation only. The production implementation contract is
+> now fixed at 175 MHz; this document preserves older experiment provenance
+> and is not an active build target.
+
 ## Locked starting point
 
 Round54 starts from clean commit

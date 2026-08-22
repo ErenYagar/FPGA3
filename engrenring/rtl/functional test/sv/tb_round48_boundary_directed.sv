@@ -12,7 +12,7 @@ localparam [127:0] ZERO_KAT_CT  = 128'h0388dace60b6a392f328c2b971b2fe78;
 localparam [127:0] ZERO_KAT_TAG = 128'hab6e47d42cec13bdf53a67b21257bddf;
 
 reg aclk = 1'b0;
-always #2.5 aclk = ~aclk;
+always #2.857 aclk = ~aclk;
 
 reg aresetn = 1'b0;
 reg [2:0] key_mode = 3'd0;

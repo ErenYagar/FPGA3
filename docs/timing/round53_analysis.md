@@ -1,5 +1,8 @@
 # Round53 200 MHz timing-closure analysis
 
+> Historical investigation only. The production implementation contract is
+> now fixed at 175 MHz; the metrics below are retained as provenance.
+
 ## Repository and experiment contract
 
 - Repository: `ErenYagar/FPGA3` (private)

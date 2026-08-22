@@ -37,7 +37,7 @@ ghash16 dut
     .Y       (Y)
 );
 
-always #5 clk = ~clk;
+always #2.857 clk = ~clk;
 
 always @(posedge clk)
     sim_cycle = sim_cycle + 1;

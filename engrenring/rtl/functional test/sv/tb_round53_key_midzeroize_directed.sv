@@ -5,7 +5,7 @@
 module tb_round53_key_midzeroize_directed;
 
 reg clk = 1'b0;
-always #2.5 clk = ~clk;
+always #2.857 clk = ~clk;
 
 reg rst_n = 1'b0;
 reg commit = 1'b0;

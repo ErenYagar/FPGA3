@@ -11,7 +11,7 @@ localparam [7:0] RESULT_EARLY_TLAST  = 8'h10;
 localparam [7:0] RESULT_ZEROIZE_ABORT= 8'h13;
 
 reg aclk = 1'b0;
-always #2.5 aclk = ~aclk;
+always #2.857 aclk = ~aclk;
 
 reg aresetn = 1'b0;
 reg [2:0] key_mode = 3'd0;

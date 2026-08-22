@@ -9,9 +9,8 @@
 # Exit 2: legal routed design with clean hold/security gates but setup is open.
 # Exit 1: provenance, structural, tool, legality, hold, or DRC failure.
 #
-# Optional clock profile:
-#   set R54_CLOCK_MHZ=175
-# If unset, the historical 200 MHz contract remains the default.
+# This retained experiment driver is locked to the production 175 MHz
+# contract. Clock-profile overrides are intentionally unsupported.
 
 proc ::r54_fail {message} {
     puts stderr "ROUND54_RUN_SUMMARY status=ERROR"
@@ -75,19 +74,9 @@ set rtl_dir [file join $repo_dir engrenring rtl source]
 set ooc_dir [file join $repo_dir engrenring synth_1g axi_ooc]
 set top_name aes_gcm_axi_top
 set part_name xc7a100tcsg324-1
-set clock_mhz 200
-if {[info exists ::env(R54_CLOCK_MHZ)]} {
-    set clock_mhz $::env(R54_CLOCK_MHZ)
-}
-if {$clock_mhz eq "200"} {
-    set period_ns 5.000
-    set xdc_file [file join $ooc_dir axi_200mhz_ooc.xdc]
-} elseif {$clock_mhz eq "175"} {
-    set period_ns 5.714
-    set xdc_file [file join $ooc_dir axi_175mhz_ooc.xdc]
-} else {
-    ::r54_fail "unsupported R54_CLOCK_MHZ '$clock_mhz'; expected 175 or 200"
-}
+set clock_mhz 175
+set period_ns 5.714
+set xdc_file [file join $ooc_dir axi_175mhz_ooc.xdc]
 set allowed_directives {Explore AggressiveExplore MoreGlobalIterations HigherDelayCost}
 
 set usage "<experiment> <fresh_full|from_synth|from_placed|audit_dcp> <label> <expected_core_sha256> ?input_dcp expected_dcp_sha256 stage directive?"
@@ -265,22 +254,18 @@ if {[catch {
     } else {
         set flow_stage open_checkpoint
         open_checkpoint $input_dcp
-        if {$clock_mhz ne "200"} {
-            set flow_stage apply_clock_profile
-            reset_timing
-            read_xdc $xdc_file
-        }
+        set flow_stage apply_clock_profile
+        reset_timing
+        read_xdc $xdc_file
         set final_metrics [::r54_audit $experiment $input_stage $report_dir]
     }
 
     if {$mode eq "audit_dcp"} {
-        if {$clock_mhz ne "200"} {
-            set flow_stage write_reclocked_checkpoint
-            set audited_dcp [file join $checkpoint_dir \
-                ${top_name}_${clock_mhz}mhz_routed.dcp]
-            write_checkpoint $audited_dcp
-            puts "ROUND54_DCP stage=routed clock_mhz=$clock_mhz sha256=[::r54_sha256 $audited_dcp] path=$audited_dcp"
-        }
+        set flow_stage write_reclocked_checkpoint
+        set audited_dcp [file join $checkpoint_dir \
+            ${top_name}_${clock_mhz}mhz_routed.dcp]
+        write_checkpoint $audited_dcp
+        puts "ROUND54_DCP stage=routed clock_mhz=$clock_mhz sha256=[::r54_sha256 $audited_dcp] path=$audited_dcp"
         set flow_stage finalize
     } elseif {$mode in {fresh_full from_synth}} {
         if {[string match "C*" $experiment]} {

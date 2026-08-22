@@ -5,7 +5,7 @@ module tb_top_1g_parallel #(
     parameter integer KEY_BITS = 256,
     parameter integer PAYLOAD_BITS = 1024,
     parameter integer PACKET_COUNT = 100,
-    parameter integer CLK_FREQ_HZ = 200000000
+    parameter integer CLK_FREQ_HZ = 175000000
 );
 
 localparam TYPE_IV  = 3'd0;

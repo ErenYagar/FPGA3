@@ -19,7 +19,7 @@ set sources [list [file join $rtl_dir aes_core sbox.v] \
  [file join $rtl_dir stream_core aes_gcm_stream_core.v] \
  [file join $rtl_dir aes_gcm_axi_top.v] [file join $script_dir board_test_shell.sv]]
 foreach source $sources { if {![file isfile $source]} {board_fail "missing $source"}; read_verilog -sv $source }
-read_xdc [file join $repo_root engrenring synth_1g axi_ooc axi_200mhz_ooc.xdc]
+read_xdc [file join $repo_root engrenring synth_1g axi_ooc axi_175mhz_ooc.xdc]
 if {[catch {
  synth_design -mode out_of_context -top board_test_shell -part xc7a100tcsg324-1 -flatten_hierarchy rebuilt
  set input_bram_cells [get_cells -hier -quiet -filter {REF_NAME == RAMB18E1 && NAME =~ *input_bram*}]

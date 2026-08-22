@@ -184,8 +184,8 @@ if {[catch {
         error "Candidate discovery clock must be literal aclk"
     }
     if {![string is double -strict $candidate_period] ||
-        abs(double($candidate_period) - 5.000) >= 0.0005} {
-        error "Candidate discovery period must be 5.000 ns"
+        abs(double($candidate_period) - 5.714) >= 0.0005} {
+        error "Candidate discovery period must be 5.714 ns"
     }
     if {![file isfile $candidate_source_dcp]} {
         error "Placed checkpoint does not exist: $candidate_source_dcp"

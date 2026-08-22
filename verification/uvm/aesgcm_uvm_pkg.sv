@@ -137,6 +137,8 @@ package aesgcm_uvm_pkg;
             vif.driver_cb.awvalid <= 0; vif.driver_cb.wvalid <= 0;
             vif.driver_cb.bready <= 1; vif.driver_cb.arvalid <= 0;
             vif.driver_cb.rready <= 1;
+            wait(vif.aresetn===1'b1);
+            @(vif.driver_cb);
             forever begin
                 seq_item_port.get_next_item(tr);
                 vif.driver_cb.key_mode <= tr.key_mode;
@@ -355,6 +357,9 @@ package aesgcm_uvm_pkg;
             end
             if(!tr.decrypt && tr.observed_tag!=expected_tag) begin failed++; `uvm_error("TAG","tag mismatch") end
             if(tr.observed_result.size()!=1) begin failed++; `uvm_error("RESULT","missing/multiple result") end
+            else if(!tr.decrypt && tr.observed_result[0]!=8'h00) begin
+                failed++; `uvm_error("RESULT","encrypt result code mismatch")
+            end
             else if(tr.decrypt && ((tr.observed_result[0]==8'h01)!=auth_ok)) begin
                 failed++; `uvm_error("AUTH","authentication result mismatch")
             end
@@ -365,6 +370,17 @@ package aesgcm_uvm_pkg;
         endfunction
     endclass
 
+`ifdef MODELSIM_STARTER
+    class aesgcm_coverage extends uvm_subscriber #(aesgcm_record_item);
+        `uvm_component_utils(aesgcm_coverage)
+        int unsigned samples;
+        function new(string n,uvm_component p);super.new(n,p);endfunction
+        function void write(aesgcm_record_item t);samples++;endfunction
+        function void report_phase(uvm_phase phase);
+            `uvm_info("COVERAGE",$sformatf("NOT_COLLECTED modelsim_starter samples=%0d",samples),UVM_LOW)
+        endfunction
+    endclass
+`else
     class aesgcm_coverage extends uvm_subscriber #(aesgcm_record_item);
         `uvm_component_utils(aesgcm_coverage)
         int key_mode_s,enc_dec_s,tag_s,iv_s,aad_s,data_s,partial_s,result_s;
@@ -393,16 +409,17 @@ package aesgcm_uvm_pkg;
             cx_bp_enc: cross cp_bp,cp_enc;
         endgroup
         function new(string n,uvm_component p);super.new(n,p);cg=new;endfunction
-        function void write(aesgcm_record_item tr);
-            key_mode_s=tr.key_mode;enc_dec_s=tr.decrypt;tag_s=tr.tag_bits;
-            iv_s=tr.iv_bits;aad_s=tr.aad_bits;data_s=tr.data_bits;
-            partial_s=tr.data_bits%8;bp_s=tr.backpressure_channel;
-            depth_s=tr.queue_depth;zeroize_s=tr.zeroize_phase;
-            fault_s=tr.injected_fault;digit_s=tr.ghash_digit_index;
-            result_s=(tr.observed_result.size()?tr.observed_result[0]:-1);
+        function void write(aesgcm_record_item t);
+            key_mode_s=t.key_mode;enc_dec_s=t.decrypt;tag_s=t.tag_bits;
+            iv_s=t.iv_bits;aad_s=t.aad_bits;data_s=t.data_bits;
+            partial_s=t.data_bits%8;bp_s=t.backpressure_channel;
+            depth_s=t.queue_depth;zeroize_s=t.zeroize_phase;
+            fault_s=t.injected_fault;digit_s=t.ghash_digit_index;
+            result_s=(t.observed_result.size()?t.observed_result[0]:-1);
             auth_s=(result_s==0||result_s==1);state_s=0;cg.sample();
         endfunction
     endclass
+`endif
 
     // Passive monitor configuration/reconstruction is deliberately separate
     // from the active agents so scoreboard input cannot reuse driver objects.
@@ -520,9 +537,18 @@ package aesgcm_uvm_pkg;
         function new(string n="aesgcm_virtual_sequence_base");super.new(n);endfunction
         virtual function void configure();
             record=aesgcm_record_item::type_id::create("record");
+`ifdef MODELSIM_STARTER
+            record.key_mode=0;record.key='0;record.decrypt=0;
+            record.tag_bits=128;record.iv_bits=96;record.aad_bits=0;
+            record.data_bits=128;record.iv=new[12];record.aad=new[0];
+            record.payload=new[16];record.received_tag=new[0];
+            foreach(record.iv[i])record.iv[i]=0;
+            foreach(record.payload[i])record.payload[i]=0;
+`else
             if(!record.randomize() with {key_mode==0;decrypt==0;tag_bits==128;
                 iv_bits==96;aad_bits==0;data_bits==128;})
                 `uvm_fatal("RAND","default record randomization failed")
+`endif
         endfunction
         task write_reg(bit[6:0] addr,bit[31:0] data);
             axi_lite_item tr=axi_lite_item::type_id::create("wr");
@@ -606,9 +632,20 @@ package aesgcm_uvm_pkg;
         function void build_phase(uvm_phase phase);env=aesgcm_env::type_id::create("env",this);endfunction
         task run_phase(uvm_phase phase);
             aes128_sequence seq=aes128_sequence::type_id::create("seq");
+            bit completed;
             phase.raise_objection(this);
             seq.start(env.virtual_sequencer);
-            phase.phase_done.set_drain_time(this,100us);
+            fork
+                begin
+                    wait(env.scoreboard.checked!=0);
+                    completed=1;
+                end
+                begin
+                    #20us;
+                    if(!completed)`uvm_fatal("TIMEOUT","scoreboard did not receive a completed record")
+                end
+            join_any
+            disable fork;
             phase.drop_objection(this);
         endtask
     endclass

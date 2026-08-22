@@ -10,10 +10,10 @@ proc axi_ooc_fail {message} {
 
 set script_dir [file dirname [file normalize [info script]]]
 set rtl_dir [file normalize [file join $script_dir .. .. rtl source]]
-set xdc_file [file join $script_dir axi_200mhz_ooc.xdc]
+set xdc_file [file join $script_dir axi_175mhz_ooc.xdc]
 set top_name aes_gcm_axi_top
 set part_name xc7a100tcsg324-1
-set clock_period_ns 5.000
+set clock_period_ns 5.714
 set run_mode full
 set output_label ""
 if {[llength $argv] > 0} {

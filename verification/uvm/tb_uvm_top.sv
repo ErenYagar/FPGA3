@@ -5,7 +5,7 @@ module tb_uvm_top;
     import aesgcm_uvm_pkg::*;
 
     logic clk=0;
-    always #2.5 clk=~clk;
+    always #2.857 clk=~clk;
 
     axi_lite_if control_if(clk);
     axis_input_if input_if(clk);
