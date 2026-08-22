@@ -80,17 +80,21 @@
   \vspace*{18mm}
   {\Huge\bfseries\color{navy} FPGA3 AES-GCM IP\par}
   \vspace{4mm}
-  {\LARGE 175 MHz FPGA 實作、時序收斂與實板驗證報告\par}
+  {\LARGE 175 MHz FPGA 設計與驗證報告\par}
+  \vspace{2mm}
+  {\large 需求追蹤、Scoreboard、Signoff 與實板證據\par}
   \vspace{10mm}
   \begin{tikzpicture}[node distance=5mm and 8mm, every node/.style={font=\small}]
     \node[draw=navy,thick,rounded corners,fill=lightblue,minimum width=31mm,minimum height=13mm] (host) {Host / NIST RSP};
     \node[draw=orange,thick,rounded corners,fill=lightorange,right=of host,minimum width=31mm,minimum height=13mm] (uart) {UART frame bridge};
     \node[draw=blue,thick,rounded corners,fill=lightblue,right=of uart,minimum width=32mm,minimum height=13mm] (axi) {AXI wrapper};
     \node[draw=green,thick,rounded corners,fill=lightgreen,right=of axi,minimum width=35mm,minimum height=13mm] (core) {AES-CTR + GHASH};
-    \draw[-{Latex[length=2mm]},thick] (host) -- node[above]{115200 baud} (uart);
-    \draw[-{Latex[length=2mm]},thick] (uart) -- node[above]{AXI4} (axi);
-    \draw[-{Latex[length=2mm]},thick] (axi) -- node[above]{8-bit stream} (core);
+    \draw[-{Latex[length=2mm]},thick] (host) -- (uart);
+    \draw[-{Latex[length=2mm]},thick] (uart) -- (axi);
+    \draw[-{Latex[length=2mm]},thick] (axi) -- (core);
   \end{tikzpicture}
+  \\[1mm]
+  {\small UART 115200 baud $\rightarrow$ AXI4-Lite / 8-bit AXI4-Stream $\rightarrow$ 175 MHz crypto core\par}
   \vspace{12mm}
 
   \begin{tabular}{rl}
@@ -99,11 +103,12 @@
     工具版本： & Xilinx Vivado 2021.1, build 3247384 \\
     Git branch： & \code{verify/sva-uvm-board} \\
     Build-base commit： & \code{ece78ce9677872d0d20da3b785ab83a48b6a8492} \\
-    報告日期： & 2026-08-22 \\
+    Source/verification commit： & \code{4246ebc7a72ce8eb1a49d56969aae6e151578c11} \\
+    報告日期： & 2026-08-23 \\
   \end{tabular}
 
   \vfill
-  {\large 結論：175 MHz final strict static audit、六模式 FPGA smoke 與 FPGA NIST 47,250/47,250 均已通過；PartPin 維持 NO。\par}
+  {\large 結論：175 MHz static、dynamic 與實板驗證皆通過；整合狀態僅因 formal scope 為 PARTIAL PASS，PartPin 維持 NO / NOT RUN。\par}
   \vspace{6mm}
   {\small 本報告所有數值均取自目前工作區 RTL、Vivado DCP/RPT、XSIM log 與 COM4 實板證據；未量測項目會明確標示。\par}
 \end{titlepage}
@@ -114,9 +119,13 @@
 
 本設計完成一個支援 AES-128、AES-192 與 AES-256 的 AES-GCM authenticated-encryption IP，並以 AXI4-Lite 設定介面、8-bit AXI4-Stream 資料介面與 Arty A7 UART 測試 wrapper 整合。核心以 AES counter mode 產生 keystream，以 GHASH 在 $GF(2^{128})$ 執行驗證；解密 plaintext 在 tag 驗證成功以前不對外釋放，並具備同步 ZEROIZE 與 protocol-abort 清除機制。
 
-最終板級設計在 175 MHz 完成 fresh synthesis、placement、physical optimization 與 routing，並由 immutable routed DCP 進行獨立 v8c strict audit。Routed signoff 為 WNS $+0.029$ ns、TNS $0$、setup failing endpoints $0$、WHS $+0.044$ ns、THS $0$、hold failing endpoints $0$；pulse-width WPWS $+1.607$ ns、TPWS $0$、failing endpoints $0$。17,758 個 routable nets 全部完成 routing，route error 與 DRC violation 均為 0。Methodology Error/Critical Warning 為 0，但有 2 個一般 \code{SYNTH-6 Warning}，因此不宣稱 warning-free。
+本報告把 signoff 分成四個互不代替的邊界：175 MHz full-board implementation 為 \pass，RTL/UVM/NIST dynamic verification 為 \pass，FPGA programming、六模式 smoke 與 47,250 筆 hardware NIST 為 \pass；formal verification 為 \textbf{PARTIAL PASS}，因為目前只完成 19 個 assumption-free combinational proofs，尚未完成 sequential 與 whole-design formal closure。整合 \code{run_all} 為 5 個 suite PASS、1 個 formal suite PARTIAL PASS、0 NOT RUN、0 FAIL。Standalone PartPin 為 \textbf{NO / NOT RUN}；200 MHz 不在本版範圍，也未執行。
 
-吞吐率測試以 100 筆、每筆 1024-bit payload 計算：175 MHz 下 AES-128/192/256 加密皆為 1.065398 Gbit/s，解密皆為 1.051705 Gbit/s。v8a bitstream 已經 Vivado Hardware Manager 程式化到 \code{xc7a100t_0}，AES-128/192/256 加解密六模式 smoke 為 6 pass、0 fail。完整 FPGA NIST 在 COM4、115200 baud 執行 47,250/47,250 pass、fail 0、first failure null；47,250-line JSONL 與六個 RSP 來源再經第二位獨立核對通過。UART 實體傳輸仍受 115200 baud 限制，不能把 39.098 cases/s 或 UART 頻寬誤稱為 1 Gbit/s crypto throughput。
+最終板級設計在 175 MHz 完成 fresh synthesis、placement、physical optimization 與 routing，並由 immutable routed DCP 進行獨立 v8c strict audit。Routed signoff 為 WNS $+0.029$ ns、TNS $0$、setup failing endpoints $0$、WHS $+0.044$ ns、THS $0$、hold failing endpoints $0$；pulse-width WPWS $+1.607$ ns、TPWS $0$、failing endpoints $0$。17,758 個 routable nets 全部完成 routing，route error、DRC Error/Critical Warning、methodology Error/Critical Warning 與 unsafe CDC category 均為 0。另有 2 個一般 \code{SYNTH-6 Warning}，因此不宣稱 warning-free。
+
+XSim UVM 1.2 以 seeds 175001、175019、175039 共重建並檢查 24 筆 transactions，scoreboard failure 與 UVM error/fatal 均為 0，每個 seed 的 maintained functional coverage 為 100\%。完整 FPGA NIST 在 COM4、115200 baud 執行 47,250/47,250 pass、fail 0，其中包含 11,908 筆預期 authentication failure；status/data/tag violations 全為 0，並完成第二次獨立 evidence reconciliation。
+
+吞吐率測試以 100 筆、每筆 1024-bit payload 計算：175 MHz 下 AES-128/192/256 加密皆為 1.065398 Gbit/s，解密皆為 1.051705 Gbit/s。v8a bitstream 已經 Vivado Hardware Manager 程式化到 \code{xc7a100t_0}，六模式 smoke 為 6 pass、0 fail。上述 UVM 100\% 不是 code/assertion/exhaustive coverage；0.461 W 是 vectorless estimate，不是實板量測；39.098 cases/s 是 UART harness 速率，不是 1 Gbit/s crypto throughput。
 
 \vspace{3mm}
 \noindent\colorbox{lightorange}{\parbox{0.95\linewidth}{
@@ -145,6 +154,7 @@
 
 \begin{table}[H]
 \centering
+\small
 \caption{最終 FPGA signoff 狀態}
 \begin{tabularx}{\linewidth}{>{\bfseries}l l X}
 \toprule
@@ -159,12 +169,14 @@ Routing legality & \pass & 17,758/17,758 routable nets fully routed，routing er
 DRC / methodology & \pass & DRC violations 0；methodology Error/Critical Warning 0，一般 Warning 2 \\
 CDC / reset & \pass & 2 個 CDC-3 safe synchronizers；2-stage request sync + 4-stage release qualifier \\
 \code{check_timing} & \pass & 10 個 critical categories 為 0；false-path allowlists 為 input 2 / output 5 \\
-Bitstream / config image & \pass & v8c strict-audit \code{.bin} 與 hardware-tested v8a \code{.bin} 完全相同；\code{.bit} header hashes 不同 \\
+Bitstream / config image & \pass & v8c strict-audit \code{.bin} 與 hardware-tested v8a \code{.bin} 完全相同；完整 \code{.bit} 檔案 hashes 不同 \\
 FPGA programming & \pass & \code{program\_board.tcl} 以 exact v8a \code{.bit} 回報 \code{status=PASS}；device \code{xc7a100t\_0} \\
 RTL throughput & \pass & 1.065398 Gbit/s encrypt；1.051705 Gbit/s decrypt \\
 FPGA six-mode smoke & \pass & AES-128/192/256 encrypt/decrypt；6/6 pass \\
 NIST FPGA test & \pass & 47,250/47,250 pass，fail 0，first failure null；第二位獨立 reconciliation 亦通過 \\
 UVM / formal & 部分完成 & XSim UVM 24/0；open-source combinational formal 19/0，不代表 full formal closure \\
+ModelSim UVM 1.2 & \pass & Starter deterministic smoke 1/0；constrained random NOT RUN、coverage NOT COLLECTED \\
+Integrated \code{run_all} & PARTIAL PASS & 5 PASS、1 formal PARTIAL PASS、0 NOT RUN、0 FAIL \\
 PartPin & NO & 無 approved identity-matched production map；未執行 standalone replay \\
 \bottomrule
 \end{tabularx}
@@ -178,6 +190,8 @@ PartPin & NO & 無 approved identity-matched production map；未執行 standalo
   \item 1.05--1.07 Gbit/s 是 RTL/AXI testbench 的 crypto payload throughput。UART 使用 115200 baud，兩者是不同觀測邊界。
   \item Methodology 報告含 2 個 \code{SYNTH-6 Warning}；結果是 Error/Critical-Warning clean，不是 warning-free。
   \item FPGA NIST 47,250 筆已經 exact-bitstream 綁定及兩次 reconciliation 通過；它證明 UART wrapper 的向量正確性，但 39.098 cases/s 仍是 host/UART 交易速率，不是 crypto datapath throughput。
+  \item UVM 的 100\% 是維護中 scenario bins 的 functional coverage；目前沒有 code coverage、assertion coverage 或 exhaustive protocol/security coverage。
+  \item Formal 結果只涵蓋 17 個 GHASH shift-power 與 2 個 AES S-box combinational assertions；sequential/whole-design formal closure 尚未完成。
   \item PartPin 尚未完成；full-board route 不能取代 standalone PartPin replay。
 \end{itemize}
 
@@ -685,7 +699,66 @@ Commands 為 MODE、KEY、IV、AAD、PT、CT、TAG、RUN；response frames 為 S
 
 UART 8N1 的 line coding efficiency 固定為 80\%；再乘上 $N/(N+3)$ 的 frame header efficiency。Bridge 檢查 key length、IV/AAD/data 最大 1024 bits、NIST tag lengths、busy state、AXI response、result watchdog 與 output length/TLAST/TUSER。錯誤以 BAD\_CFG、BUSY 或 AUTH\_FAIL 回應。Protocol simulation 已涵蓋 AES-128/192/256 encryption、decrypt success、decrypt auth-fail 與 data block，共 6/6 pass。
 
-\chapter{Simulation、NIST 與 FPGA 實板驗證}
+\chapter{驗證策略、NIST 與 FPGA 實板結果}
+
+\section{Verification plan、oracle 與 comparison chain}
+
+驗證不以「模擬跑完」作為 PASS，而是先把需求轉成可觀測 stimulus、獨立 expected value、checker 與可保存證據。資料流如下：
+
+\begin{center}
+\small
+\fbox{AXI / UART stimulus}
+$\rightarrow$ \fbox{DUT accepted handshakes}
+$\rightarrow$ \fbox{passive record reconstruction}
+\\[2mm]
+$\rightarrow$ \fbox{independent reference / RSP oracle}
+$\rightarrow$ \fbox{scoreboard / hard gate}
+$\rightarrow$ \fbox{CSV、JSON、JSONL、RPT、SHA-256}
+\end{center}
+
+UVM checker 不直接使用 sequence 或 driver 內的 expected transaction。\path{passive_record_reconstruction_monitor} 從實際 AXI-Lite AW/W handshakes、AXI-Stream input handshakes，以及 data/tag/result output handshakes重建完整 record，再送進 scoreboard。Driver 與 checker 不共用同一 transaction object，可降低 stimulus 與 checker 同源錯誤；orphan output、缺少 result 或 timeout 都是 checker failure。
+
+Golden model 位於 \path{verification/uvm/aesgcm_reference_model_pkg.sv}。AES S-box 由 $GF(2^8)$ 反元素與 affine transform 計算，不重用 DUT lookup table；GHASH 採 NIST SP 800-38D 的 128-step bit-serial multiplication，不重用 DUT 16-bit digit-serial datapath。Model 先以 FIPS-197 AES 與 SP 800-38D GCM 範例自我核對，再作為 UVM transaction-level oracle。
+
+Scoreboard 對 encryption 比對完整 output payload、authentication tag 與唯一 result byte，且 success result 必須為 \code{0x00}；對 authentication-success decrypt 比對完整 plaintext，並驗證 success predicate。對 authentication-failure decrypt，UVM 要求不得釋放 plaintext，並檢查 \code{(result == 0x01) == auth_ok}；目前\textbf{沒有}強制失敗碼必須精確等於 \code{0xFF}。精確 \code{0xFF} failure status、空 data 與空 tag 是 FPGA NIST host runner 的另一個嚴格 checker boundary，不可誤稱由 UVM 完成。
+
+FPGA NIST 不使用 UVM model 當 oracle，而直接使用六份 NIST \code{.rsp} 的 expected status、ciphertext/plaintext 與 tag。Encrypt 必須回傳 \code{0x00}、exact ciphertext 與 exact tag；successful decrypt 必須回傳 \code{0x01} 與 exact plaintext；RSP \code{FAIL} 必須回傳 \code{0xFF}，而且 data/tag 都為空。JSONL reconciliation 不重新計算 AES-GCM；它獨立檢查 47,250 行、indices 0--47,249 連續唯一、六個來源各 7,875 筆、分類數與 mismatch counters，避免只相信 aggregate PASS marker。
+
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}p{0.08\linewidth}p{0.20\linewidth}p{0.43\linewidth}p{0.19\linewidth}@{}}
+\caption{Requirement-to-checker traceability matrix}\label{tab:vreq}\\
+\toprule
+ID & 驗證需求 & Oracle / checker 與 PASS criteria & Final result \\
+\midrule
+\endfirsthead
+\toprule
+ID & 驗證需求 & Oracle / checker 與 PASS criteria & Final result \\
+\midrule
+\endhead
+VREQ-01 & AES-GCM 功能正確 & Independent SV model 與六份 NIST RSP；payload/tag/status 依各 checker boundary 精確比對 & UVM 24/0；simulation 與 FPGA NIST 各 47,250/0 \\
+\addlinespace
+VREQ-02 & Auth-fail 不洩漏 plaintext & UVM bad-tag 要求 unauthenticated data 為空；board runner 另要求 \code{0xFF}、空 data/tag & 11,908 expected failures；board violations 0 \\
+\addlinespace
+VREQ-03 & AXI record 完整 & Passive handshake reconstruction；exactly one result，無 orphan output、timeout、UVM E/F & UVM E/F 0/0 \\
+\addlinespace
+VREQ-04 & 六模式 $>1$ Gbit/s & 100 筆 $\times$ 1024-bit throughput TB，依 accepted payload 與 cycle count 計算 & 1.065398 / 1.051705 Gbit/s \\
+\addlinespace
+VREQ-05 & Reset 短脈衝不可誤釋放 & Directed reset TB 加 routed CDC/structural gate；1--3 sample pulse與 chatter 全部拒絕 & PASS；release/assert edges 6/3 \\
+\addlinespace
+VREQ-06 & Setup/hold/pulse closure & Vivado strict routed audit；WNS/WHS/WPWS $\ge 0$，TNS/THS/TPWS/FEP $=0$ & PASS \\
+\addlinespace
+VREQ-07 & Route/DRC/CDC legality & Fully-routed、DRC、methodology、CDC schema、\code{check_timing} hard gates & 17,758/17,758；unsafe/E/CW 0 \\
+\addlinespace
+VREQ-08 & 實板 payload identity & SHA-256 比對 hardware-tested v8a 與 strict-audit v8c raw configuration image & \code{.bin} byte-identical，\code{8A19...B4332F3} \\
+\addlinespace
+VREQ-09 & Algebraic formal correctness & Independent algebraic references + Yosys SAT；所有目標 assertions universal PASS & 19/0；只屬 PARTIAL PASS \\
+\addlinespace
+VREQ-10 & Standalone PartPin reuse & Approved identity-matched map 與 exact parent model，strict replay 必須 PASS & NO / NOT RUN \\
+\bottomrule
+\end{longtable}
+\endgroup
 
 \section{RTL regressions}
 
@@ -700,11 +773,26 @@ Promotion 版本執行的主要驗證包括：
   \item full NIST simulation：47,250/47,250，17,740,527 simulation cycles。
 \end{itemize}
 
-\section{UVM 與 formal 驗證邊界}
+\section{UVM、coverage、formal 與 integrated replay}
 
-XSim 2021.1 的 UVM 1.2 constrained-random regression 使用 seeds 175001、175019 與 175039，每個 seed 8 個 scenarios，總計 scoreboard 24 checked、0 failed，UVM error/fatal 為 0/0，每個 seed 的維護中 functional coverage model 為 100.00\%。Coverage 包含 AES-128/192/256、encrypt/decrypt、96/non-96-bit IV、不同 AAD/data 長度與 valid/invalid authentication；這不是 code coverage、assertion coverage 或 exhaustive security coverage。本輪 evidence 另保存 15 個實際 compilation inputs 的 SHA-256，並把全域 UVM error/fatal counts 納入最終 PASS gate。
+XSim 2021.1 的 UVM 1.2 constrained-random regression 使用 seeds 175001、175019 與 175039，每個 seed 8 個 scenarios，總計 scoreboard 24 checked、0 failed，UVM error/fatal 為 0/0，每個 seed 的維護中 functional coverage model 為 100.00\%。Coverage bins 包含 AES-128/192/256、encrypt/decrypt、96/non-96-bit IV、empty/short/one-block/multi-block AAD/data、valid/invalid authentication，以及 key$\times$mode、mode$\times$IV 與 mode$\times$data crosses。本輪另保存 15 個實際 compilation inputs 的 SHA-256，並把全域 UVM error/fatal counts 納入最終 PASS gate。
+
+ModelSim ALTERA Starter 10.5b 以 UVM 1.2 deterministic mode 執行一筆固定 AES-128 record，scoreboard 1/0、UVM error/fatal 0/0。Starter license 不支援本 regression 所需的 constrained randomization 與 covergroups，因此 ModelSim constrained-random 明確標為 NOT RUN、functional coverage 標為 NOT COLLECTED；三-seed random 與 functional coverage 證據來自 XSim，不從 deterministic smoke 推論。
 
 Yosys 0.33 SAT 完成 19 個 assumption-free combinational assertions：GHASH $T^{0\ldots16}$ 對 independent NIST one-bit shift reference 為 17/0，AES S-box 對 algebraic $GF(2^8)$ inverse/affine reference 與 injectivity為 2/0。這是 \textbf{partial formal PASS}，不包含 sequential GHASH control、FIFO/ZEROIZE temporal properties、whole AES-GCM equivalence、liveness、CDC、timing、power 或 side-channel proof，因此不宣稱 full formal closure。
+
+Source/verification promotion commit \code{4246ebc7a72ce8eb1a49d56969aae6e151578c11} 的 integrated \code{run_all} 結果是 5 PASS、1 PARTIAL PASS、0 NOT RUN、0 FAIL，共 6 suites；唯一 partial suite 是上述 combinational formal subset，不是 simulation failure。整體 machine-readable 狀態為：
+\begin{center}
+\small\path{175MHZ_STATIC_SIGNOFF_SIMULATION_UVM_RESET_AND_HARDWARE_NIST_PASS_FORMAL_SUBSET_PARTIAL}
+\end{center}
+
+\section{Positive、negative tests 與未覆蓋範圍}
+
+\textbf{Positive tests} 包含 AES-128/192/256 encryption/decryption、96-bit 與 non-96-bit IV、empty/short/one-block/multi-block AAD/data、valid authentication、stable run request 在第 6 個 sampled edge 釋放、六模式 throughput、FPGA smoke 6/0，以及 NIST encrypt/decrypt-success。
+
+\textbf{Negative tests} 包含每個 UVM seed 的 AES-256 corrupted-tag decrypt、FPGA NIST 的 11,908 筆 expected authentication failures、unauthenticated plaintext 不得輸出、button 與 MMCM \code{LOCKED} 的 1/2/3-sample pulses、alternating reset-request chatter、invalid request 在第 3 個 sampled edge 使 distributed reset 生效，以及 Round48/49/53 與 FIFO clear/refill directed regression 8/8。
+
+目前三-seed UVM regression 尚未執行 random output backpressure、ZEROIZE phase injection、descriptor queue saturation、early/late TLAST fault injection；這些模式被約束為 \code{BP_NONE}、\code{ZP_NONE}、\code{FAULT_NONE}，不得因 sequence class 已宣告就計入 coverage。另未收集 code coverage 或 assertion coverage；SVA smoke 的 37 properties、0 assertion failures 是執行結果，不是 assertion-coverage 百分比。
 
 \section{FPGA programming 狀態}
 
@@ -714,7 +802,7 @@ Vivado Hardware Manager 透過 target \code{Digilent/210319BE76DEA} 找到 \code
 \end{center}
 該 Tcl 會呼叫 \code{program\_hw\_devices} 與 \code{refresh\_hw\_device}，但不產生 configuration-memory readback attestation；因此本報告不額外宣稱 EOS/DONE/CRC 狀態。後續六模式 UART smoke 的 summary 全部綁定同一 bitstream hash，為板上 operational evidence。
 
-Final strict audit v8c 另輸出 SHA-256 為 \code{DC951AAE0D388DA54836AD5950CA87CB8EEE4A94E5E7EFBB1A685439F0934942} 的 \code{.bit}；它的 bit-header SHA 與板測 v8a \code{.bit} 不同，所以本報告不宣稱 v8c \code{.bit} 曾被程式化。兩者的 raw configuration \code{.bin} SHA-256 則同為 \code{8A19D8E5900063B64922DC9B9AD323F953386367CA1D4FA1A61935543B4332F3}；這是 static-audit output 與 hardware-tested configuration 之間的 exact binary identity boundary。
+Final strict audit v8c 另輸出 SHA-256 為 \code{DC951AAE...0934942} 的 \code{.bit}；它的完整檔案 SHA-256 與板測 v8a \code{.bit} 不同，所以本報告不宣稱 v8c \code{.bit} 曾被程式化或與 v8a 檔案相同。兩者的 raw configuration \code{.bin} SHA-256 則同為 \code{8A19D8E5...B4332F3}；這是 static-audit output 與 hardware-tested configuration 之間的 exact binary identity boundary，完整 hashes 見附錄~\ref{tab:artifact-hashes}。
 
 \section{六模式 smoke 與 47,250 筆 NIST RSP final result}
 
@@ -738,7 +826,7 @@ Full NIST GCM RSP & 47,250 & 0 & \pass；47,250/47,250，first failure null \\
 
 實板 runner 使用 COM4、115200 baud，逐筆比對 status、ciphertext/plaintext 與 authentication tag；decrypt FAIL vectors 必須回傳 AUTH\_FAIL 且不釋放 plaintext。Final summary 為 \code{requested=executed=pass=47250}、\code{fail=0}、\code{first\_failure=null}。JSONL 恰有 47,250 行、global indices 0--47,249 連續且唯一；六個 RSP source 各 7,875 筆。分類為 encrypt 23,625、decrypt 23,625，其中 decrypt success 11,717、expected authentication failure 11,908。Status/data/tag mismatch 均為 0，且第二位獨立 reconciliation 亦通過。
 
-Host-observed per-case latency 的 min/mean/median/p95/p99/max 分別為 9.101/25.376/31.440/32.289/47.797/49.779 ms；全量 elapsed time 為 1,208.505 s，平均 39.098 cases/s。這組 latency 包含 UART 與 host transaction overhead，只能解讀為 board-validation harness 表現。
+Host-observed per-case latency 的 min/mean/median/p95/p99/max 分別為 9.101、25.376、31.440、32.289、47.797、49.779 ms；全量 elapsed time 為 1,208.505 s，平均 39.098 cases/s。這組 latency 包含 UART 與 host transaction overhead，只能解讀為 board-validation harness 表現。
 
 \begin{figure}[H]
 \centering
@@ -748,31 +836,47 @@ Host-observed per-case latency 的 min/mean/median/p95/p99/max 分別為 9.101/2
 
 \chapter{遇到的問題、根因與解法}
 
-\begin{longtable}{p{0.20\linewidth}p{0.28\linewidth}p{0.42\linewidth}}
-\caption{主要問題與處置}\label{tab:issues}\\
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}p{0.16\linewidth}p{0.25\linewidth}p{0.29\linewidth}p{0.20\linewidth}@{}}
+\caption{Verification failure triage：症狀、修正、oracle 與證據}\label{tab:issues}\\
 \toprule
-問題 & 根因 & 解法與結果 \\
+可觀測症狀 / 風險 & 根因與修正 & 驗證方式 / Oracle & 結果與證據 \\
 \midrule
 \endfirsthead
 \toprule
-問題 & 根因 & 解法與結果 \\
+可觀測症狀 / 風險 & 根因與修正 & 驗證方式 / Oracle & 結果與證據 \\
 \midrule
 \endhead
-175 MHz 原架構 throughput 不足 1 Gbit/s & 每筆 record 最前面的 AES keystream latency 造成 byte-stream bubble & 增加兩個 specialized first-block engines、16-entry keystream FIFO 配合兩筆 sensitive data queue；達 1.065/1.052 Gbit/s \\
+175 MHz 原架構 throughput $<1$ Gbit/s & First-block keystream startup bubble；加入兩個 first-block engines、16-entry keystream FIFO 與兩筆 sensitive queue & 100 筆 $\times$ 1024-bit、六模式 accepted-cycle measurement & 16,820/17,039 cycles；1.065398/1.051705 Gbit/s \\
 \addlinespace
-Board v3 synth WNS $-1.192$ ns、TNS $-1506.136$ ns & UART bridge 的 1024-bit payload 被實作為 FF arrays，dynamic indexed write/capture 形成大 mux 與高 fanout & 改為 8-bit distributed memories；LUT/FF 大幅下降，synth TNS 改善到 $-11.728$ ns \\
+Board v3 synth WNS $-1.192$ ns、TNS $-1506.136$ ns、FEP 1489 & 1024-bit UART FF arrays 形成 wide mux/high fanout；改為 8-bit byte memories & v3/v4/v8 utilization 與 timing report 差分 & LUT 減 10,048、FF 減 6,434；final WNS $+0.029$ ns \\
 \addlinespace
-Protocol simulation stream byte 不前進 & combinational helper function 直接讀 global registers，XSIM 沒有依預期重新評估資料依賴 & 改為直接 combinational expression，6/6 protocol cases pass \\
+Protocol simulation stream byte 不前進 & Helper function 隱含讀 global registers，XSIM sensitivity 未依預期觸發；改為直接 combinational expression & 六模式 protocol simulation 與 exact output compare & 6/6 PASS \\
 \addlinespace
-Placed setup pass 但 hold fail & Physical optimization 改善 setup 後產生 9 個 short-path hold violations & Explore route 與 post-route hold repair 後 WHS $+0.044$ ns、THS 0 \\
+Placed setup pass 但 hold 9 endpoints fail & Setup phys-opt 產生 short hold paths；採 Explore route 與 post-route hold repair & Post-route setup/hold/pulse audit & WHS $+0.044$ ns、THS/FEP 0 \\
 \addlinespace
-功率數字可信度有限 & 無真實 SAIF/VCD，Vivado vectorless 使用預設 activity propagation & 報告只列 0.461 W Medium-confidence estimate；下一步加入 representative workload SAIF 或量測板級 rails \\
+\code{cdc_final_v5} 向量通過但 reset 仍有漏洞 & Pure four-FF shift 把 one-sample pulse 延後成 release sample；改為 2-stage sync + 4-stage qualifier & 1/2/3-sample pulse、chatter、release/assert edge directed TB & v5 不 promotion；新結構 PASS 6/3 edges \\
 \addlinespace
-Asynchronous run request 可造成錯誤 reset release & 單純 shift chain 會把短 pulse 延遲成一個有效 release sample & 分離 2-stage \code{ASYNC\_REG} synchronizer 與 4-stage stable-high qualifier；directed XSim、CDC schema 與 routed structural gate 通過 \\
+\code{resetqual_final_v6} 降低四樣本門檻 & 只有 2-stage qualifier，且 full hardware NIST 未完成 & Topology audit + required-run completion gate & 不 promotion \\
 \addlinespace
-UART 無法顯示 1 Gbit/s & 115200 baud 物理限制，8N1 payload ceiling 92.16 kbit/s & 清楚區分 core throughput 與 board transport；若要板上高速量測需換 DMA/Ethernet/PCIe 或 on-chip counter \\
+v7/v8/v8b build/audit false rejection & Tcl boolean/list 與 hierarchical VCC 名稱的 internal representation 比較錯誤；改做 object canonicalization & 對同一 SHA-matched routed DCP 重跑 strict audit & v8c 對 \code{A917...016B} PASS \\
+\addlinespace
+v8a 與 v8c \code{.bit} hash 不同 & \code{.bit} container/header 不同，不等於 configuration payload 不同 & 比對 raw configuration \code{.bin} SHA-256 & \code{.bin} 完全相同；不宣稱 \code{.bit} 相同 \\
+\addlinespace
+Auth-fail plaintext leakage 風險 & Decrypt data 必須等 tag 驗證後才釋放，clear/abort 必須清 sensitive queue & UVM bad-tag、directed ZEROIZE/FIFO 與 11,908 個 NIST FAIL cases & Unauthorized data 0；board status/data/tag violations 0 \\
+\addlinespace
+功率數字可信度有限 & 無代表性 SAIF/VCD 或實板 rail 量測 & Vivado routed vectorless report，明示 confidence boundary & 0.461 W、Medium confidence estimate \\
+\addlinespace
+UART 無法顯示 1 Gbit/s & 115200 baud、8N1 ceiling 92.16 kbit/s & 分離 core cycle counter 與 host/UART wall time & 39.098 cases/s 只屬 board harness \\
+\addlinespace
+Legacy top / historical 200 MHz 不可作本版 production evidence & Legacy top flow stale/missing dependencies；historical 200 MHz 是保留的 Git 歷史，與 current target 不同 & Source/build audit 與維護中 175 MHz source list & Production 僅 175 MHz；200 MHz 未重跑 \\
+\addlinespace
+Standalone PartPin 無法 signoff & 無 approved identity-matched map 與 exact parent timing model & \code{run_partpin_replay.tcl} strict gate & NO / NOT RUN \\
 \bottomrule
 \end{longtable}
+\endgroup
 
 \chapter{工具、Tcl 驅動方式與檔案位置}
 
@@ -787,7 +891,8 @@ UART 無法顯示 1 Gbit/s & 115200 baud 物理限制，8N1 payload ceiling 92.1
 \midrule
 Vivado & 2021.1 build 3247384 & synth、opt、place、phys\_opt、route、timing、utilization、power、DRC、bitgen、Hardware Manager \\
 XSIM & Vivado 2021.1 & smoke、throughput、security regressions、NIST simulation、UART protocol simulation \\
-UVM 1.2 & XSim 2021.1 & 3 seeds、24 scenarios、scoreboard 與 functional coverage \\
+UVM 1.2 & XSim 2021.1 & 3 seeds、24 scenarios、scoreboard 與 maintained functional coverage \\
+UVM 1.2 & ModelSim Starter 10.5b & Deterministic smoke 1/0；Starter constrained random/coverage 未執行 \\
 Yosys SAT & 0.33 & GHASH shift transform 與 AES S-box 的 19 個 combinational assertions \\
 Tcl & Vivado Tcl shell & 可重現 flow、DCP hash gate、reports 與 hard gates \\
 PowerShell & Windows & 啟動 batch flow、整理驗證輸出與環境檢查 \\
@@ -903,7 +1008,9 @@ v8a \path{hw_nist_47250.summary.json}、\path{hw_nist_47250_run.log} & 47,250/47
 
 \chapter{結論與後續工作}
 
-本版已完成可燒錄的 Arty A7-100T AES-GCM 實作，175 MHz v8c strict static audit 的 setup、hold、pulse-width、route、DRC、methodology E/CW、CDC/reset schema 與 \code{check\_timing} hard gates 全部通過。Hardware-tested v8a bitstream 的 configuration \code{.bin} 與 v8c strict-audit \code{.bin} 完全相同；其六模式 smoke 為 6/0，full hardware NIST 為 47,250/47,250、fail 0，且第二位獨立 reconciliation 通過。核心透過兩個 first-block engines、三 context shared AES pipeline、16-entry keystream FIFO、兩筆 sensitive data queue 與 16-bit digit-serial GHASH，在單一 8-bit stream 下達到 1.065398 Gbit/s encryption 與 1.051705 Gbit/s decryption。
+本版已完成可燒錄的 Arty A7-100T AES-GCM 實作，175 MHz v8c strict static audit 的 setup、hold、pulse-width、route、DRC、methodology E/CW、CDC/reset schema 與 \code{check\_timing} hard gates 全部通過。Hardware-tested v8a bitstream 的 configuration \code{.bin} 與 v8c strict-audit \code{.bin} 完全相同；六模式 smoke 為 6/0，full hardware NIST 為 47,250/47,250、fail 0，且第二次獨立 reconciliation 通過。核心透過兩個 first-block engines、三 context shared AES pipeline、16-entry keystream FIFO、兩筆 sensitive data queue 與 16-bit digit-serial GHASH，在單一 8-bit stream 下達到 1.065398 Gbit/s encryption 與 1.051705 Gbit/s decryption。
+
+驗證結論必須保持分層：static implementation、dynamic simulation/UVM/NIST 與實板驗證都是 PASS；integrated overall 是 \textbf{PARTIAL PASS}，唯一原因是 formal 僅涵蓋 19 個 combinational assertions，並非任何 suite failure 或 NOT RUN。UVM、FPGA NIST 與 routed audit 使用不同 oracle/checker，互相補強但不互相取代。
 
 Standalone OOC PartPin 狀態仍為 \textbf{NO / NOT RUN}：目前沒有 approved、identity-matched production \code{HD.PARTPIN\_LOCS} map 與 parent timing model。此限制與已通過的 full-board route 是不同 signoff boundary。
 
@@ -921,13 +1028,16 @@ Standalone OOC PartPin 狀態仍為 \textbf{NO / NOT RUN}：目前沒有 approve
 \appendix
 \chapter{Artifact identity 與 hashes}
 
-\begin{table}[H]
-\centering
-\caption{Final artifact SHA-256}
-\begin{tabularx}{\linewidth}{l X}
+\begin{longtable}{p{0.43\linewidth}p{0.51\linewidth}}
+\caption{Final artifact SHA-256}\label{tab:artifact-hashes}\\
 \toprule
 Artifact & SHA-256 \\
 \midrule
+\endfirsthead
+\toprule
+Artifact & SHA-256 \\
+\midrule
+\endhead
 v8 synth DCP & \hashpair{C5D9858BDD097622C7AA76A1843CB3D4}{9EF7646470BC4ACDAF9BDB27882914E6} \\
 v8 placed DCP & \hashpair{82BAA9B402F825B3127202255F5787BA}{82A8E7F34291A0DDA5F4C86689C4119D} \\
 v8 routed DCP / v8c strict-audit input & \hashpair{A91758ED87EB56648EEF0CAB67B2C50D}{198D00A2D5088E624B507687D99C016B} \\
@@ -940,16 +1050,21 @@ v8c routed power report & \hashpair{687014688995046BACE3FFA09CB4E3E3}{B76A551B0F
 UVM summary CSV & \hashpair{F46216BF196C08ED466200EE34E3F2A7}{B626EB376E7C0F8A758DCB47B3225641} \\
 UVM summary JSON & \hashpair{F5B8E59504D967B6841AD73E0B6E3D8}{361162E251CF7FED2F303682C8B8500AF} \\
 UVM compile-input manifest & \hashpair{D36DA381A5326EEBB1DABDA4AD63D45}{421ACE5E433CE38A3EF80494002233292} \\
+UVM aggregate run log & \hashpair{6AC1D83E3C90615448F6391350707963}{D544F4D42CB7FC6205A7A0C3B7189EC5} \\
+ModelSim deterministic UVM log & \hashpair{01EF5B244A0C6C8FA8FD812E7C7F743}{7E3EE017CEF67D43EF5A46E783404D0DE} \\
 Formal run log & \hashpair{C1FB4DA19869532E1831069A635BF71F}{7C6714237DD5C08C7EDF6A16CCBC0C96} \\
+Reset directed run log & \hashpair{D01050A0A6592BB549F1978A123B4C669}{A326A9AE6F882B57FEE989E7B3C1879} \\
+Reset directed simulation log & \hashpair{78106EEE91399C6849721C53949B3DBA7}{D9D1ED1A3F0831A080C87E90A5F0A68} \\
+Integrated \code{run_all} log & \hashpair{14F4244DE577CF1B1D80B7B2A9FBE1E6}{B33A07AF5629341A7F523DFA3DB8D7CA} \\
+Full simulated NIST log & \hashpair{5EDC8CEE2AFF8D05D6538B8CFE911D8B7}{75FFECED758FCBFD36786D9045BBCE3} \\
 NIST FPGA JSONL & \hashpair{56DA5E1B7110AE8A5622B5847211A842}{C4D2A2A22A08EE02AA7D32EFB0C59761} \\
 NIST FPGA summary & \hashpair{5DF2EA729BBD0C19C6677AFD13F73DD4}{F04BB53694B9552A3FF4D9D464604D06} \\
 NIST FPGA run log & \hashpair{B861E8500B214CB85A98A1FDC231C3E0}{97DDA60F237EA3A49021E6BCECEFEEB4} \\
 \bottomrule
-\end{tabularx}
-\end{table}
+\end{longtable}
 
-\chapter{參考資料}
-
+\renewcommand{\bibname}{附錄 B　參考資料}
+\addcontentsline{toc}{chapter}{附錄 B　參考資料}
 \begin{thebibliography}{99}
 \bibitem{fips197}
 National Institute of Standards and Technology, \emph{Advanced Encryption Standard (AES)}, FIPS PUB 197, 2001. Local file: \path{reference/[02] NIST_FIPS_197_AES.pdf}.
