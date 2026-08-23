@@ -773,6 +773,39 @@ Promotion 版本執行的主要驗證包括：
   \item full NIST simulation：47,250/47,250，17,740,527 simulation cycles。
 \end{itemize}
 
+\section{SVA：cycle-by-cycle temporal checker}
+
+本設計使用 SystemVerilog Assertions（SVA）檢查「某個 clock edge 發生事件後，當下或下一個 edge 必須成立的局部時序規則」。SVA checker 放在 \path{verification/sva/}，由 \path{bind_all.sv} 依 module type 綁入 \code{ghash16}、\code{aes_key_context}、\code{aes_gcm_stream_core} 與 \code{aes_gcm_axi_top}；production RTL 不需插入 checker，也不把 SVA 納入 synthesis/bitstream。checker 可以觀察 DUT 內部 state、queue count、round keys 與 output handshake，因此比只看 transaction 最終結果更早指出違反規則的 cycle 與 property 名稱。
+
+\begin{table}[H]
+\centering
+\caption{SVA checker 分組與檢查目的}
+\label{tab:sva-checkers}
+\begin{tabularx}{\linewidth}{l r X}
+\toprule
+Checker & Source statements & 主要時序不變量 \\
+\midrule
+GHASH16 datapath/control & 15 & reset、H 必須先載入、busy/start、8 個 16-bit digits 的 $T^{16}$ 位移、digit product、累加/final result、最小 request interval \\
+AES key context & 7 & key expansion state transitions、S-box input/capture、ready/busy exclusivity、AES-128/192/256 的 10/12/14 rounds、ZEROIZE 後 1,920-bit round-key scrub \\
+GHASH queue/control & 5 & blocked queue 穩定、valid/ready 才能 start、busy 不得 pop/start、ZEROIZE 或 queue-clear flush \\
+Tag serializer & 9 & byte 順序、index/remaining count、fire 才前進、final-byte TLAST、backpressure 下 payload 穩定 \\
+AXI output stability & 1 & \code{valid \&\& !ready} 時 valid 與 payload 必須保持；同一泛用 property 分別 bind 到 data/tag/result 三條輸出 \\
+\midrule
+Total & 37 & 這個數字是 source-level \code{assert property} statements；目前 production top 展開為 39 個 active instances，並非 coverage 百分比 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Property 以正緣 clock 取樣。\code{|->} 用來檢查同一取樣 edge 的 implication，\code{|=>} 檢查下一個 edge；\code{\$past(...)} 比對前一拍資料，\code{\$stable(...)} 檢查 backpressure 或 blocked queue 期間不得改變。依 property 使用 \code{disable iff (!rst\_n)}，並在適用處加入 ZEROIZE 或 logical clear，使 reset/scrub/flush 的無效觀察窗不造成誤報；相對地，ZEROIZE 本身需要產生的 key/queue 清除效果由獨立 assertions 明確檢查。
+
+GHASH checker 沒有呼叫 DUT 的直接 $T^{POWER}$ 邏輯。它以 NIST shift/reduce 的 one-bit reference 重算 $T^{16}$、16-bit digit product 與完整 $GF(2^{128})$ multiplication recurrence，再逐拍比對 digit-serial DUT；這可避免 checker 與 DUT 使用完全相同實作而一起犯錯。AXI 與 tag assertions 則針對 ready/valid protocol、TLAST 與 backpressure 保持性做 cycle-accurate 檢查。
+
+執行時，\path{verification/scripts/common.sh} 先列出 production RTL 與六個 SVA/bind sources；\path{run_smoke.sh} 依序呼叫 \code{xvlog -sv}、\code{xelab}、\code{xsim}，跑 GHASH standalone 與 AXI integration。Runner 只有在 \code{GHASH16_PASS tests=66}、\code{AXI_SMOKE_PASS cycles=7676} 都出現，且 log 完全沒有 \code{Assertion failed} 時才回傳 PASS。本輪 retained integrated replay 的 smoke 為 0 assertion failures。\path{run_nist.sh} 也編入同一組 SVA，完整 simulation 為 47,250/47,250、fail 0、17,740,527 cycles，且同樣以任何 assertion failure 作 hard fail。
+
+SVA、UVM 與 formal 的責任不同：UVM 由 transactions、independent golden model 與 scoreboard 檢查 end-to-end data/tag/status；SVA 在這些 dynamic simulation traces 上逐拍檢查局部 control/protocol invariants；Yosys SAT 的 19 個 combinational assertions 是另一組 formal harness，並不是這 37 條 SVA 的 exhaustive proof。目前 SVA 來源內沒有 \code{cover property} 或 \code{assume property}，也未收集 property activation、vacuity 或 assertion coverage，所以只能宣稱「retained tests 中 0 assertion failures」，不能宣稱 37/37 都被觸發或 100\% assertion coverage。它也不是 post-route、實板、sequential whole-design、liveness、CDC、timing、power 或 side-channel formal proof。
+
+證據 provenance 另有一個已知缺口：retained \path{verification/results/sva/sva_summary.md} 仍記錄舊 RTL SHA，因此 current 判定採用 promotion manifest 綁定的 integrated \path{run_all.log} 與 retained smoke/NIST logs；現有 SVA runner 尚未像 UVM runner 一樣保存每個 compile input 的 SHA-256。後續應補上 compile-input manifest 與 activation/vacuity coverage，再提升成 exact-source SVA attestation。
+
 \section{UVM、coverage、formal 與 integrated replay}
 
 XSim 2021.1 的 UVM 1.2 constrained-random regression 使用 seeds 175001、175019 與 175039，每個 seed 8 個 scenarios，總計 scoreboard 24 checked、0 failed，UVM error/fatal 為 0/0，每個 seed 的維護中 functional coverage model 為 100.00\%。Coverage bins 包含 AES-128/192/256、encrypt/decrypt、96/non-96-bit IV、empty/short/one-block/multi-block AAD/data、valid/invalid authentication，以及 key$\times$mode、mode$\times$IV 與 mode$\times$data crosses。本輪另保存 15 個實際 compilation inputs 的 SHA-256，並把全域 UVM error/fatal counts 納入最終 PASS gate。
@@ -891,6 +924,7 @@ Standalone PartPin 無法 signoff & 無 approved identity-matched map 與 exact 
 \midrule
 Vivado & 2021.1 build 3247384 & synth、opt、place、phys\_opt、route、timing、utilization、power、DRC、bitgen、Hardware Manager \\
 XSIM & Vivado 2021.1 & smoke、throughput、security regressions、NIST simulation、UART protocol simulation \\
+SVA & XSim 2021.1 & 37 source assertions（39 top-level active instances）；以 bind 檢查 GHASH、key/ZEROIZE、queue、tag 與三條 AXI outputs \\
 UVM 1.2 & XSim 2021.1 & 3 seeds、24 scenarios、scoreboard 與 maintained functional coverage \\
 UVM 1.2 & ModelSim Starter 10.5b & Deterministic smoke 1/0；Starter constrained random/coverage 未執行 \\
 Yosys SAT & 0.33 & GHASH shift transform 與 AES S-box 的 19 個 combinational assertions \\
@@ -929,10 +963,19 @@ python C:\project\FPGA3\engrenring\synth_1g\board\run_nist_rsp_uart.py \
   --bitstream <final.bit> --output <evidence.jsonl> <six_rsp_files>
 \end{lstlisting}
 
-\section{RTL 與 wrapper 位置}
+SVA smoke、完整 NIST simulation 與 integrated replay（在 Windows Git Bash 執行）：
+\begin{lstlisting}[language=bash]
+cd /c/project/FPGA3
+bash verification/scripts/run_smoke.sh
+bash verification/scripts/run_nist.sh
+bash verification/scripts/run_all.sh
+\end{lstlisting}
+\path{run_smoke.sh} 與 \path{run_nist.sh} 都把任何 \code{Assertion failed} 視為 non-zero failure；\path{run_all.sh} 再把 smoke、NIST、UVM、reset 與 formal 結果彙整。為避免 Windows simulator path 問題，整套 runner 明確拒絕從 WSL 啟動。
+
+\section{RTL、SVA 與 wrapper 位置}
 
 \begin{longtable}{p{0.27\linewidth}p{0.65\linewidth}}
-\caption{主要 RTL 檔案}\label{tab:rtl-files}\\
+\caption{主要 RTL 與 verification source files}\label{tab:rtl-files}\\
 \toprule
 功能 & 絕對路徑 \\
 \midrule
@@ -953,6 +996,7 @@ AXI-Lite registers & \path{C:/project/FPGA3/engrenring/rtl/source/stream_axi/axi
 UART board top & \path{C:/project/FPGA3/engrenring/rtl/source/board/arty_a7_100t_aes_gcm_uart_rsp_top.v} \\
 UART RSP bridge & \path{C:/project/FPGA3/engrenring/rtl/source/board/aes_gcm_uart_rsp_bridge.v} \\
 UART RX/TX & \path{C:/project/FPGA3/engrenring/rtl/source/board/uart_rx.v}、\path{uart_tx.v} \\
+SVA checkers / bind & \path{C:/project/FPGA3/verification/sva/*.sv}、\path{bind_all.sv} \\
 \bottomrule
 \end{longtable}
 
