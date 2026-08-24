@@ -1,0 +1,40 @@
+digraph Timing_Iterations {
+  graph [rankdir=LR, splines=ortho, bgcolor="white", pad="0.12", margin="0",
+         nodesep="0.30", outputorder="edgesfirst", charset="UTF-8"];
+  node [shape=box, style="solid", color="black", fontcolor="black",
+        fontname="Helvetica", fontsize=10, penwidth=0.8, fixedsize=true,
+        width=1.55, height=1.25, margin="0.05,0.03"];
+  edge [color="black", penwidth=0.8, arrowsize=0.60, arrowhead=normal];
+
+  v3 [style="dashed", label=<
+    <B>Historical v3 Synth</B><BR/>
+    WNS -1.192 ns<BR/>
+    FEP 1,489<BR/>
+    <FONT POINT-SIZE="8">Raw RPT not retained</FONT>
+  >];
+  v8s [label=<
+    <B>v8 Synth</B><BR/>
+    WNS -0.298 ns<BR/>
+    FEP 292<BR/>
+    <FONT POINT-SIZE="8">Memory-based UART</FONT><BR/>
+    <FONT POINT-SIZE="8">wrapper</FONT>
+  >];
+  v8p [label=<
+    <B>v8 Placed +</B><BR/>
+    <B>phys_opt</B><BR/>
+    WNS +0.075 ns<BR/>
+    FEP 0<BR/>
+    <FONT POINT-SIZE="8">Setup clean before route</FONT>
+  >];
+  v8c [label=<
+    <B>v8c Strict Routed</B><BR/>
+    <B>Audit</B><BR/>
+    WNS +0.029 ns<BR/>
+    FEP 0<BR/>
+    <FONT POINT-SIZE="8">WHS +0.044 ns; THS 0</FONT>
+  >];
+
+  v3:e -> v8s:w;
+  v8s:e -> v8p:w;
+  v8p:e -> v8c:w;
+}

@@ -1,0 +1,22 @@
+digraph Throughput_175MHz {
+  graph [bgcolor="white", pad="0.10", margin="0", charset="UTF-8"];
+  node [shape=plain, fontname="Helvetica", fontsize=10, fontcolor="black"];
+
+  throughput [label=<
+    <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" COLOR="black">
+      <TR><TD COLSPAN="6"><B>175 MHz RTL Throughput</B></TD></TR>
+      <TR><TD COLSPAN="6"><FONT POINT-SIZE="9">100 &#215; 1024-bit records; acceptance target &gt; 1.000000 Gbit/s</FONT></TD></TR>
+      <TR>
+        <TD><B>Key mode</B></TD><TD><B>Operation</B></TD><TD><B>Cycles</B></TD>
+        <TD><B>Throughput</B></TD><TD><B>Margin vs. target</B></TD><TD><B>Result</B></TD>
+      </TR>
+      <TR><TD>AES-128</TD><TD>Encrypt</TD><TD ALIGN="RIGHT">16,820</TD><TD ALIGN="RIGHT">1.065398 Gbit/s</TD><TD ALIGN="RIGHT">+6.54%</TD><TD><B>PASS</B></TD></TR>
+      <TR><TD>AES-128</TD><TD>Decrypt</TD><TD ALIGN="RIGHT">17,039</TD><TD ALIGN="RIGHT">1.051705 Gbit/s</TD><TD ALIGN="RIGHT">+5.17%</TD><TD><B>PASS</B></TD></TR>
+      <TR><TD>AES-192</TD><TD>Encrypt</TD><TD ALIGN="RIGHT">16,820</TD><TD ALIGN="RIGHT">1.065398 Gbit/s</TD><TD ALIGN="RIGHT">+6.54%</TD><TD><B>PASS</B></TD></TR>
+      <TR><TD>AES-192</TD><TD>Decrypt</TD><TD ALIGN="RIGHT">17,039</TD><TD ALIGN="RIGHT">1.051705 Gbit/s</TD><TD ALIGN="RIGHT">+5.17%</TD><TD><B>PASS</B></TD></TR>
+      <TR><TD>AES-256</TD><TD>Encrypt</TD><TD ALIGN="RIGHT">16,820</TD><TD ALIGN="RIGHT">1.065398 Gbit/s</TD><TD ALIGN="RIGHT">+6.54%</TD><TD><B>PASS</B></TD></TR>
+      <TR><TD>AES-256</TD><TD>Decrypt</TD><TD ALIGN="RIGHT">17,039</TD><TD ALIGN="RIGHT">1.051705 Gbit/s</TD><TD ALIGN="RIGHT">+5.17%</TD><TD><B>PASS</B></TD></TR>
+      <TR><TD COLSPAN="6"><FONT POINT-SIZE="8">Boundary: RTL simulation cycle measurement, not UART or board-level throughput.</FONT></TD></TR>
+    </TABLE>
+  >];
+}

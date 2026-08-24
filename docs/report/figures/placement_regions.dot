@@ -1,0 +1,19 @@
+digraph Placement_Regions {
+  graph [bgcolor="white", pad="0.10", margin="0", charset="UTF-8"];
+  node [shape=plain, fontname="Helvetica", fontsize=10, fontcolor="black"];
+
+  regions [label=<
+    <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="8" COLOR="black">
+      <TR><TD COLSPAN="2"><B>Active Clock-Region Placement Summary</B></TD></TR>
+      <TR>
+        <TD WIDTH="220" HEIGHT="78"><B>X0Y3</B><BR/>FF 2,881<BR/><FONT POINT-SIZE="9">LUTM 660 | RAMB 0 | MMCM 0</FONT></TD>
+        <TD WIDTH="220" HEIGHT="78"><B>X1Y3</B><BR/>FF 676<BR/><FONT POINT-SIZE="9">LUTM 276 | RAMB 0 | MMCM 0</FONT></TD>
+      </TR>
+      <TR>
+        <TD WIDTH="220" HEIGHT="78"><B>X0Y2</B><BR/>FF 4,071<BR/><FONT POINT-SIZE="9">LUTM 892 | RAMB 4 | MMCM 0</FONT></TD>
+        <TD WIDTH="220" HEIGHT="78"><B>X1Y2</B><BR/>FF 1,401<BR/><FONT POINT-SIZE="9">LUTM 438 | RAMB 0 | MMCM 1</FONT></TD>
+      </TR>
+      <TR><TD COLSPAN="2"><FONT POINT-SIZE="8">FF denotes clock loads; LUTM/RAMB/MMCM are from the routed clock-utilization report. This is not a Device routing screenshot.</FONT></TD></TR>
+    </TABLE>
+  >];
+}

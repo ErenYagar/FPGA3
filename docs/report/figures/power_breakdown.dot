@@ -1,0 +1,20 @@
+digraph Power_Breakdown {
+  graph [bgcolor="white", pad="0.10", margin="0", charset="UTF-8"];
+  node [shape=plain, fontname="Helvetica", fontsize=10, fontcolor="black"];
+
+  power [label=<
+    <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" COLOR="black">
+      <TR><TD COLSPAN="4"><B>Vivado Routed Vectorless Power Estimate: 0.461 W</B></TD></TR>
+      <TR><TD COLSPAN="4"><FONT POINT-SIZE="9">Medium confidence; estimate only; NOT board-measured</FONT></TD></TR>
+      <TR><TD><B>Category</B></TD><TD><B>Power</B></TD><TD><B>Share</B></TD><TD><B>Share of total</B></TD></TR>
+      <TR><TD ALIGN="LEFT">Signals</TD><TD ALIGN="RIGHT">0.113 W</TD><TD ALIGN="RIGHT">24.51%</TD><TD><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD BGCOLOR="black" WIDTH="49" HEIGHT="9">&#160;</TD><TD BGCOLOR="#E6E6E6" WIDTH="151">&#160;</TD></TR></TABLE></TD></TR>
+      <TR><TD ALIGN="LEFT">MMCM</TD><TD ALIGN="RIGHT">0.090 W</TD><TD ALIGN="RIGHT">19.52%</TD><TD><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD BGCOLOR="black" WIDTH="39" HEIGHT="9">&#160;</TD><TD BGCOLOR="#E6E6E6" WIDTH="161">&#160;</TD></TR></TABLE></TD></TR>
+      <TR><TD ALIGN="LEFT">Slice logic</TD><TD ALIGN="RIGHT">0.078 W</TD><TD ALIGN="RIGHT">16.92%</TD><TD><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD BGCOLOR="black" WIDTH="34" HEIGHT="9">&#160;</TD><TD BGCOLOR="#E6E6E6" WIDTH="166">&#160;</TD></TR></TABLE></TD></TR>
+      <TR><TD ALIGN="LEFT">Clocks</TD><TD ALIGN="RIGHT">0.041 W</TD><TD ALIGN="RIGHT">8.89%</TD><TD><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD BGCOLOR="black" WIDTH="18" HEIGHT="9">&#160;</TD><TD BGCOLOR="#E6E6E6" WIDTH="182">&#160;</TD></TR></TABLE></TD></TR>
+      <TR><TD ALIGN="LEFT">BRAM</TD><TD ALIGN="RIGHT">0.035 W</TD><TD ALIGN="RIGHT">7.59%</TD><TD><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD BGCOLOR="black" WIDTH="15" HEIGHT="9">&#160;</TD><TD BGCOLOR="#E6E6E6" WIDTH="185">&#160;</TD></TR></TABLE></TD></TR>
+      <TR><TD ALIGN="LEFT">I/O</TD><TD ALIGN="RIGHT">0.005 W</TD><TD ALIGN="RIGHT">1.08%</TD><TD><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD BGCOLOR="black" WIDTH="2" HEIGHT="9">&#160;</TD><TD BGCOLOR="#E6E6E6" WIDTH="198">&#160;</TD></TR></TABLE></TD></TR>
+      <TR><TD ALIGN="LEFT">Static</TD><TD ALIGN="RIGHT">0.099 W</TD><TD ALIGN="RIGHT">21.48%</TD><TD><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD BGCOLOR="black" WIDTH="43" HEIGHT="9">&#160;</TD><TD BGCOLOR="#E6E6E6" WIDTH="157">&#160;</TD></TR></TABLE></TD></TR>
+      <TR><TD COLSPAN="4"><FONT POINT-SIZE="8">Source values are rounded to 0.001 W in the retained Vivado report.</FONT></TD></TR>
+    </TABLE>
+  >];
+}

@@ -10,8 +10,6 @@
 \usepackage{multirow}
 \usepackage{enumitem}
 \usepackage{xcolor}
-\usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric}
 \usepackage{listings}
 \usepackage{fancyhdr}
 \usepackage{hyperref}
@@ -84,15 +82,7 @@
   \vspace{2mm}
   {\large 需求追蹤、Scoreboard、Signoff 與實板證據\par}
   \vspace{10mm}
-  \begin{tikzpicture}[node distance=5mm and 8mm, every node/.style={font=\small}]
-    \node[draw=navy,thick,rounded corners,fill=lightblue,minimum width=31mm,minimum height=13mm] (host) {Host / NIST RSP};
-    \node[draw=orange,thick,rounded corners,fill=lightorange,right=of host,minimum width=31mm,minimum height=13mm] (uart) {UART frame bridge};
-    \node[draw=blue,thick,rounded corners,fill=lightblue,right=of uart,minimum width=32mm,minimum height=13mm] (axi) {AXI wrapper};
-    \node[draw=green,thick,rounded corners,fill=lightgreen,right=of axi,minimum width=35mm,minimum height=13mm] (core) {AES-CTR + GHASH};
-    \draw[-{Latex[length=2mm]},thick] (host) -- (uart);
-    \draw[-{Latex[length=2mm]},thick] (uart) -- (axi);
-    \draw[-{Latex[length=2mm]},thick] (axi) -- (core);
-  \end{tikzpicture}
+  \includegraphics[width=0.92\linewidth]{cover_flow.png}
   \\[1mm]
   {\small UART 115200 baud $\rightarrow$ AXI4-Lite / 8-bit AXI4-Stream $\rightarrow$ 175 MHz crypto core\par}
   \vspace{12mm}
@@ -194,6 +184,95 @@ PartPin & NO & 無 approved identity-matched production map；未執行 standalo
   \item Formal 結果只涵蓋 17 個 GHASH shift-power 與 2 個 AES S-box combinational assertions；sequential/whole-design formal closure 尚未完成。
   \item PartPin 尚未完成；full-board route 不能取代 standalone PartPin replay。
 \end{itemize}
+
+\chapter{IC／FPGA 設計流程與專案方法}
+\label{chap:ic-fpga-design-flow}
+
+\section{從規格到實板的完整流程}
+
+本專案採用的是\textbf{以 stage gate 驗證的 FPGA 數位 IC 設計流程}。流程不是寫完 RTL 就直接燒錄，而是讓每一階段都有明確的輸入、輸出、判定條件與可追溯證據：
+
+\begin{center}
+\small
+\fbox{\parbox{0.94\linewidth}{
+\centering
+設計規格 $\rightarrow$ 演算法／微架構 $\rightarrow$ RTL $\rightarrow$ 前端驗證
+$\rightarrow$ Synthesis $\rightarrow$ Implementation
+$\rightarrow$ Timing／Legality Signoff $\rightarrow$ Bitstream
+$\rightarrow$ FPGA 實板驗證 $\rightarrow$ Release Evidence
+}}
+\end{center}
+
+這條主線同時保留回饋迴路。功能錯誤回到 RTL 或 checker；資源超標回到資料路徑與記憶體映射；setup timing 失敗回到邏輯深度、fanout、pipeline 與 placement locality；CDC 或 reset 失敗回到同步器及 constraints；實板錯誤則依序核對 bitstream identity、wrapper、UART protocol 與演算法結果。只有前一個 gate 通過，結果才有資格進入下一階段。
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{本專案的 IC／FPGA stage-gated 設計流程}
+\begin{tabularx}{\linewidth}{>{\bfseries}p{0.115\linewidth} p{0.23\linewidth} X p{0.22\linewidth}}
+\toprule
+階段 & 主要工作／決策 & 產出與證據 & 通過條件 \\
+\midrule
+1. 規格 & 定義 AES-128/192/256、encrypt/decrypt、175 MHz、$>1$ Gbit/s、AXI/UART、ZEROIZE 與 authentication-before-release & 設計需求、介面／cycle 定義、security invariants、驗證計畫 & 功能、效能、安全與觀測邊界均可量測 \\
+2. 演算法與微架構 & 將 AES、CTR、GHASH 映射成可綜合硬體；選擇 context 數、FIFO 深度、GHASH digit size 與 backpressure 策略 & block architecture、latency／II 預估、面積與 timing 風險 & 數學等價，且 throughput 預算可達標 \\
+3. RTL & 以同步時序設計 datapath、control、queues、ZEROIZE、AXI 與 board wrapper & Verilog RTL、constraints、SVA bind 與 testbench hooks & compile/elaboration clean，無 latch／multiple-driver \\
+4. 前端驗證 & directed smoke、UVM constrained-random、SVA cycle checks、NIST oracle comparison 與有限 formal proof & log、seed、coverage、assertion 與 mismatch evidence & scoreboard 0 mismatch、SVA 0 failure、必要 scenarios 命中 \\
+5. Synthesis & 展平／重建 hierarchy、Boolean optimization、technology mapping，將 RTL 映射成 LUT、FF、BRAM 與 clock resources & synthesized DCP、utilization、control sets、synth timing & 無非法網表；資源與 critical families 可接受 \\
+6. Implementation & \code{opt\_design}、placement、physical optimization、routing 與 post-route optimization & placed／routed DCP、route status、timing paths、physical views & 全部 nets routed，setup／hold 可收斂 \\
+7. Signoff & 稽核 clocks、exceptions、CDC、pulse width、DRC、methodology、\code{check\_timing} 與 hashes & audited reports、DCP／bitstream identity、hard-gate summary & WNS/WHS $\ge 0$；TNS/THS/FEP $=0$；legality gates clean \\
+8. 實板驗證 & 產生／燒錄 exact bitstream；經 UART 執行六模式 smoke 與 NIST RSP replay & programming log、board transcript、47,250-case summary & 6/6 modes 及 47,250/47,250 vectors 通過 \\
+9. Release & 固定 RTL、Tcl、reports、bitstream、hashes 與限制說明 & Git commit、artifact manifest、可重現命令 & 證據可由同一版本重建與核對 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{本 AES-GCM 專案如何落實各階段}
+
+\subsection{規格、演算法與微架構}
+
+演算法規格以 AES 與 GCM 的標準運算為基準：AES datapath 執行 SubBytes、ShiftRows、MixColumns、AddRoundKey 與 Key Expansion；GCM 以 counter mode 產生 keystream，並以 $GF(2^{128})$ 的 GHASH 驗證 AAD 與 ciphertext。硬體層不改變演算法結果，而是改變\textbf{運算的排程、平行度、buffering 與資料重用方式}。
+
+為達成 175 MHz 下超過 1 Gbit/s 的核心吞吐率，微架構採三個共享 AES context、兩個 first-block engines、16-entry keystream FIFO、兩筆 sensitive-data queue 與 16-bit digit-serial GHASH。這些結構讓不同 block 的 AES round 能交錯執行，並降低 AES、GHASH、input/output backpressure 彼此等待的比例。安全規格則要求 raw ZEROIZE 能在同一有效 edge 清除敏感狀態、驗證失敗前不得釋出未認證 plaintext，且 queue clear 後 stale head 不得 fire。
+
+\subsection{RTL 與 clock-domain 規則}
+
+核心資料路徑採\textbf{單一 175 MHz 同步 clock domain}；pipeline、FSM、FIFO 與 ZEROIZE priority 都在 clock edge 上更新。非同步方法只用在真正跨 clock/domain 的邊界：例如板級 run request 使用 2-stage \code{ASYNC\_REG} synchronizer，reset deassertion 使用 4-stage synchronous release qualifier。這個分工避免在 AES/GHASH datapath 內加入不可控的非同步 handshake，也讓 STA 能完整分析 register-to-register paths。
+
+RTL 完成後先做 compile/elaboration，檢查未宣告訊號、width、latch 與 multiple-driver；再用 directed tests 重現 reset、key/IV/AAD/data、backpressure、ZEROIZE、authentication failure 與 queue corner cases。UVM 負責 transaction generation、driver、monitor、scoreboard 與 functional coverage，SVA 則對每一個 clock edge 的 protocol/security invariant 做局部檢查。詳細 signal-to-scoreboard 與 property 分工列於第~\ref{sec:end-to-end-verification-flow}~節。
+
+\subsection{Synthesis 與 technology mapping}
+
+Synthesis 的工作是把行為 RTL 轉為 FPGA primitive netlist，並回答三個問題：邏輯是否可合法實現、資源是否放得下、尚未 placement 前的 timing 風險在哪裡。Vivado 會把組合運算映射成 LUT，把狀態映射成 FF，把合適的 memories/FIFOs 映射成 distributed RAM 或 BRAM，並保留 clock/reset/enable control sets。此階段完成不代表時序已通過；synth timing 使用估算互連，實際 net delay 必須等 placement 與 routing 才能確認。
+
+本版板級 routed design 使用 12,411 LUT、9,029 FF、10 個 RAMB18、0 DSP。綜合後的 critical-path family 會依 endpoint primitive、pin type、fanin cone、logic delay 與 net delay 分類；若主要問題是邏輯深度，就調整 pipeline 或 Boolean structure；若主要問題是 control fanout／routing delay，就改善控制訊號 locality、FIFO clear 行為或 physical optimization。
+
+\subsection{Implementation、timing closure 與 signoff}
+
+Implementation 將 synthesized netlist 經過 optimization、placement、physical optimization 與 routing。保留流程的主要指令為：
+
+\begin{lstlisting}[language=tcl,caption={175 MHz implementation 主流程}]
+opt_design      -directive ExploreWithRemap
+place_design    -directive ExtraNetDelay_high
+phys_opt_design -directive AggressiveExplore
+route_design    -directive Explore
+phys_opt_design -directive AggressiveExplore
+\end{lstlisting}
+
+判定不只看「implementation completed」。Setup 必須同時滿足 WNS $\ge 0$、TNS $=0$、setup FEP $=0$；hold 必須滿足 WHS $\ge 0$、THS $=0$、hold FEP $=0$。此外還要確認所有 routable nets 完成 routing、route error 為 0、DRC 與 methodology 無 Error/Critical Warning、unsafe CDC 為 0，且 \code{check\_timing} critical categories 為 0。
+
+最終 routed 結果為 WNS $+0.029$ ns、TNS 0、setup FEP 0、WHS $+0.044$ ns、THS 0、hold FEP 0，17,758/17,758 routable nets fully routed。這表示 175 MHz 的 implementation 與靜態 timing gate 已通過；它仍必須與後續功能與實板結果一起解讀，不能單獨證明 AES-GCM 數學結果正確。
+
+\section{Bitstream、實板驗證與 release evidence}
+
+Signoff routed DCP 通過後才產生 bitstream。燒錄前以 SHA-256 與 manifest 核對 bitstream identity，避免「報告分析 A、板子卻燒 B」。板級驗證再經 UART wrapper 將 NIST RSP case 送入 DUT，checker 逐筆比對 status、ciphertext/plaintext、tag 與預期 authentication failure；目前六模式 smoke 為 6/6，NIST 為 47,250/47,250，fail 0，預期 authentication failure 11,908 筆也全部得到正確分類。
+
+最終 release 必須一起保留 RTL、constraints、SVA/UVM testbench、Tcl flow、synth/placed/routed DCP、timing/DRC/CDC reports、bitstream、board logs 與 hashes。Git commit 負責固定來源版本，artifact manifest 負責把來源、工具版本與輸出 identity 連接起來。如此才能回答「哪一版 RTL、用哪個 Vivado build、哪些 directives、產生哪個 bitstream、在板上跑了哪些 vectors」。
+
+\section{FPGA flow 與 ASIC flow 的界線}
+
+本報告雖以「IC 設計流程」描述數位設計方法，但實際 target 是 Xilinx Artix-7 FPGA。FPGA 的 LUT、FF、BRAM、clock network、placement 與 routing resources 已由晶片廠預先製造，Vivado 完成的是對既有資源的 mapping、place、route 與 bitstream generation；因此本專案沒有 standard-cell library characterization、DFT scan insertion、clock-tree synthesis、power-grid design、IR-drop/EM、LVS、GDSII 或 tape-out。
+
+若未來將核心移植為 ASIC，前端的規格、演算法、RTL、UVM、SVA 與大部分 functional verification 可以沿用；後端則要把 FPGA implementation 替換成 logic synthesis、DFT、floorplan/power planning、standard-cell placement、CTS、routing、parasitic extraction、multi-corner STA、IR-drop/EM、DRC/LVS 與 GDS signoff。這個界線也說明：本報告的「implementation 通過」是\textbf{FPGA implementation signoff}，不是 ASIC tape-out signoff。
 
 \chapter{AES 與 GCM 演算法原理}
 
@@ -311,21 +390,7 @@ field polynomial 為
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[
-  block/.style={draw=navy,thick,rounded corners,fill=lightblue,minimum width=26mm,minimum height=10mm,align=center},
-  xor/.style={draw=green,thick,circle,fill=lightgreen,minimum size=8mm},
-  >=Latex,node distance=7mm and 8mm]
-  \node[block] (load) {$X=Y\oplus B$\\$V=H$};
-  \node[block,right=of load] (powers) {$T^0(V)\ldots T^{16}(V)$\\parallel linear transforms};
-  \node[block,right=of powers] (select) {16 AND masks\\from next 16 $X$ bits};
-  \node[xor,right=of select] (xor) {$\oplus$};
-  \node[block,right=of xor] (acc) {$Z\leftarrow Z\oplus product$\\$V\leftarrow T^{16}(V)$};
-  \draw[->,thick] (load)--(powers);
-  \draw[->,thick] (powers)--(select);
-  \draw[->,thick] (select)--node[above,sloped]{balanced tree}(xor);
-  \draw[->,thick] (xor)--(acc);
-  \draw[->,thick,bend right=28] (acc.south) to node[below]{8 digit iterations}(powers.south);
-\end{tikzpicture}
+\includegraphics[width=\linewidth]{architecture.png}
 \caption{目前 RTL 的 16-bit digit-serial GHASH 資料路徑}
 \end{figure}
 
@@ -341,36 +406,7 @@ Reference 文獻中的 Karatsuba-Ofman multiplier、四路 parallel GHASH 與深
 
 \begin{figure}[H]
 \centering
-\resizebox{\linewidth}{!}{%
-\begin{tikzpicture}[
-  block/.style={draw=navy,thick,rounded corners,fill=lightblue,minimum width=29mm,minimum height=12mm,align=center},
-  queue/.style={draw=orange,thick,rounded corners,fill=lightorange,minimum width=27mm,minimum height=11mm,align=center},
-  crypto/.style={draw=green,thick,rounded corners,fill=lightgreen,minimum width=31mm,minimum height=13mm,align=center},
-  >=Latex,node distance=8mm and 10mm]
-  \node[block] (regs) {AXI4-Lite regs\\key / length / command};
-  \node[queue,right=of regs] (desc) {Descriptor FIFO\\depth 2};
-  \node[block,right=of desc] (parser) {Byte-stream parser\\IV/AAD/data/tag};
-  \node[queue,right=of parser] (dataq) {Sensitive data queue\\2 x 128 bit};
-  \node[crypto,right=of dataq] (xor) {CTR XOR\\mask partial block};
-  \node[crypto,above=10mm of xor] (aes) {AES service\\2 first-block engines\\+ 3-context shared engine};
-  \node[queue,above=10mm of dataq] (ks) {Keystream FIFO\\depth 16};
-  \node[crypto,below=10mm of xor] (gh) {GHASH16\\8 digit clocks};
-  \node[queue,right=of xor] (outq) {Cipher/tag/result\\output queues};
-  \node[block,right=of outq] (axis) {AXI4-Stream\\data / tag / result};
-
-  \draw[->,thick] (regs)--(desc);
-  \draw[->,thick] (desc)--(parser);
-  \draw[->,thick] (parser)--(dataq);
-  \draw[->,thick] (dataq)--(xor);
-  \draw[->,thick] (parser.north) |- (aes.west);
-  \draw[->,thick] (aes)--(ks);
-  \draw[->,thick] (ks)--(xor);
-  \draw[->,thick] (xor)--(outq);
-  \draw[->,thick] (xor)--(gh);
-  \draw[->,thick] (parser.south) |- (gh.west);
-  \draw[->,thick] (gh.east) -| (outq.south);
-  \draw[->,thick] (outq)--(axis);
-\end{tikzpicture}}
+\includegraphics[width=\linewidth]{core_architecture.png}
 \caption{AES-GCM core 的主要資料流、queues 與 crypto engines}
 \end{figure}
 
@@ -386,7 +422,7 @@ Reference 文獻中的 Karatsuba-Ofman multiplier、四路 parallel GHASH 與深
 
 三個 contexts 交錯執行，故 single-request latency 約為 $3N_r$ clocks，但 steady-state completion interval 降為 $N_r$ clocks：AES-128/192/256 分別為 10/12/14 clocks。\code{ready} 具有 finish-now look-ahead，可在 context 完成的同一 edge 接受替代 request。
 
-R55 為了解決 175 MHz 下最前面兩個 CTR blocks 的 first-result latency，新增兩個 \code{aes_first_block_engine}，分別專門處理 block index 0 與 1。每個 engine 一 round/clock，latency 為 10/12/14 clocks。後續 blocks 仍由 shared engine 處理；這不是複製三條完整 AES-GCM lanes，而是針對 startup bubble 的局部平行化。
+R55 為了解決 175 MHz 下最前面兩個 CTR blocks 的 first-result latency，新增兩個 \path{aes_first_block_engine}，分別專門處理 block index 0 與 1。每個 engine 一 round/clock，latency 為 10/12/14 clocks。後續 blocks 仍由 shared engine 處理；這不是複製三條完整 AES-GCM lanes，而是針對 startup bubble 的局部平行化。
 
 \begin{table}[H]
 \centering
@@ -428,6 +464,23 @@ Arty A7 板上輸入為 100 MHz。\code{MMCME2\_BASE} 設定 \code{CLKFBOUT\_MUL
  T_{clk}=\frac{1}{175\text{ MHz}}=5.714\text{ ns}.
 \end{equation}
 Global clock 使用 1 個 MMCM 與 2 個 BUFG；core clock 有 9,324 個 clock-pin loads，分布於 X0Y2、X1Y2、X0Y3 與 X1Y3 四個 active clock regions。
+
+\begin{figure}[p]
+\centering
+\begin{subfigure}{0.96\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{vivado_native/24_clock_networks_gui.png}
+  \caption{Clock Networks：100 MHz board clock 經 IBUF、MMCM 與 BUFG 產生 175 MHz \code{core\_clk}。}
+\end{subfigure}
+\vspace{3mm}
+\begin{subfigure}{0.96\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{vivado_native/23_clock_interaction_gui.png}
+  \caption{Clock Interaction：175 MHz core domain 的 setup/hold interaction 皆為綠色通過狀態。}
+\end{subfigure}
+\caption{Vivado 2021.1 原生 clock network 與 clock interaction 視圖。}
+\label{fig:vivado-clock-native}
+\end{figure}
 
 \section{吞吐率公式與測試定義}
 
@@ -501,6 +554,23 @@ BUFG & 2 & 32 & 6.25\% & core clock 與 MMCM feedback \\
 \caption{LUT、FF、BRAM 與 DSP 使用率圖；數據來自 final routed DCP}
 \end{figure}
 
+\begin{figure}[p]
+\centering
+\begin{subfigure}{0.96\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{vivado_native/25_utilization_gui.png}
+  \caption{Vivado 原生 Utilization Summary 與使用率長條圖。}
+\end{subfigure}
+\vspace{3mm}
+\begin{subfigure}{0.96\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{vivado_native/01_synthesis_worst_setup_schematic.png}
+  \caption{Synthesis checkpoint 的 technology-mapped worst setup path schematic；此時 interconnect 尚為估計值。}
+\end{subfigure}
+\caption{Synthesis 後的原生資源使用率與 critical-path netlist 視圖。}
+\label{fig:vivado-synthesis-native}
+\end{figure}
+
 \section{主要 hierarchy 資源分布}
 
 \begin{table}[H]
@@ -553,6 +623,23 @@ Final v8c strict audit & 12,411 & 9,029 & 10 & $+0.029$ ns & 0 \\
 
 完整 placement 與逐條 routing wire 可在 Vivado 開啟 final routed DCP 後於 Device view 檢查。本報告提供可列印的 clock-region 圖；interactive DCP 才是最完整的「落線圖」來源。Final audit 的 route status 為 17,758 個 routable nets 全部 fully routed、0 routing error。
 
+\begin{figure}[p]
+\centering
+\begin{subfigure}{0.96\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{vivado_native/18_implementation_device_placement_gui.png}
+  \caption{完整 Device placement；青色為已放置 cells，紅／黃色為 highlighted setup path。}
+\end{subfigure}
+\vspace{3mm}
+\begin{subfigure}{0.96\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{vivado_native/19_device_placement_detail_gui.png}
+  \caption{Critical region 的 tile-level placement 細節。}
+\end{subfigure}
+\caption{Vivado 原生 implementation placement 視圖。}
+\label{fig:vivado-placement-native}
+\end{figure}
+
 \section{功率估算}
 
 \begin{table}[H]
@@ -578,6 +665,13 @@ Block RAM & 0.035 W & I/O & 0.005 W \\
 \end{figure}
 
 Power confidence 為 Medium：implementation state 與 clock activity 為 High confidence，但 I/O 與 internal node activity 缺少實際 SAIF/VCD。要得到較可信的 active crypto power，應以代表性 AES-GCM simulation 產生 SAIF，再執行 \code{read\_saif} 與 \code{report\_power}；若要板級實測，需量測 Arty 電源 rail 電流並扣除板上 regulator/USB/LED 等非 IP 功耗。
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.96\linewidth]{vivado_native/26_power_gui.png}
+\caption{Vivado 原生 Power Summary：總 on-chip power 為 0.461 W，其中 dynamic 0.363 W、device static 0.099 W；confidence level 為 Medium。}
+\label{fig:vivado-power-native}
+\end{figure}
 
 \chapter{Implementation 與 timing closure}
 
@@ -634,6 +728,62 @@ Final v8c strict audit & $+0.029$ & 0 & 0 & $+0.044$ & 0 & 0 \\
 
 Synthesis 未通過並不表示最終一定失敗，因為其 interconnect estimate 尚未有真實 placement。Physical optimization 讓 setup 轉正，但 placement checkpoint 的 hold 仍有 9 個 failing endpoints；route 與 post-route physical optimization 加入實際 routing/hold repair 後，setup/hold 同時通過。Final strict audit 另確認 pulse-width WPWS $+1.607$ ns、TPWS 0、failing endpoints 0；timing report 明確顯示「All user specified timing constraints are met」。
 
+\begin{figure}[p]
+\centering
+\begin{subfigure}{0.96\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{vivado_native/28_timing_summary_gui.png}
+  \caption{Design Timing Summary：setup、hold 與 pulse width 均為綠色通過。}
+\end{subfigure}
+\vspace{3mm}
+\begin{subfigure}{0.475\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{vivado_native/30_worst_setup_timing_gui.png}
+  \caption{Worst setup path，WNS $+0.029$ ns。}
+\end{subfigure}\hfill
+\begin{subfigure}{0.475\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{vivado_native/29_worst_hold_timing_gui.png}
+  \caption{Worst hold path，WHS $+0.044$ ns。}
+\end{subfigure}
+\caption{Vivado 原生 post-route timing signoff 視圖。}
+\label{fig:vivado-timing-native}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\begin{subfigure}{0.96\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{vivado_native/02_routed_worst_setup_schematic.png}
+  \caption{Routed worst setup path：bridge payload register 經 LUT chain 到 key configuration register。}
+\end{subfigure}
+\vspace{4mm}
+\begin{subfigure}{0.96\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{vivado_native/03_routed_worst_hold_schematic.png}
+  \caption{Routed worst hold path：key staging register 到 key-context window register。}
+\end{subfigure}
+\caption{Vivado \code{write\_schematic} 匯出的 post-route setup／hold critical paths。}
+\label{fig:vivado-routed-path-schematics}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\begin{subfigure}{0.96\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{vivado_native/21_routed_worst_setup_schematic_gui.png}
+  \caption{Vivado GUI 中的 routed critical-path schematic。}
+\end{subfigure}
+\vspace{3mm}
+\begin{subfigure}{0.96\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{vivado_native/31_worst_setup_path_details_gui.png}
+  \caption{Path 1 詳細 delay breakdown；total data path 5.544 ns，其中 net delay 4.330 ns，占 78.1\%。}
+\end{subfigure}
+\caption{Worst setup path 的邏輯結構與實體 delay 證據。}
+\label{fig:vivado-worst-setup-detail}
+\end{figure}
+
 \section{175 MHz final scope 與 throughput 補償}
 
 本版 production target 固定為 175 MHz。為避免 clock target 調整後 throughput 低於 1 Gbit/s，設計以兩個 first-block engines 與兩筆 data queue 消除 startup stalls，以提高每個 clock 的有效工作比例。Final v8c strict audit 與六模式 throughput regression 分別驗證 timing 與 $>1$ Gbit/s 的 RTL payload throughput。
@@ -659,6 +809,176 @@ Pulse width & WPWS $+1.607$ ns / TPWS 0 & failing endpoints 0 \\
 \bottomrule
 \end{tabularx}
 \end{table}
+
+\begin{figure}[p]
+\centering
+\begin{subfigure}{0.96\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{vivado_native/20_routing_resources_detail_gui.png}
+  \caption{Device view 的 tile-level routing resources 與實際 wire segments。}
+\end{subfigure}
+\vspace{3mm}
+\begin{subfigure}{0.96\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{vivado_native/27_congestion_gui.png}
+  \caption{Design Analysis congestion view；報告中沒有高於 level 3 的 congestion window。}
+\end{subfigure}
+\caption{Vivado 原生 routing resources 與 congestion analysis。}
+\label{fig:vivado-routing-native}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.96\linewidth]{vivado_native/33_drc_no_violations_gui.png}
+\caption{Vivado 原生 Run DRC 結果：No Violations Found。}
+\label{fig:vivado-drc-native}
+\end{figure}
+
+\chapter{Timing 問題、同步化選擇與演算法／微架構改善}
+\label{chap:timing-sync-algorithm}
+
+本章把前面分散在演算法、RTL 架構、吞吐率與 implementation 章節的重點集中在同一處，直接回答三個問題：遇到 Timing violation 時採用同步還是非同步設計、實際如何把 setup/hold 收斂，以及哪些演算法等價實作與硬體排程改善了吞吐率。核心原則是：\textbf{AES-GCM 的數學定義不變，175 MHz crypto datapath 採同步設計，非同步只存在於受控的板級輸入邊界。}
+
+\section{同步還是非同步：本設計的實際選擇}
+
+AES、GHASH、key expansion、FIFO、AXI4-Lite、AXI4-Stream 與 UART bridge 都由同一個 175 MHz \code{core_clk} 正緣驅動。組合 S-box、XOR 與有限體運算位於同步 register boundaries 之間，因此仍然必須在 5.714 ns clock period 內滿足 STA；它們不是 clockless asynchronous datapath。
+
+\begin{table}[H]
+\centering
+\small
+\caption{同步／非同步邊界與處理方式}
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.23\linewidth} >{\raggedright\arraybackslash}p{0.23\linewidth} X}
+\toprule
+訊號或功能 & 採用方式 & 原因與 Timing 意義 \\
+\midrule
+AES、GHASH、key expansion、FIFO、AXI 與 ZEROIZE & 單一 175 MHz synchronous domain & 所有 state、queue count、round state 與 scrub 動作都在 \code{posedge core_clk} 更新，可由 setup/hold STA、SVA 與 cycle-accurate simulation 檢查。 \\
+\code{rst_btn} 與 MMCM \code{LOCKED} & raw run request 先進 2-stage \code{ASYNC_REG} synchronizer & 第一級可能發生 metastability；第二級在送入功能控制前提供一個 clock period 的收斂時間。這是同步器，不是非同步 AES 演算法。 \\
+Distributed \code{aresetn} & synchronizer 後接 4-stage consecutive-high qualifier & assertion 與 release 都只在 \code{core_clk} 正緣發生；避免短 pulse/chatter 誤解除 reset，也避免 S-box BRAM 取得 asynchronous reset control。 \\
+UART RX pin & 2-stage \code{rx_meta} $\rightarrow$ \code{rx_sync} synchronizer & 非同步 serial pin 先同步化；後續 start/data/stop sampling FSM 全部使用 \code{rx_sync}。 \\
+STA exceptions & 只切 raw asynchronous port path & XDC 只對 \code{rst_btn}、\code{uart_txd_in} 到第一級 FF 的 top-level path 使用 false path；同步器後續 FF-to-FF 與全部內部 crypto paths 仍受 STA。 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Reset 的實際順序為
+\begin{equation}
+  \texttt{rst\_btn}\land\texttt{MMCM LOCKED}
+  \;\longrightarrow\;
+  \text{2-FF synchronizer}
+  \;\longrightarrow\;
+  \text{4-stage qualifier}
+  \;\longrightarrow\;
+  \text{synchronous }\texttt{aresetn}.
+\end{equation}
+Directed reset simulation 證明 1--3 個 sampled clocks 的 pulse 與 alternating chatter 都不會誤解除 reset；連續有效 request 在第 6 個 sampled edge release，無效 request 在第 3 個 sampled edge assertion。Routed CDC audit 只找到預期的 reset request 與 UART RX 兩條 depth-2 safe synchronizers，unsafe CDC category 為 0。Qualifier 最後一級因 distribution fanout 被 implementation physical replication 成 4 個 FF，但它們仍來自同一個 logical reset source，不是四個獨立 reset 或 clock domains。
+
+把內部 AES/GHASH critical path 宣告成 false path，只會隱藏 violation，不會縮短真實 propagation delay；改成 clockless asynchronous handshake 也不會自動消除 LUT depth、fanout 或 routing delay，反而會增加 CDC、metastability、驗證與 BRAM inference 風險。因此本設計以同步 pipeline、register locality 與可檢查的 valid/ready protocol 完成 closure。
+
+\section{Timing 問題、根因與收斂過程}
+
+最早的 board v3 把最大 1024-bit UART input/capture payload 實作為大量 FF，並以 dynamic index 寫入。這形成 wide mux、large reset/control cone 與高 fanout。後續版本雖已大幅改善 synthesis estimate，但真正的 setup/hold closure 仍需要實際 placement、routing 與 post-route repair。
+
+\begin{table}[H]
+\centering
+\small
+\caption{Timing 問題從症狀到 final closure 的工程鏈}
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.19\linewidth} >{\raggedright\arraybackslash}p{0.25\linewidth} >{\raggedright\arraybackslash}p{0.22\linewidth} X}
+\toprule
+階段 & Setup & Hold & 判讀 \\
+\midrule
+Historical v3 synthesis & WNS $-1.192$ ns；TNS $-1506.136$ ns；FEP 1,489 & WHS $+0.049$ ns；FEP 0 & Retained historical value；主要風險為 1024-bit FF arrays、wide indexed mux 與高 fanout。 \\
+v8 synthesis & WNS $-0.298$ ns；TNS $-11.728$ ns；FEP 292 & WHS $+0.045$ ns；FEP 0 & Memory-based UART 與 RTL locality 已大幅減少 violation，但 synthesis interconnect 仍是估計值。 \\
+v8 placed + phys\_opt & WNS $+0.075$ ns；TNS 0；FEP 0 & WHS $-0.082$ ns；THS $-0.364$ ns；FEP 9 & Placement 與 pre-route physical optimization 使 setup 轉正，但尚有 hold paths。 \\
+v8c routed strict audit & WNS $+0.029$ ns；TNS 0；FEP 0 & WHS $+0.044$ ns；THS 0；FEP 0 & Route 與 post-route physical optimization 完成實際 interconnect 與 hold repair；setup/hold 同時 PASS。 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Final worst setup path 的 data delay 為 5.544 ns，其中 routing 4.330 ns、約占 78.1\%，logic 為 1.214 ns、5 levels。這表示後期瓶頸主要是 physical locality 與 routing，不只是 Boolean logic 太深；因此只改演算法公式或換 route directive 都不足以保證 closure。
+
+\section{實際採用的 Timing 解法}
+
+本設計按下列順序處理 Timing，而不是以一條例外或單一 directive 掩蓋問題：
+
+\begin{enumerate}
+  \item \textbf{Memory inference 取代 wide FF arrays：}UART input、data-capture 與 tag-capture 改為 8-bit distributed byte memories，移除大型 indexed mux 與 reset cone。相對 v3，v4 synthesis 減少 10,048 LUT（44.8\%）與 6,434 FF（41.7\%）。
+  \item \textbf{建立同步 pipeline boundaries：}shared AES 使用 registered S-box output 與 registered round-key selection，把每個 round 拆成 issue、S-box/key select、ShiftRows/MixColumns/AddRoundKey 三個 pipeline clocks；transform stage 以 valid token 表示資料有效，避免一條高 fanout CE 控制整排 registers。
+  \item \textbf{降低 round-key fanout：}1,920-bit round-key store 的 selector 複製為四份，各自服務一個 32-bit quarter，避免單一 4-bit selector 驅動 128 個 key bits。Key expansion 使用 localized one-hot word write enables，每次只寫一個 32-bit word，不讓 FSM decode 直接驅動整個 store。
+  \item \textbf{FIFO 與 control locality：}FIFO 使用 registered head、局部 full/count logic 與 queue-local clear；ZEROIZE、protocol-abort 與 sensitive payload scrub 維持同步優先序。非敏感 metadata 在 validity 無效時不必全部 reset，縮小 control cone，但 key/plaintext/ciphertext 等敏感資料仍明確清除。
+  \item \textbf{受控 physical replication：}高 fanout reset distribution 可由 Vivado 在 implementation 後複製 physical FF；strict gate 逐份核對來源與 endpoints，確保 replica 仍屬同一 logical control，不引入新 CDC 或不同語意。
+  \item \textbf{完整 implementation flow：}依序執行下列 stages：
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize]
+opt_design -directive ExploreWithRemap
+place_design -directive ExtraNetDelay_high
+phys_opt_design -directive AggressiveExplore
+route_design -directive Explore
+phys_opt_design -directive AggressiveExplore
+\end{lstlisting}
+  證據只支持整個階段前後的改善，不宣稱某一條 directive 單獨必然修復所有 paths。
+  \item \textbf{約束與 hard gates：}只允許真實 asynchronous board I/O exceptions；internal unconstrained endpoints、combinational loops、multiple clocks、unsafe CDC、route errors、DRC Error/Critical Warning 與 methodology Error/Critical Warning 都必須為 0。
+\end{enumerate}
+
+\section{演算法等價實作與硬體微架構改善}
+
+本設計沒有減少 AES rounds、改變 S-box、放寬 authentication tag 規則或修改 GHASH recurrence。因此「演算法改善」在本報告中是指\textbf{保持 FIPS-197／SP 800-38D 結果完全等價的運算結構改善}，以及\textbf{硬體微架構與排程改善}。
+
+\begingroup
+\small
+\begin{longtable}{p{0.18\linewidth}p{0.16\linewidth}p{0.58\linewidth}}
+\caption{演算法等價實作與微架構改善}\label{tab:algorithm-microarchitecture-improvements}\\
+\toprule
+改善項目 & 分類 & 實作、效益與取捨 \\
+\midrule
+\endfirsthead
+\toprule
+改善項目 & 分類 & 實作、效益與取捨 \\
+\midrule
+\endhead
+Hybrid S-box & 等價運算／pipeline & AES S-box 使用完整 256-entry lookup。Shared engine 與 key expansion 使用 registered S-box，規則延遲並利於 BRAM inference；兩個 first-block engines 只在 startup 使用 16-way combinational S-box，以額外 LUT 換取一 round/clock。沒有使用 composite-field inversion。 \\
+\addlinespace
+GHASH16 & 等價有限體乘法 & 每拍處理 16 bits，128-bit multiply 為 8 digit clocks、external request II 為 9。$T^0(V)\ldots T^{16}(V)$ 直接從原始 $V$ 形成 closed-form transforms，16 個 masked terms 以 $16\rightarrow8\rightarrow4\rightarrow2\rightarrow1$ balanced XOR tree reduction，把 XOR depth 限制為四層。175 MHz raw capacity 約 2.489 Gbit/s，已高於 8-bit stream 的 1.4 Gbit/s 上限，因此沒有採用 Karatsuba 或四路 GHASH。 \\
+\addlinespace
+Shared AES 三 contexts & 微架構／排程 & 16 個 registered S-box 共用一條 round datapath，三份 state contexts 交錯執行。單筆 nominal latency 約 30/36/42 clocks，但 steady-state block II 降為 10/12/14 clocks；finish-now look-ahead 允許 context 完成的同一 edge 接受替代 request。 \\
+\addlinespace
+兩個 first-block engines & 局部平行化 & CTR block index 0、1 各由一個 dedicated one-round-per-clock engine 處理，latency 為 10/12/14 clocks；後續 blocks 仍由 shared engine 執行。這是消除 record startup bubble 的 specialization，不是三條完整 AES-GCM lanes。 \\
+\addlinespace
+Key reuse、prefetch 與 queues & 排程／解耦 & Key expansion 在 record 前完成並保存 round keys，後續 records 重用。CTR AES ahead-of-stream 產生 keystream，16-entry FIFO 保持 block order；兩筆 128-bit sensitive data queue 允許 byte admission 與 first-result latency overlap，並支援同 edge enqueue/dequeue。代價是額外 storage、control 與 security verification。 \\
+\bottomrule
+\end{longtable}
+\endgroup
+
+\section{吞吐率改善、面積與 security 取捨}
+
+舊 175 MHz 架構雖然 timing 可通過，但 first-block keystream startup bubble 使六模式低於 1 Gbit/s。加入兩個 first-block engines 與兩筆 data queue 後，改善的是\textbf{每個 clock 的有效工作比例}，clock 本身仍為 175 MHz。
+
+\begin{table}[H]
+\centering
+\small
+\caption{175 MHz 吞吐率改善前後比較}
+\begin{tabularx}{\linewidth}{l >{\centering\arraybackslash}X >{\centering\arraybackslash}X}
+\toprule
+Key mode & 舊 Encrypt / Decrypt（Gbit/s） & 新 Encrypt / Decrypt（Gbit/s） \\
+\midrule
+AES-128 & 0.947 / 0.936 & 1.065398 / 1.051705 \\
+AES-192 & 0.918 / 0.908 & 1.065398 / 1.051705 \\
+AES-256 & 0.891 / 0.881 & 1.065398 / 1.051705 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+依保留到小數第三位的舊結果估算，AES-128/192/256 的 Encrypt 提升約 12.5\%/16.1\%/19.6\%，Decrypt 提升約 12.4\%/15.8\%/19.4\%。
+
+新版本以 100 筆、每筆 1024-bit payload 測得 encrypt 16,820 cycles、decrypt 17,039 cycles，三種 key sizes 全部通過 $>1$ Gbit/s。這是 175 MHz RTL/AXI payload throughput，不是 1 GHz core clock，也不是 115200-baud UART 的實板傳輸率。
+
+吞吐量平行化並非免費：Round55 candidate 相較先前 175 MHz source 增加約 3,230 LUT 與 1,046 FF，RAMB18 維持 10。這和前面 UART byte-memory refactor 的面積降低是兩個不同階段，不能宣稱 first-block parallelization 同時降低面積。Final full-board 使用 12,411 LUT、9,029 FF、10 RAMB18、DSP 0，仍在 XC7A100T 容量內。
+
+額外的 queue 可能保存 plaintext/ciphertext，因此 security semantics 沒有因 throughput 而放寬：protocol abort 或 ZEROIZE 會同步清除 sensitive queue payload；decrypt plaintext 先留在兩個 holding banks，只有 tag comparison 完成且 authentication 成功後才進入 release queue。Round48/49/53、fast-zeroize、data-buffer clearing、UVM scoreboard、SVA 與 NIST regressions 都用來防止 stale payload、unauthenticated plaintext 或 queue ordering regression。
+
+\section{最終驗證與可重現性界線}
+
+Final v8c strict audit 的 WNS 為 $+0.029$ ns、TNS 0、setup FEP 0；WHS $+0.044$ ns、THS 0、hold FEP 0；WPWS $+1.607$ ns、TPWS 0、pulse-width FEP 0。17,758 個 routable nets 全部 fully routed，route error 與 DRC violation 為 0，unsafe CDC category 為 0，\code{check_timing} critical categories 全為 0。Dynamic side 另以六模式 throughput、SVA/UVM、security regressions、FPGA smoke 與 47,250 筆 NIST RSP 驗證 cycle、資料、tag、status 與清除行為。
+
+Setup margin 只有 29 ps，屬於窄但為正的 margin；結論只對目前 exact RTL/XDC、Vivado 2021.1 build、implementation directives 與 SHA-matched DCP 成立。更換任何一項都必須重新執行 synthesis、place、phys\_opt、route 與 strict audit。這也是選擇同步設計的主要工程價值：每個 register-to-register path、CDC exception 與 reset topology 都能被明確量測、約束及回歸。
 
 \chapter{Wrapper、UART 封包與傳輸效率}
 
@@ -688,6 +1008,13 @@ Pulse width & WPWS $+1.607$ ns / TPWS 0 & failing endpoints 0 \\
 
 Reset directed XSim test 拒絕 1--3 個 sampled clocks 的 button/LOCKED pulse 與 alternating chatter；continuous-valid input 在第 6 個 sampled edge 釋放 reset，invalid input 在第 3 個 sampled edge 讓 distributed reset 生效。Routed audit 另以結構 gate 確認 logical qualifier 有 4 stages；最後一階為了 physical fanout 複製成 4 個 cells，不是 4 個獨立邏輯 reset sources。CDC 報告的 2 條 async port path 使用 false path 並由 synchronizer 處理；downstream FF-to-FF stages 仍由 STA 檢查。
 
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.96\linewidth]{vivado_native/32_package_io_gui.png}
+\caption{Vivado 原生 Package／I/O 視圖；顯示 XC7A100T CSG324 package、電源／時脈／I/O pins 與 board-level pin planning。}
+\label{fig:vivado-package-native}
+\end{figure}
+
 Host request frame 格式為
 \begin{equation}
  \texttt{command[7:0]}\ \|\ \texttt{bit\_length[15:8]}\ \|\
@@ -700,6 +1027,151 @@ Commands 為 MODE、KEY、IV、AAD、PT、CT、TAG、RUN；response frames 為 S
 UART 8N1 的 line coding efficiency 固定為 80\%；再乘上 $N/(N+3)$ 的 frame header efficiency。Bridge 檢查 key length、IV/AAD/data 最大 1024 bits、NIST tag lengths、busy state、AXI response、result watchdog 與 output length/TLAST/TUSER。錯誤以 BAD\_CFG、BUSY 或 AUTH\_FAIL 回應。Protocol simulation 已涵蓋 AES-128/192/256 encryption、decrypt success、decrypt auth-fail 與 data block，共 6/6 pass。
 
 \chapter{驗證策略、NIST 與 FPGA 實板結果}
+
+\section{端到端設計與驗證流程}
+\label{sec:end-to-end-verification-flow}
+
+本專案採用 stage-gated flow：每一階段都有明確輸入、工具、checker、PASS criteria 與可保存 artifact；前一階段成功不會自動代表下一階段成功。例如 RTL simulation 通過只能證明已執行向量下的功能，synthesis 成功只能證明 RTL 可映射成 FPGA primitives，真正的 175 MHz timing closure 必須由 routed static timing analysis 判定，而板級正確性仍需 exact bitstream 的 hardware tests。完整流程為
+
+\begin{center}
+\small
+\fbox{Specification}
+$\rightarrow$ \fbox{RTL}
+$\rightarrow$ \fbox{Compile / Elaboration}
+$\rightarrow$ \fbox{Simulation}
+\\[2mm]
+$\rightarrow$ \fbox{UVM / SVA / NIST}
+$\rightarrow$ \fbox{Synthesis}
+$\rightarrow$ \fbox{Implementation}
+\\[2mm]
+$\rightarrow$ \fbox{Static Signoff}
+$\rightarrow$ \fbox{Bitstream}
+$\rightarrow$ \fbox{FPGA Smoke / NIST}
+$\rightarrow$ \fbox{Evidence}
+\end{center}
+
+\subsection{Stage-gated verification plan}
+
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}p{0.05\linewidth}p{0.19\linewidth}p{0.27\linewidth}p{0.39\linewidth}@{}}
+\caption{從規格、RTL 到 FPGA 實板的端到端驗證流程}\label{tab:end-to-end-flow}\\
+\toprule
+Stage & 工作內容 & 工具與主要 artifact & PASS gate 與本版結果 \\
+\midrule
+\endfirsthead
+\toprule
+Stage & 工作內容 & 工具與主要 artifact & PASS gate 與本版結果 \\
+\midrule
+\endhead
+1 & 設計規格與 requirement decomposition & FIPS-197、NIST SP 800-38D、AXI/UART protocol、175 MHz 與 security requirements & AES-128/192/256、encrypt/decrypt、$>1$ Gbit/s、authentication-before-release、ZEROIZE、setup/hold/legality gates 都有 checker 對應。 \\
+\addlinespace
+2 & RTL implementation 與 compile/elaboration & SystemVerilog RTL；\code{xvlog}、\code{xelab}；elaborated hierarchy 與 compile log & Production source list可編譯、top hierarchy 與 bind schema存在，無 compile/elaboration error。 \\
+\addlinespace
+3 & RTL smoke 與 directed regression & XSim；GHASH standalone、AXI smoke、Round48/49/53、FIFO clear/refill、reset qualifier tests & GHASH 66 tests、AXI smoke 7,676 cycles、security/reset directed suites通過，任何 \code{Assertion failed} 都使 runner non-zero。 \\
+\addlinespace
+4 & Transaction-level UVM & XSim UVM 1.2；virtual sequence、AXI agents、passive reconstruction、independent reference model、scoreboard、coverage DB & Seeds 175001/175019/175039，各 8 scenarios；24 checked、0 failed、UVM E/F 0/0、maintained functional coverage 100\%。 \\
+\addlinespace
+5 & Cycle-level SVA 與 full simulated NIST & 37 source assertions由 \code{bind_all.sv} 綁入；六份 NIST RSP 的 XSim testbench & Retained traces 中 assertion failure 0；simulation NIST 47,250/47,250、fail 0、17,740,527 cycles。 \\
+\addlinespace
+6 & Synthesis & Vivado \code{synth_design}；synth DCP、timing與 utilization reports & RTL 成功映射為 LUT/FF/LUTRAM/BRAM/MMCM/BUFG。Synth timing只作 early indicator，不作 final closure判定。 \\
+\addlinespace
+7 & Placement、physical optimization與 routing & \code{opt_design}、\code{place_design}、\code{phys_opt_design}、\code{route_design}；placed/routed DCP & Final routed WNS $+0.029$ ns、TNS 0、WHS $+0.044$ ns、THS 0、setup/hold FEP 0。 \\
+\addlinespace
+8 & Static implementation hard gates & Vivado timing、pulse-width、route、DRC、methodology、CDC、\code{check_timing} reports & 17,758/17,758 routable nets完成；route error、DRC E/CW、methodology E/CW、unsafe CDC與 10 個 critical timing categories均為 0。 \\
+\addlinespace
+9 & Bitstream與 FPGA smoke & Hardware Manager、\code{program_board.tcl}、UART host runner、bitstream SHA-256 & v8a exact bitstream成功程式化到 \code{xc7a100t_0}；AES-128/192/256 encrypt/decrypt為 6/0。 \\
+\addlinespace
+10 & Hardware NIST與 evidence reconciliation & Python + \code{pyserial}；COM4/115200；JSONL、summary、RSP與 bitstream hashes & 47,250/47,250、fail 0；11,908 expected authentication failures；status/data/tag violations 0；second reconciliation亦通過。 \\
+\bottomrule
+\end{longtable}
+\endgroup
+
+本流程沒有把 gate-level timing simulation 當作 routed timing signoff。Internal setup/hold、clock pulse width、routing completeness與 CDC legality由 Vivado static analysis處理；RTL/UVM/NIST simulation負責功能與 protocol；FPGA UART runner負責真實 configuration image、wrapper與 board I/O 的 operational evidence。三者互補，不能互相取代。
+
+\subsection{UVM 如何從訊號走到 scoreboard}
+
+UVM environment 由 AXI-Lite agent、AXI-Stream input agent、三個 output agents、virtual sequencer、passive record reconstruction monitor、scoreboard與 coverage subscriber組成。Sequence先透過 AXI-Lite寫入 key、mode、IV/AAD/data/tag lengths與 command；input driver逐 byte驅動 \code{TDATA/TVALID/TLAST}，只有 \code{TVALID \&\& TREADY} 的取樣 edge才算 DUT接受。Output monitors同樣只在 handshake時採集 data、tag與 result，因此 backpressure期間不會重複計數。
+
+Checker path刻意與 driver分離。Passive monitor不直接重用 sequence item，而是從實際 AW/W、input stream與 output stream handshakes重新建立 record。重建後才呼叫 independent AES-GCM model，產生 expected payload、tag與 authentication predicate，再由 scoreboard比對：
+
+\begin{lstlisting}[language=Verilog]
+if (input_tvalid && input_tready)
+    reconstruct_input_byte(input_tdata);
+
+if (output_tvalid && output_tready)
+    observed_data.push_back(output_tdata);
+
+aesgcm_reference_model::predict(...,
+    expected_data, expected_tag, auth_ok);
+
+if (decrypt && !auth_ok && observed_data.size() != 0)
+    `uvm_error("DATA",
+        "unauthenticated plaintext was released")
+\end{lstlisting}
+
+Constrained-random item包含 key mode、key、encrypt/decrypt、IV/AAD/data/tag bit lengths、payload與 received tag。三個 XSim seeds各執行固定的 8 類 coverage-oriented scenarios，涵蓋 AES-128/192/256、encrypt/decrypt、96/non-96-bit IV、empty/short/one-block/multi-block AAD/data與一個 corrupted-tag negative case。Runner同時檢查 scoreboard count/failure、全域 UVM error/fatal與 maintained functional coverage bins，任何一項不符即 FAIL。
+
+ModelSim Starter 10.5b的責任邊界不同：它只執行一筆 deterministic AES-128 UVM smoke，結果為 scoreboard 1/0、UVM E/F 0/0。Starter環境沒有完成本 regression所需的 constrained randomization與 covergroups，所以狀態明確保留為 constrained-random NOT RUN、coverage NOT COLLECTED；完整 random與 functional coverage證據來自 XSim。
+
+\subsection{SVA、UVM、Vivado與實板 checker 的分工}
+
+UVM適合檢查一筆完整 transaction 的 end-to-end data、tag、status與 authentication outcome；SVA則以 clock edge為單位檢查局部 protocol與control invariants。例如 AXI output在 \code{VALID=1}、\code{READY=0} 時，下一拍 valid與 payload必須保持；ZEROIZE後 round keys與 queue必須在規定 edge清除：
+
+\begin{lstlisting}[language=Verilog]
+assert property (disable iff (!rst_n || clear)
+    (valid && !ready) |=>
+    (valid && $stable(payload)));
+
+assert property (disable iff (!rst_n)
+    zeroize |=>
+    (!ready && !busy &&
+     round_count == 0 && round_keys == 0));
+\end{lstlisting}
+
+SVA透過 \code{bind} 掛到 \code{ghash16}、\code{aes_key_context}、\code{aes_gcm_stream_core}與 \code{aes_gcm_axi_top}，不修改 production RTL，也不合成進 bitstream。Simulation runner把 RTL與 SVA一起交給 \code{xvlog}、\code{xelab}與 \code{xsim}；任何 assertion failure都會使 smoke或 NIST suite失敗。現有 37 條 source assertions在 retained tests中 failure為 0，但沒有 assertion activation/vacuity coverage，因此不能宣稱 100\% assertion coverage。
+
+Vivado implementation則檢查 simulation看不到的 physical問題：真實 routing delay、setup/hold、clock pulse width、unrouted nets、DRC、methodology、CDC schema與 \code{check_timing}。只有 routed hard gates全部通過才產生可 promotion bitstream。板上驗證再用 exact bitstream hash綁定六模式 smoke與 NIST RSP；host逐筆比對 status、ciphertext/plaintext與 tag，RSP \code{FAIL} case還必須確認 plaintext/tag皆不可觀察。
+
+\subsection{可重現的執行入口}
+
+Dynamic verification在 Windows Git Bash執行：
+
+\begin{lstlisting}[language=bash]
+cd /c/project/FPGA3
+bash verification/scripts/run_smoke.sh
+bash verification/scripts/run_nist.sh
+bash verification/scripts/run_uvm_xsim.sh
+bash verification/scripts/run_uvm_regression.sh
+bash verification/scripts/run_board_reset_xsim.sh
+bash verification/scripts/run_formal.sh
+bash verification/scripts/run_all.sh
+\end{lstlisting}
+
+Fresh board implementation與程式化使用 Vivado 2021.1：
+
+\begin{lstlisting}[language=bash]
+vivado.bat -mode batch \
+  -source engrenring/synth_1g/board/\
+run_arty_a7_100t_uart_rsp.tcl \
+  -tclargs <unique_output_label>
+
+vivado.bat -mode batch \
+  -source verification/board/program_board.tcl \
+  -tclargs <exact_bitstream.bit>
+\end{lstlisting}
+
+Hardware NIST使用：
+
+\begin{lstlisting}[language=bash]
+python engrenring/synth_1g/board/run_nist_rsp_uart.py \
+  --port COM4 --baud 115200 --stop-on-fail \
+  --bitstream <exact_bitstream.bit> \
+  --output <evidence.jsonl>
+\end{lstlisting}
+
+最終 machine-readable結論必須保留邊界：static implementation、dynamic simulation/UVM/NIST與 hardware tests為 PASS；formal僅 19 個 combinational proofs，因此 integrated status仍為 PARTIAL PASS，而不是任何 simulation或 hardware suite failure。
 
 \section{Verification plan、oracle 與 comparison chain}
 
@@ -933,6 +1405,7 @@ PowerShell & Windows & 啟動 batch flow、整理驗證輸出與環境檢查 \\
 Python + pyserial & Host COM4 & parse NIST \code{.rsp}、送 UART frames、比對結果、輸出 JSONL evidence \\
 \code{Get-FileHash} & PowerShell & SHA-256 DCP/bitstream/evidence identity \\
 Git & branch/commit & 保存 RTL、tests、Tcl 與可追溯變更 \\
+Graphviz & 14.1.3 & 由 DOT 可重現產生全部報告架構圖、表格式圖與 SVG/PNG \\
 LaTeX/Tectonic & XeTeX-compatible & 產生本報告 PDF \\
 \bottomrule
 \end{tabularx}
@@ -1015,6 +1488,12 @@ Hardware programming、smoke 與 NIST evidence directory 為
 \small\path{C:/project/FPGA3/engrenring/synth_1g/board/output/ece78ce_uart_rsp_175_resetqual4_final_v8}.
 \end{center}
 
+Vivado 原生圖片、vector schematics、互動式 RPX 與文字報告位於
+\begin{center}
+\small\path{C:/project/FPGA3/docs/report/figures/vivado_native}.
+\end{center}
+其 manifest 綁定 synth/routed DCP SHA-256；\code{export\_vivado\_native\_reports.tcl} 負責 batch 匯出，\code{open\_vivado\_native\_visuals.tcl} 由同一 routed DCP 建立可重現的 GUI reports。
+
 其中重要檔案如下：
 
 \begin{longtable}{p{0.29\linewidth}p{0.63\linewidth}}
@@ -1037,6 +1516,9 @@ v8c \path{drc_routed.rpt}、\path{methodology_routed.rpt} & DRC 0；methodology 
 v8c \path{cdc_routed.rpt}、\path{check_timing_routed.rpt} & synchronizer schema 與 exact false-path allowlists \\
 v8c \path{power_vectorless_routed.rpt} & 0.461 W Medium-confidence vectorless estimate \\
 v8c \path{clock_utilization_routed.rpt} & MMCM/BUFG、clock loads 與 clock regions \\
+\path{vivado_native/*.png} & Device placement、routing、timing、clock、utilization、power、congestion、package 與 DRC 原生 GUI 圖 \\
+\path{vivado_native/*.svg}、\path{*.pdf} & Vivado \code{write\_schematic} 原生 synthesis／routed critical-path 向量圖 \\
+\path{vivado_native/*.rpx}、\path{*.rpt} & 可在 Vivado 重開的互動式 reports 與對應文字證據 \\
 v8a \path{program_board.log} & Hardware Manager programming terminal evidence \\
 v8a \path{hw_smoke_*.jsonl}、\path{hw_smoke_*.summary.json} & AES-128/192/256 encrypt/decrypt 六模式，6/0 \\
 v8a \path{hw_nist_47250.jsonl} & 47,250 行逐向量 evidence；indices/source/classification/status-data-tag reconciliation 全通過 \\
@@ -1044,11 +1526,9 @@ v8a \path{hw_nist_47250.summary.json}、\path{hw_nist_47250_run.log} & 47,250/47
 \bottomrule
 \end{longtable}
 
-本報告的圖檔在：
-\begin{center}
-\small\path{C:/project/FPGA3/docs/report/figures}
-\end{center}
-可由 \path{C:/project/FPGA3/docs/report/generate_figures.py} 重新產生。
+\enlargethispage{2\baselineskip}
+{\small\noindent 本報告的 Graphviz 圖檔與 DOT sources 位於 \path{C:/project/FPGA3/docs/report/figures}；\path{C:/project/FPGA3/docs/report/generate_figures.py} 僅接受 Graphviz 14.1.3。\par
+\smallskip\noindent Vivado 原生圖位於 \path{vivado_native} 子目錄。這些圖由 Vivado 2021.1 checkpoint 直接匯出或擷取；未使用 Graphviz、matplotlib 或 image generation 重畫。}
 
 \chapter{結論與後續工作}
 

@@ -1,0 +1,426 @@
+Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version     : Vivado v.2021.1 (win64) Build 3247384 Thu Jun 10 19:36:33 MDT 2021
+| Date             : Mon Aug 24 03:22:34 2026
+| Host             : DESKTOP-IO47298 running 64-bit major release  (build 9200)
+| Command          : report_power -advisory -hier all -hierarchical_depth 4 -file C:/project/FPGA3/docs/report/figures/vivado_native/13_power.rpt -rpx C:/project/FPGA3/docs/report/figures/vivado_native/13_power.rpx
+| Design           : arty_a7_100t_aes_gcm_uart_rsp_top
+| Device           : xc7a100tcsg324-1
+| Design State     : routed
+| Grade            : commercial
+| Process          : typical
+| Characterization : Production
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Power Report
+
+Table of Contents
+-----------------
+1. Summary
+1.1 On-Chip Components
+1.2 Power Supply Summary
+1.3 Confidence Level
+2. Settings
+2.1 Environment
+2.2 Clock Constraints
+3. Detailed Reports
+3.1 By Hierarchy
+4. Advisory
+
+1. Summary
+----------
+
++--------------------------+--------------+
+| Total On-Chip Power (W)  | 0.461        |
+| Design Power Budget (W)  | Unspecified* |
+| Power Budget Margin (W)  | NA           |
+| Dynamic (W)              | 0.363        |
+| Device Static (W)        | 0.099        |
+| Effective TJA (C/W)      | 4.6          |
+| Max Ambient (C)          | 82.9         |
+| Junction Temperature (C) | 27.1         |
+| Confidence Level         | Medium       |
+| Setting File             | ---          |
+| Simulation Activity File | ---          |
+| Design Nets Matched      | NA           |
++--------------------------+--------------+
+* Specify Design Power Budget using, set_operating_conditions -design_power_budget <value in Watts>
+
+
+1.1 On-Chip Components
+----------------------
+
++--------------------------+-----------+----------+-----------+-----------------+
+| On-Chip                  | Power (W) | Used     | Available | Utilization (%) |
++--------------------------+-----------+----------+-----------+-----------------+
+| Clocks                   |     0.041 |        5 |       --- |             --- |
+| Slice Logic              |     0.078 |    24767 |       --- |             --- |
+|   LUT as Logic           |     0.072 |    11333 |     63400 |           17.88 |
+|   LUT as Distributed RAM |     0.002 |     1078 |     19000 |            5.67 |
+|   Register               |     0.002 |     9029 |    126800 |            7.12 |
+|   F7/F8 Muxes            |     0.001 |     1085 |     63400 |            1.71 |
+|   CARRY4                 |    <0.001 |       56 |     15850 |            0.35 |
+|   Others                 |     0.000 |       67 |       --- |             --- |
+| Signals                  |     0.113 |    17751 |       --- |             --- |
+| Block RAM                |     0.035 |        5 |       135 |            3.70 |
+| MMCM                     |     0.090 |        1 |         6 |           16.67 |
+| I/O                      |     0.005 |        8 |       210 |            3.81 |
+| Static Power             |     0.099 |          |           |                 |
+| Total                    |     0.461 |          |           |                 |
++--------------------------+-----------+----------+-----------+-----------------+
+
+
+1.2 Power Supply Summary
+------------------------
+
++-----------+-------------+-----------+-------------+------------+-------------+-------------+------------+
+| Source    | Voltage (V) | Total (A) | Dynamic (A) | Static (A) | Powerup (A) | Budget (A)  | Margin (A) |
++-----------+-------------+-----------+-------------+------------+-------------+-------------+------------+
+| Vccint    |       1.000 |     0.281 |       0.265 |      0.016 |       NA    | Unspecified | NA         |
+| Vccaux    |       1.800 |     0.068 |       0.050 |      0.018 |       NA    | Unspecified | NA         |
+| Vcco33    |       3.300 |     0.005 |       0.001 |      0.004 |       NA    | Unspecified | NA         |
+| Vcco25    |       2.500 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| Vcco18    |       1.800 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| Vcco15    |       1.500 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| Vcco135   |       1.350 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| Vcco12    |       1.200 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| Vccaux_io |       1.800 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| Vccbram   |       1.000 |     0.003 |       0.003 |      0.000 |       NA    | Unspecified | NA         |
+| MGTAVcc   |       1.000 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| MGTAVtt   |       1.200 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
+| Vccadc    |       1.800 |     0.020 |       0.000 |      0.020 |       NA    | Unspecified | NA         |
++-----------+-------------+-----------+-------------+------------+-------------+-------------+------------+
+
+
+1.3 Confidence Level
+--------------------
+
++-----------------------------+------------+-------------------------------------------------------+------------------------------------------------------------------------------------------------------------+
+| User Input Data             | Confidence | Details                                               | Action                                                                                                     |
++-----------------------------+------------+-------------------------------------------------------+------------------------------------------------------------------------------------------------------------+
+| Design implementation state | High       | Design is routed                                      |                                                                                                            |
+| Clock nodes activity        | High       | User specified more than 95% of clocks                |                                                                                                            |
+| I/O nodes activity          | Medium     | More than 5% of inputs are missing user specification | Provide missing input activity with simulation results or by editing the "By Resource Type -> I/Os" view   |
+| Internal nodes activity     | Medium     | User specified less than 25% of internal nodes        | Provide missing internal nodes activity with simulation results or by editing the "By Resource Type" views |
+| Device models               | High       | Device models are Production                          |                                                                                                            |
+|                             |            |                                                       |                                                                                                            |
+| Overall confidence level    | Medium     |                                                       |                                                                                                            |
++-----------------------------+------------+-------------------------------------------------------+------------------------------------------------------------------------------------------------------------+
+
+
+2. Settings
+-----------
+
+2.1 Environment
+---------------
+
++-----------------------+--------------------------+
+| Ambient Temp (C)      | 25.0                     |
+| ThetaJA (C/W)         | 4.6                      |
+| Airflow (LFM)         | 250                      |
+| Heat Sink             | medium (Medium Profile)  |
+| ThetaSA (C/W)         | 4.6                      |
+| Board Selection       | medium (10"x10")         |
+| # of Board Layers     | 12to15 (12 to 15 Layers) |
+| Board Temperature (C) | 25.0                     |
++-----------------------+--------------------------+
+
+
+2.2 Clock Constraints
+---------------------
+
++----------------+----------------+-----------------+
+| Clock          | Domain         | Constraint (ns) |
++----------------+----------------+-----------------+
+| core_clk_raw   | core_clk_raw   |             5.7 |
+| mmcm_clkfb_raw | mmcm_clkfb_raw |            10.0 |
+| sys_clk_pin    | clk            |            10.0 |
++----------------+----------------+-----------------+
+
+
+3. Detailed Reports
+-------------------
+
+3.1 By Hierarchy
+----------------
+
++-----------------------------------+-----------+---------+-----------+------+--------+----------+------------+---------+-----------+--------+----------+------------+--------------+
+| Name                              | Power (W) | Clock # | Clock (W) | Io # | Io (W) | Signal # | Signal (W) | Logic # | Logic (W) | Bram # | Bram (W) | Clock IP # | Clock IP (W) |
++-----------------------------------+-----------+---------+-----------+------+--------+----------+------------+---------+-----------+--------+----------+------------+--------------+
+| arty_a7_100t_aes_gcm_uart_rsp_top |     0.363 |       5 |     0.041 |    8 |  0.005 |    17751 |      0.113 |   24767 |     0.078 |      5 |    0.035 |          1 |        0.090 |
+|   u_aes_gcm                       |     0.250 |       5 |     0.036 |    0 |  0.000 |    15876 |      0.104 |   22406 |     0.075 |     10 |    0.035 |          0 |        0.000 |
+|     u_core                        |     0.245 |       5 |     0.035 |    0 |  0.000 |    15342 |      0.101 |   21821 |     0.074 |     10 |    0.035 |          0 |        0.000 |
+|       u_aes_engine                |     0.065 |       5 |     0.003 |    0 |  0.000 |     1426 |      0.022 |    1589 |     0.013 |      8 |    0.029 |          0 |        0.000 |
+|       u_aes_first_engine          |     0.026 |       5 |    <0.001 |    0 |  0.000 |      559 |      0.015 |    1334 |     0.010 |      0 |    0.000 |          0 |        0.000 |
+|       u_aes_request_fifo          |     0.003 |       5 |     0.001 |    0 |  0.000 |      309 |      0.001 |     514 |    <0.001 |      0 |    0.000 |          0 |        0.000 |
+|       u_aes_result_fifo           |     0.006 |       5 |     0.001 |    0 |  0.000 |      439 |      0.004 |     648 |     0.001 |      0 |    0.000 |          0 |        0.000 |
+|       u_aes_second_engine         |     0.027 |       5 |    <0.001 |    0 |  0.000 |      561 |      0.016 |    1334 |     0.010 |      0 |    0.000 |          0 |        0.000 |
+|       u_ciphertext_fifo           |     0.002 |       5 |     0.001 |    0 |  0.000 |      345 |     <0.001 |     557 |    <0.001 |      0 |    0.000 |          0 |        0.000 |
+|       u_desc_fifo                 |     0.001 |       5 |    <0.001 |    0 |  0.000 |      152 |     <0.001 |     256 |    <0.001 |      0 |    0.000 |          0 |        0.000 |
+|       u_ghash                     |     0.030 |       5 |     0.002 |    0 |  0.000 |     1816 |      0.014 |    2417 |     0.013 |      0 |    0.000 |          0 |        0.000 |
+|       u_ghash_request_fifo        |     0.003 |       5 |     0.001 |    0 |  0.000 |      420 |      0.002 |     626 |    <0.001 |      0 |    0.000 |          0 |        0.000 |
+|       u_key_context               |     0.047 |       5 |     0.009 |    0 |  0.000 |     3981 |      0.014 |    5600 |     0.017 |      2 |    0.007 |          0 |        0.000 |
+|       u_keystream_fifo            |     0.004 |       5 |     0.001 |    0 |  0.000 |      447 |      0.001 |     775 |     0.002 |      0 |    0.000 |          0 |        0.000 |
+|       u_tag_packet_fifo           |     0.002 |       5 |     0.001 |    0 |  0.000 |      316 |     <0.001 |     574 |    <0.001 |      0 |    0.000 |          0 |        0.000 |
+|     u_registers                   |     0.004 |       5 |     0.001 |    0 |  0.000 |      450 |      0.003 |     461 |    <0.001 |      0 |    0.000 |          0 |        0.000 |
+|   u_bridge                        |     0.009 |       5 |     0.003 |    0 |  0.000 |     1589 |      0.004 |    2071 |     0.003 |      0 |    0.000 |          0 |        0.000 |
+|     u_uart_rx                     |     0.001 |       5 |    <0.001 |    0 |  0.000 |      158 |     <0.001 |     200 |    <0.001 |      0 |    0.000 |          0 |        0.000 |
++-----------------------------------+-----------+---------+-----------+------+--------+----------+------------+---------+-----------+--------+----------+------------+--------------+
+
+
+4. Advisory
+-----------
+
++------------------+----------------------------------+--------+-------------+-------------+--------------------+-----------------+------------------------------------------------------------------------------------------------------+
+| Confidence Level | Status                           | Fanout | Signal Type | Polarity    | Static Probability | Toggle Rate (%) | Net                                                                                                  |
++------------------+----------------------------------+--------+-------------+-------------+--------------------+-----------------+------------------------------------------------------------------------------------------------------+
+| Low              | Excessive Set/Reset/Preset/Clear |    492 | Reset/Set   | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_1[0]_repN_8                                                |
+| Low              | Excessive Set/Reset/Preset/Clear |    478 | Reset/Set   | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/aes_outstanding_count_r_reg0_repN                                              |
+| Low              | Excessive Set/Reset/Preset/Clear |    452 | Reset/Set   | Active High |               0.50 |            12.5 | u_aes_gcm/u_core/reset_qual_r_reg[3]_rep__0_repN_4                                                   |
+| Low              | Excessive Set/Reset/Preset/Clear |    438 | Reset/Set   | Active High |               0.50 |            12.5 | u_aes_gcm/u_core/reset_qual_r_reg[3]_rep__0_repN                                                     |
+| Low              | Excessive Set/Reset/Preset/Clear |    415 | Reset       | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_3[0]_repN                                                  |
+| Low              | Excessive Set/Reset/Preset/Clear |    394 | Reset/Set   | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_1[0]_repN_5                                                |
+| Low              | Excessive Set/Reset/Preset/Clear |    392 | Reset       | Active High |               0.50 |            12.5 | u_aes_gcm/u_core/reset_qual_r_reg[3]_rep__0_repN_1                                                   |
+| Low              | Excessive Set/Reset/Preset/Clear |    389 | Reset       | Active High |               0.50 |            12.5 | u_aes_gcm/u_core/u_aes_request_fifo/SR[0]                                                            |
+| Low              | Excessive Set/Reset/Preset/Clear |    354 | Reset       | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_1[0]_repN_4                                                |
+| Low              | Excessive Set/Reset/Preset/Clear |    350 | Reset       | Active High |               0.50 |            12.5 | u_aes_gcm/u_core/u_aes_request_fifo/SR[0]_repN                                                       |
+| Low              | Excessive Set/Reset/Preset/Clear |    334 | Reset       | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_3[0]_repN_1                                                |
+| Low              | Excessive Set/Reset/Preset/Clear |    333 | Reset       | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_1[0]_repN                                                  |
+| Low              | Excessive Set/Reset/Preset/Clear |    317 | Reset       | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_1[0]_repN_3                                                |
+| Low              | Excessive Set/Reset/Preset/Clear |    267 | Reset/Set   | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_1[0]_repN_2                                                |
+| Low              |                                  |    256 |             | Active High |               0.01 |             1.4 | u_bridge/u_uart_rx/E[0]                                                                              |
+| Low              | Excessive Set/Reset/Preset/Clear |    198 | Reset       | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_1[0]_repN_1                                                |
+| Low              | Excessive Set/Reset/Preset/Clear |    178 | Reset/Set   | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_1[0]_repN_6                                                |
+| Low              | Excessive Set/Reset/Preset/Clear |    167 | Reset/Set   | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_1[0]_repN_7                                                |
+| Low              | Excessive Set/Reset/Preset/Clear |    155 | Reset/Set   | Active High |               0.50 |            12.5 | u_aes_gcm/u_core/reset_qual_r_reg[3]_rep__0_repN_2                                                   |
+| Low              |                                  |    141 |             | Active High |               0.02 |             1.6 | u_aes_gcm/u_core/u_aes_request_fifo/out_data_q[270]_i_1_n_0                                          |
+| Low              |                                  |    140 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_core/u_keystream_fifo/dataq_count_r_reg[0][0]                                            |
+| Low              |                                  |    140 |             | Active High |               0.00 |             0.6 | u_aes_gcm/u_core/u_keystream_fifo/dataq_count_r_reg[1][0]                                            |
+| Low              |                                  |    136 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_prod_valid53_out                                                                |
+| Low              | Excessive Set/Reset/Preset/Clear |    135 | Reset       | Active High |               0.50 |            12.5 | u_aes_gcm/u_core/reset_qual_r_reg[3]_rep__0_repN_3                                                   |
+| Low              |                                  |    135 |             | Active High |               0.01 |             1.2 | u_aes_gcm/u_core/u_keystream_fifo/gh_aes_data                                                        |
+| Low              |                                  |    134 |             | Active High |               0.00 |             0.2 | u_aes_gcm/u_core/u_ciphertext_fifo/out_data_q[133]_i_1__0_n_0                                        |
+| Low              |                                  |    132 |             | Active High |               0.00 |             0.3 | u_aes_gcm/u_core/u_keystream_fifo/rec_decrypt_reg[0]                                                 |
+| Low              |                                  |    130 |             | Active High |               0.01 |             2.2 | u_aes_gcm/u_core/u_keystream_fifo/E[0]                                                               |
+| Low              |                                  |    128 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/final_tag_reg[127]_i_1_n_0                                                          |
+| Low              |                                  |    128 |             | Active High |               0.01 |             2.0 | u_aes_gcm/u_core/u_aes_engine/block_out_r                                                            |
+| Low              |                                  |    128 |             | Active High |               0.00 |             0.5 | u_aes_gcm/u_core/u_aes_first_engine/E[0]                                                             |
+| Low              |                                  |    128 |             | Active High |               0.01 |             0.9 | u_aes_gcm/u_core/u_aes_first_engine/block_out_r[127]_i_1__0_n_0                                      |
+| Low              |                                  |    128 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_aes_result_fifo/E[0]                                                              |
+| Low              |                                  |    128 |             | Active High |               0.00 |             0.2 | u_aes_gcm/u_core/u_aes_result_fifo/out_data_q_reg[140]_0[0]                                          |
+| Low              |                                  |    128 |             | Active High |               0.00 |             0.5 | u_aes_gcm/u_core/u_aes_second_engine/E[0]                                                            |
+| Low              |                                  |    128 |             | Active High |               0.01 |             1.0 | u_aes_gcm/u_core/u_aes_second_engine/block_out_r                                                     |
+| Low              |                                  |    128 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_ghash/E[0]                                                                        |
+| Low              | Excessive Set/Reset/Preset/Clear |    128 | Reset       | Active High |               0.68 |            18.7 | u_aes_gcm/u_core/u_ghash_request_fifo/z_work_r                                                       |
+| Low              | Excessive Set/Reset/Preset/Clear |     97 | Reset       | Active High |               0.33 |             3.8 | u_aes_gcm/u_core/aes_prod_data[267]_i_1_n_0                                                          |
+| Low              | Excessive Set/Reset/Preset/Clear |     97 | Reset       | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/reset_qual_r_reg[3]_rep__0_0                                                   |
+| Low              |                                  |     74 |             | Active High |               0.02 |             3.1 | u_aes_gcm/u_core/u_desc_fifo/rec_tag_bits                                                            |
+| Low              | Excessive Set/Reset/Preset/Clear |     71 | Reset       | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/aes_outstanding_count_r_reg0                                                   |
+| Low              |                                  |     42 |             | Active High |               0.01 |             1.8 | u_aes_gcm/u_core/u_desc_fifo/out_data_q[41]_i_1_n_0                                                  |
+| Low              |                                  |     32 |             | Active High |               0.01 |             0.3 | u_aes_gcm/u_core/u_ghash/zeroize_busy_r_reg_1[0]                                                     |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1023]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1055]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1087]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1119]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1151]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1183]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1215]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1247]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1279]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1311]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1343]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1375]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1407]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1439]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.4 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1471]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1503]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1535]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1567]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1599]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1631]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1663]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1695]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1727]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1759]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1791]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1823]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1855]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1887]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[1919]                                               |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.4 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[287]                                                |
+| Low              |                                  |     32 |             | Active High |               0.01 |             0.9 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[319]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[351]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.3 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[383]                                                |
+| Low              |                                  |     32 |             | Active High |               0.01 |             1.5 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[415]                                                |
+| Low              |                                  |     32 |             | Active High |               0.02 |             3.5 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[447]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.4 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[479]                                                |
+| Low              |                                  |     32 |             | Active High |               0.01 |             1.1 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[511]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[543]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[575]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[607]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[639]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[671]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[703]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[735]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[767]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[799]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[831]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[863]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[895]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.2 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[927]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.5 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[959]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[991]                                                |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.2 | u_aes_gcm/u_registers/key_staging_o[127]_i_1_n_0                                                     |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_registers/key_staging_o[159]_i_1_n_0                                                     |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.3 | u_aes_gcm/u_registers/key_staging_o[191]_i_1_n_0                                                     |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.5 | u_aes_gcm/u_registers/key_staging_o[223]_i_1_n_0                                                     |
+| Low              |                                  |     32 |             | Active High |               0.01 |             1.2 | u_aes_gcm/u_registers/key_staging_o[255]_i_1_n_0                                                     |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_registers/key_staging_o[31]_i_1_n_0                                                      |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_registers/key_staging_o[63]_i_1_n_0                                                      |
+| Low              |                                  |     32 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_registers/key_staging_o[95]_i_1_n_0                                                      |
+| Low              |                                  |     31 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[126]                                                |
+| Low              |                                  |     31 |             | Active High |               0.00 |             0.5 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[158]                                                |
+| Low              |                                  |     31 |             | Active High |               0.01 |             1.3 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[190]                                                |
+| Low              |                                  |     31 |             | Active High |               0.00 |             0.2 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[222]                                                |
+| Low              |                                  |     31 |             | Active High |               0.00 |             0.4 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[254]                                                |
+| Low              |                                  |     31 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[30]                                                 |
+| Low              |                                  |     31 |             | Active High |               0.00 |             0.3 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[62]                                                 |
+| Low              |                                  |     31 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/round_keys_r0_out[94]                                                 |
+| Low              | Excessive Set/Reset/Preset/Clear |     31 | Reset       | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/reset_qual_r_reg[3]_rep__0                                                     |
+| Low              |                                  |     22 |             | Active High |               0.01 |             0.8 | u_bridge/u_uart_tx/send_tag_pending_r_reg                                                            |
+| Low              |                                  |     20 |             | Active High |               0.01 |             1.9 | u_aes_gcm/u_core/prep_payload_bytes[9]_i_1_n_0                                                       |
+| Low              |                                  |     17 |             | Active High |               0.00 |             0.0 | u_bridge/u_uart_rx/rx_state_r_reg[1][0]                                                              |
+| Low              | Excessive Set/Reset/Preset/Clear |     16 | Reset       | Active High |               0.61 |            12.8 | u_aes_gcm/u_core/u_ghash/x_work_r[15]_i_1_n_0                                                        |
+| Low              | Excessive Set/Reset/Preset/Clear |     12 | Reset       | Active High |               0.50 |            12.6 | u_aes_gcm/u_core/gh_ctrl_data[128]_i_1_n_0                                                           |
+| Low              |                                  |     12 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/plain_release_data[11]_i_1_n_0                                                      |
+| Low              |                                  |     12 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_plain_release_fifo/out_data_q[11]_i_1__4_n_0                                      |
+| Low              |                                  |     11 |             | Active High |               0.00 |             0.3 | u_aes_gcm/u_registers/aad_len_bits_o[10]_i_1_n_0                                                     |
+| Low              |                                  |     11 |             | Active High |               0.00 |             0.1 | u_aes_gcm/u_registers/data_len_bits_o[10]_i_1_n_0                                                    |
+| Low              |                                  |     11 |             | Active High |               0.00 |             0.2 | u_aes_gcm/u_registers/iv_len_bits_o[10]_i_1_n_0                                                      |
+| Low              |                                  |     11 |             | Active High |               0.00 |             0.0 | u_bridge/u_uart_rx/rx_cmd_r_reg[0][0]                                                                |
+| Low              |                                  |     11 |             | Active High |               0.00 |             0.0 | u_bridge/u_uart_rx/rx_cmd_r_reg[1][0]                                                                |
+| Low              |                                  |     11 |             | Active High |               0.00 |             0.0 | u_bridge/u_uart_rx/rx_cmd_r_reg[1]_0[0]                                                              |
+| Low              |                                  |     11 |             | Active High |               0.00 |             0.0 | u_bridge/u_uart_rx/rx_state_r_reg[0]_1[0]                                                            |
+| Low              |                                  |     10 |             | Active High |               0.00 |             0.8 | u_aes_gcm/u_core/prep_record_bytes[9]_i_1_n_0                                                        |
+| Low              | Excessive Set/Reset/Preset/Clear |      9 | Reset       | Active High |               0.52 |            13.8 | u_aes_gcm/u_core/u_desc_fifo/SR[0]                                                                   |
+| Low              |                                  |      9 |             | Active High |               0.00 |             0.5 | u_aes_gcm/u_registers/cfg_decrypt_o4_out                                                             |
+| Low              |                                  |      9 |             | Active High |               0.01 |             0.7 | u_bridge/key_delay_r[8]_i_1_n_0                                                                      |
+| Low              |                                  |      9 |             | Active High |               0.00 |             0.0 | u_bridge/u_uart_rx/rx_state_r_reg[0][0]                                                              |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_input[103]_i_1_n_0                                                              |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_input[111]_i_1_n_0                                                              |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_input[119]_i_1_n_0                                                              |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_input[127]_i_1_n_0                                                              |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_input[15]_i_1_n_0                                                               |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_input[23]_i_1_n_0                                                               |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_input[31]_i_1_n_0                                                               |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_input[39]_i_1_n_0                                                               |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_input[47]_i_1_n_0                                                               |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_input[55]_i_1_n_0                                                               |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_input[63]_i_1_n_0                                                               |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_input[71]_i_1_n_0                                                               |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_input[79]_i_1_n_0                                                               |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_input[7]_i_1_n_0                                                                |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_input[87]_i_1_n_0                                                               |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/tag_input[95]_i_1_n_0                                                               |
+| Low              |                                  |      8 |             | Active High |               0.02 |             2.3 | u_aes_gcm/u_core/u_key_context/rcon_r[7]_i_1_n_0                                                     |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_bridge/u_uart_rx/data[7]_i_1_n_0                                                                   |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_bridge/u_uart_rx/rx_state_r_reg[0]_0[0]                                                            |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_bridge/u_uart_rx/rx_state_r_reg[0]_3[0]                                                            |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_bridge/u_uart_rx/rx_state_r_reg[1][1]                                                              |
+| Low              |                                  |      8 |             | Active High |               0.00 |             0.0 | u_bridge/u_uart_rx/rx_state_r_reg[1]_1[0]                                                            |
+| Low              |                                  |      8 |             | Active High |               0.02 |             2.2 | u_bridge/u_uart_tx/frame_phase_r_reg[0][0]                                                           |
+| Low              | Excessive Set/Reset/Preset/Clear |      7 | Reset       | Active High |               0.50 |            12.5 | p_0_in                                                                                               |
+| Low              |                                  |      7 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_key_context/key_size_r                                                            |
+| Low              | Excessive Set/Reset/Preset/Clear |      5 | Reset       | Active High |               0.46 |             5.2 | u_aes_gcm/u_core/aes_prod_data[5]_i_1_n_0                                                            |
+| Low              |                                  |      5 |             | Active High |               0.01 |             0.3 | u_aes_gcm/u_core/ctr_request_index_r                                                                 |
+| Low              |                                  |      5 |             | Active High |               0.00 |             0.3 | u_aes_gcm/u_core/p_257_in                                                                            |
+| Low              | Excessive Set/Reset/Preset/Clear |      5 | Reset       | Active High |               0.50 |            12.5 | u_aes_gcm/u_core/u_ghash/zeroize_busy_r_reg_0[0]                                                     |
+| Low              |                                  |      5 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_plain_release_fifo/plain_out_valid_bits_r                                         |
+| Low              |                                  |      4 |             | Active High |               0.01 |             0.7 | u_aes_gcm/u_core/u_ciphertext_fifo/p_346_in                                                          |
+| Low              |                                  |      4 |             | Active High |               0.00 |             0.9 | u_aes_gcm/u_core/u_keystream_fifo/p_0_in__0[0]                                                       |
+| Low              |                                  |      4 |             | Active High |               0.00 |             0.0 | u_aes_gcm/u_core/u_plain_release_fifo/plain_out_block                                                |
+| Low              | Excessive Set/Reset/Preset/Clear |      4 | Reset       | Active High |               0.73 |            15.2 | u_aes_gcm/u_core/u_tag_packet_fifo/SR[0]                                                             |
+| Low              | Excessive Set/Reset/Preset/Clear |      3 | Reset       | Active High |               0.50 |            12.5 | u_aes_gcm/u_core/reset_qual_r_reg[3]_rep__0                                                          |
+| Low              | Excessive Set/Reset/Preset/Clear |      2 | Set/Reset   | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_1[0]                                                       |
+| Low              |                                  |      1 |             | Active High |               0.01 |             0.4 | u_aes_gcm/u_core/u_aes_result_fifo/descriptor_idle_token_set_w                                       |
+| Low              | Excessive Set/Reset/Preset/Clear |      1 | Reset       | Active High |               0.52 |            13.8 | u_aes_gcm/u_registers/descriptor_idle_token_clear_w                                                  |
+| Low              | Excessive Set/Reset/Preset/Clear |      1 | Reset       | Active High |               0.50 |            12.5 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_3[0]                                                       |
+| Medium           |                                  |    137 |             | Active High |               0.66 |             7.2 | u_aes_gcm/u_core/aes_prod_data[270]_i_1_n_0                                                          |
+| Medium           |                                  |    137 |             | Active High |               0.22 |            19.8 | u_aes_gcm/u_core/u_aes_result_fifo/out_data_q[270]_i_1__0_n_0                                        |
+| Medium           |                                  |    136 |             | Active High |               0.04 |             5.4 | u_aes_gcm/u_core/u_desc_fifo/zeroize_busy_r_reg_1                                                    |
+| Medium           |                                  |    133 |             | Active High |               0.34 |            41.3 | u_aes_gcm/u_core/u_ghash_request_fifo/out_data_q[131]_i_1__0_n_0                                     |
+| Medium           |                                  |    133 |             | Active High |               0.07 |             4.8 | u_aes_gcm/u_core/u_keystream_fifo/out_data_q[133]_i_1_n_0                                            |
+| Medium           |                                  |    132 |             | Active High |               0.25 |            12.4 | u_aes_gcm/u_core/u_aes_engine/ctx0_round_r                                                           |
+| Medium           |                                  |    132 |             | Active High |               0.03 |             2.7 | u_aes_gcm/u_core/u_aes_engine/ctx1_round_r                                                           |
+| Medium           |                                  |    132 |             | Active High |               0.07 |             5.1 | u_aes_gcm/u_core/u_aes_engine/ctx2_round_r                                                           |
+| Medium           |                                  |    132 |             | Active High |               0.20 |            35.0 | u_aes_gcm/u_core/u_ghash/y_r[127]_i_1_n_0                                                            |
+| Medium           |                                  |    129 |             | Active High |               0.13 |             3.5 | u_aes_gcm/u_core/u_aes_second_engine/busy_r_reg_0[0]                                                 |
+| Medium           |                                  |    128 |             | Active High |               0.49 |            12.4 | u_aes_gcm/u_core/FSM_onehot_plain_out_state_reg_n_0_[1]                                              |
+| Medium           |                                  |    128 |             | Active High |               0.13 |             3.6 | u_aes_gcm/u_core/u_aes_first_engine/busy_r_reg_0[0]                                                  |
+| Medium           |                                  |    128 |             | Active High |               0.22 |             7.0 | u_aes_gcm/u_core/u_ghash/busy_r_reg_1[0]                                                             |
+| Medium           |                                  |    128 |             | Active High |               0.50 |            12.5 | u_aes_gcm/u_core/u_ghash/reset_qual_r_reg[3]_rep__0                                                  |
+| Medium           |                                  |    128 |             | Active High |               0.51 |            22.8 | u_aes_gcm/u_core/u_ghash_request_fifo/count_r_reg[0]_0[0]                                            |
+| Medium           |                                  |    128 |             | Active High |               0.19 |            11.2 | u_aes_gcm/u_core/u_key_context/window_w3_r[31]_i_1_n_0                                               |
+| Medium           |                                  |    117 |             | Active High |               0.04 |             4.1 | u_aes_gcm/u_core/u_tag_packet_fifo/out_data_q[135]_i_1_n_0                                           |
+| Medium           |                                  |    112 |             | Active High |               0.50 |            40.7 | u_aes_gcm/u_core/u_ghash/x_work_r[127]                                                               |
+| Medium           |                                  |     64 |             | Active High |               0.19 |            11.2 | u_aes_gcm/u_core/u_key_context/window_w5_r[31]_i_1_n_0                                               |
+| Medium           |                                  |     64 |             | Active High |               0.19 |            11.2 | u_aes_gcm/u_core/u_key_context/window_w7_r[31]_i_1_n_0                                               |
+| Medium           |                                  |     37 |             | Active High |               0.07 |             9.1 | u_bridge/s_axi_awaddr0                                                                               |
+| Medium           |                                  |     37 |             | Active High |               0.14 |             6.0 | u_bridge/wr_request_r_i_1_n_0                                                                        |
+| Medium           |                                  |     33 |             | Active High |               0.12 |             7.0 | u_aes_gcm/u_registers/wdata_q0                                                                       |
+| Medium           |                                  |     32 |             | Active High |               0.24 |            17.2 | u_aes_gcm/u_core/u_key_context/generated_word_r[31]_i_1_n_0                                          |
+| Medium           |                                  |     24 |             | Active High |               0.07 |             5.6 | u_bridge/u_uart_tx/zeroize_pulse_o_reg[0]                                                            |
+| Medium           |                                  |     22 |             | Active High |               0.53 |            12.7 | u_aes_gcm/u_core/gh_ctrl_data[10]_i_1_n_0                                                            |
+| Medium           |                                  |     20 |             | Active High |               0.05 |             4.6 | u_bridge/u_uart_tx/run_request_r_reg[0]                                                              |
+| Medium           |                                  |     19 |             | Active High |               0.71 |             7.0 | u_aes_gcm/u_core/u_aes_engine/issue_valid_w                                                          |
+| Medium           |                                  |     16 |             | Active High |               0.36 |            24.7 | u_aes_gcm/u_core/u_ghash_request_fifo/count_r_reg[0]_1[0]                                            |
+| Medium           |                                  |     16 |             | Active High |               0.04 |             4.1 | u_aes_gcm/u_core/u_tag_packet_fifo/out_data_q[135]_i_1_n_0_repN                                      |
+| Medium           |                                  |     16 |             | Active High |               1.00 |             0.0 | u_bridge/u_uart_rx/clk_cnt                                                                           |
+| Medium           |                                  |     14 |             | Active High |               0.59 |            26.5 | u_aes_gcm/u_core/u_key_context/FSM_onehot_state_r[4]_i_2_n_0                                         |
+| Medium           |                                  |     13 |             | Active High |               0.44 |            13.4 | u_aes_gcm/u_core/u_aes_meta_fifo/E[0]                                                                |
+| Medium           |                                  |     13 |             | Active High |               0.11 |             8.0 | u_aes_gcm/u_core/u_aes_meta_fifo/out_data_q[142]_i_1__0_n_0                                          |
+| Medium           |                                  |     13 |             | Active High |               0.05 |             1.7 | u_aes_gcm/u_core/u_ciphertext_fifo/zeroize_pulse_o_reg[0]                                            |
+| Medium           |                                  |     11 |             | Active High |               0.03 |             3.9 | u_aes_gcm/u_core/u_desc_fifo/zeroize_sequence_active_r_reg                                           |
+| Medium           |                                  |     10 |             | Active High |               0.06 |             9.0 | u_aes_gcm/u_core/record_bytes_remaining                                                              |
+| Medium           |                                  |      9 |             | Active High |               0.39 |            23.7 | u_aes_gcm/u_core/data_boundary_idle_r_reg[0]                                                         |
+| Medium           |                                  |      9 |             | Active High |               0.04 |             5.6 | u_aes_gcm/u_core/u_desc_fifo/zeroize_busy_r_reg[0]                                                   |
+| Medium           |                                  |      9 |             | Active High |               0.12 |            11.7 | u_aes_gcm/u_core/u_desc_fifo/zeroize_busy_r_reg_5                                                    |
+| Medium           |                                  |      9 |             | Active High |               0.30 |            17.7 | u_aes_gcm/u_core/u_plain_release_fifo/encryption_data_owner_r_reg[0]                                 |
+| Medium           |                                  |      9 |             | Active High |               0.07 |             9.5 | u_aes_gcm/u_input_queue/out_data_q[8]_i_1_n_0                                                        |
+| Medium           |                                  |      9 |             | Active High |               0.03 |             2.8 | u_bridge/u_uart_tx/eng_state_r_reg[1][0]                                                             |
+| Medium           |                                  |      9 |             | Active High |               0.08 |             5.4 | u_bridge/u_uart_tx/eng_state_r_reg[3][0]                                                             |
+| Medium           |                                  |      9 |             | Active High |               0.08 |             5.4 | u_bridge/u_uart_tx/stream_field_bytes_r                                                              |
+| Medium           |                                  |      8 |             | Active High |               0.03 |             3.7 | u_aes_gcm/u_data_output_register/valid_q_reg_1[0]                                                    |
+| Medium           |                                  |      8 |             | Active High |               0.04 |             5.9 | u_bridge/u_uart_tx/shreg                                                                             |
+| Medium           |                                  |      8 |             | Active High |               0.09 |            12.4 | u_bridge/u_uart_tx/tx_start_r0                                                                       |
+| Medium           |                                  |      7 |             | Active High |               0.19 |            13.8 | u_aes_gcm/u_core/u_key_context/word_index_r[6]_i_1_n_0                                               |
+| Medium           |                                  |      6 |             | Active High |               0.05 |             4.6 | u_aes_gcm/u_core/public_frames_idle_core_r_reg_0[0]                                                  |
+| Medium           |                                  |      6 |             | Active High |               0.54 |            21.1 | u_aes_gcm/u_core/u_tag_packet_fifo/tag_send_active_r_reg_0[0]                                        |
+| Medium           |                                  |      5 |             | Active High |               0.26 |             5.3 | u_aes_gcm/u_core/u_keystream_fifo/count_r[4]_i_1_n_0                                                 |
+| Medium           |                                  |      5 |             | Active High |               0.20 |             7.0 | u_aes_gcm/u_core/zeroize_index                                                                       |
+| Medium           |                                  |      5 |             | Active High |               0.14 |             8.2 | u_aes_gcm/u_registers/awaddr_q0                                                                      |
+| Medium           |                                  |      5 |             | Active High |               0.11 |             8.0 | u_aes_gcm/u_tag_output_register/data_boundary_idle_r_reg[0]                                          |
+| Medium           |                                  |      5 |             | Active High |               0.33 |            36.7 | u_bridge/u_uart_tx/E[0]                                                                              |
+| Medium           |                                  |      4 |             | Active High |               0.14 |             9.8 | u_aes_gcm/u_core/tag_out_index                                                                       |
+| Medium           |                                  |      4 |             | Active High |               0.20 |             6.1 | u_aes_gcm/u_core/u_keystream_fifo/p_0_in__0[1]                                                       |
+| Medium           |                                  |      4 |             | Active High |               0.51 |            12.6 | u_aes_gcm/u_core/u_plain_release_fifo/E[0]                                                           |
+| Medium           |                                  |      4 |             | Active High |               0.43 |            14.8 | u_aes_gcm/u_core/u_tag_packet_fifo/E[0]                                                              |
+| Medium           |                                  |      4 |             | Active High |               0.61 |            44.6 | u_bridge/u_uart_rx/bit_idx                                                                           |
+| Medium           |                                  |      4 |             | Active High |               0.26 |            28.4 | u_bridge/u_uart_tx/eng_state_r_reg[4][0]                                                             |
+| Medium           |                                  |      4 |             | Active High |               0.04 |             5.1 | u_bridge/u_uart_tx/run_request_r_reg_0[0]                                                            |
+| Medium           |                                  |      1 | BRAM Enable | Active High |               0.75 |            11.7 | u_aes_gcm/u_core/u_key_context/u_key_sbox1/GEN_REGISTERED_OUTPUT.co_r_reg_ENARDEN_cooolgate_en_sig_1 |
+| Medium           |                                  |      1 |             | Active High |               0.16 |             8.6 | u_bridge/u_uart_tx/eng_state_r_reg[0]_1                                                              |
+| High             |                                  |    462 | Reset       | Active High |               0.00 |             0.0 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_2_repN_2                                                   |
+| High             |                                  |    364 | Reset       | Active High |               0.00 |             0.0 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_2_repN_4                                                   |
+| High             |                                  |    322 | Reset       | Active High |               0.00 |             0.0 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_2_repN_3                                                   |
+| High             |                                  |    308 | Reset       | Active High |               0.00 |             0.0 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_2_repN_1                                                   |
+| High             |                                  |    260 | Reset       | Active High |               0.00 |             0.0 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_2_repN                                                     |
+| High             |                                  |    204 | Reset       | Active High |               0.00 |             0.0 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_2_repN_5                                                   |
+| High             |                                  |    132 | Reset       | Active High |               0.00 |             0.0 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_2                                                          |
+| High             |                                  |     16 | Reset       | Active High |               0.00 |             0.0 | u_aes_gcm/u_registers/zeroize_pulse_o_reg_0                                                          |
++------------------+----------------------------------+--------+-------------+-------------+--------------------+-----------------+------------------------------------------------------------------------------------------------------+
+* High:  No action required.  Calculated activity values are consistent with signal type and polarity.
+** Medium:  Switching activity should be reviewed and corrected if necessary.  Calculated activity values may be inconsistent with signal type and polarity which can result in inaccurate power analysis.
+*** Low: Switching activity must be reviewed and corrected to prevent incorrect power analysis. Calculated activity values are inappropriate for the signal type and polarity.
+
+

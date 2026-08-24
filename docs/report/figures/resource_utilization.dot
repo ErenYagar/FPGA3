@@ -1,0 +1,16 @@
+digraph Routed_Resource_Utilization {
+  graph [bgcolor="white", pad="0.10", margin="0", charset="UTF-8"];
+  node [shape=plain, fontname="Helvetica", fontsize=10, fontcolor="black"];
+
+  resources [label=<
+    <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5" COLOR="black">
+      <TR><TD COLSPAN="5"><B>Arty A7-100T Final Routed Resource Utilization</B></TD></TR>
+      <TR><TD><B>Resource</B></TD><TD><B>Used</B></TD><TD><B>Device capacity</B></TD><TD><B>Utilization</B></TD><TD><B>Relative scale (0-25%)</B></TD></TR>
+      <TR><TD ALIGN="LEFT">LUT</TD><TD ALIGN="RIGHT">12,411</TD><TD ALIGN="RIGHT">63,400</TD><TD ALIGN="RIGHT">19.58%</TD><TD><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD BGCOLOR="black" WIDTH="157" HEIGHT="9">&#160;</TD><TD BGCOLOR="#E6E6E6" WIDTH="43">&#160;</TD></TR></TABLE></TD></TR>
+      <TR><TD ALIGN="LEFT">FF</TD><TD ALIGN="RIGHT">9,029</TD><TD ALIGN="RIGHT">126,800</TD><TD ALIGN="RIGHT">7.12%</TD><TD><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD BGCOLOR="black" WIDTH="57" HEIGHT="9">&#160;</TD><TD BGCOLOR="#E6E6E6" WIDTH="143">&#160;</TD></TR></TABLE></TD></TR>
+      <TR><TD ALIGN="LEFT">BRAM36 equivalent</TD><TD ALIGN="RIGHT">5</TD><TD ALIGN="RIGHT">135</TD><TD ALIGN="RIGHT">3.70%</TD><TD><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD BGCOLOR="black" WIDTH="30" HEIGHT="9">&#160;</TD><TD BGCOLOR="#E6E6E6" WIDTH="170">&#160;</TD></TR></TABLE></TD></TR>
+      <TR><TD ALIGN="LEFT">DSP</TD><TD ALIGN="RIGHT">0</TD><TD ALIGN="RIGHT">240</TD><TD ALIGN="RIGHT">0.00%</TD><TD><TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD BGCOLOR="#E6E6E6" WIDTH="200" HEIGHT="9">&#160;</TD></TR></TABLE></TD></TR>
+      <TR><TD COLSPAN="5"><FONT POINT-SIZE="8">Used values: final routed DCP. Capacities: XC7A100T device specification.</FONT></TD></TR>
+    </TABLE>
+  >];
+}

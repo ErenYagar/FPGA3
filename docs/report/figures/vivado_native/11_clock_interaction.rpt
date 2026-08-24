@@ -1,0 +1,22 @@
+Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2021.1 (win64) Build 3247384 Thu Jun 10 19:36:33 MDT 2021
+| Date         : Mon Aug 24 03:22:30 2026
+| Host         : DESKTOP-IO47298 running 64-bit major release  (build 9200)
+| Command      : report_clock_interaction -delay_type min_max -significant_digits 3 -file C:/project/FPGA3/docs/report/figures/vivado_native/11_clock_interaction.rpt
+| Design       : arty_a7_100t_aes_gcm_uart_rsp_top
+| Device       : 7a100t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Clock Interaction Report
+
+Clock Interaction Table
+-----------------------
+
+                                WNS                            TNS Failing  TNS Total    WNS Path         WHS                            THS Failing  THS Total    WHS Path         Clock-Pair           Inter-Clock  
+From Clock      To Clock        Clock Edges  WNS(ns)  TNS(ns)    Endpoints    Endpoints  Requirement(ns)  Clock Edges  WHS(ns)  THS(ns)    Endpoints    Endpoints  Requirement(ns)  Classification       Constraints  
+--------------  --------------  -----------  -------  -------  -----------  -----------  ---------------  -----------  -------  -------  -----------  -----------  ---------------  -------------------  -----------  
+core_clk_raw    core_clk_raw    rise - rise    0.029    0.000            0        35746            5.714  rise - rise    0.044    0.000            0        35746            0.000  Clean                Timed        
+
+

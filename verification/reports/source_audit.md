@@ -263,7 +263,6 @@ No current RTL file defining legacy `GHASH` was found.
 
 ### Compile/build files that reference `ghash16.v`
 
-- `tcl/round53_run.tcl`
 - `tcl/round54_run.tcl`
 - `verification/vivado/run_streaming_175mhz.tcl`
 - `tcl/round54_regressions.ps1`
@@ -282,7 +281,7 @@ hash-verified streaming synth DCP.
   `tb_round53_core_zeroize_directed.sv` and
   `tb_round53_non96_ghash_zeroize_directed.sv`.
 - Compile/source-list owners:
-  `tcl/round53_run.tcl`, `tcl/round54_run.tcl`, and
+  `tcl/round54_run.tcl` and
   `tcl/round54_regressions.ps1`.
 
 ### RTL and testbench references to `aes_gcm_axi_top`
@@ -298,17 +297,14 @@ hash-verified streaming synth DCP.
   `arty_a7_100t_aes_gcm_selftest_top.v` and
   `arty_a7_100t_aes_gcm_uart_rsp_top.v`.
 - Source/build owners:
-  `tcl/round53_run.tcl`, `tcl/round54_run.tcl`,
+  `tcl/round54_run.tcl`,
   `tcl/round54_regressions.ps1`,
   `engrenring/synth_1g/axi_ooc/run_axi_ooc.tcl`, and the board build Tcl
   files listed above.
 - DCP-only audit/query consumers:
   `report_synth_targets.tcl`, `partpin_ooc.tcl`,
   `run_axi_ooc_signoff.ps1`, `run_partpin_discovery_candidate.tcl`,
-  `run_partpin_replay.tcl`, `run_round51b_frozen_route.tcl`,
-  `run_round52_frozen_route.tcl`, and all
-  `query_round51*.tcl`/`query_round52*.tcl` files under
-  `engrenring/synth_1g/axi_ooc`.
+  and `run_partpin_replay.tcl` under `engrenring/synth_1g/axi_ooc`.
 
 No `.f`, `.flist`, `.prj`, or ModelSim `.do` filelist was present.
 
@@ -321,7 +317,6 @@ No `.f`, `.flist`, `.prj`, or ModelSim `.do` filelist was present.
 | `sim/tb_top_1g_parallel.sv` | `tb_top_1g_parallel` -> `top` | inherited legacy top | legacy, broken |
 | `axi_ooc/run_axi_ooc.tcl` | `aes_gcm_axi_top` | `stream_ghash/ghash16.v` | current streaming, 175 MHz |
 | `verification/vivado/run_streaming_175mhz.tcl` | `aes_gcm_axi_top` | `stream_ghash/ghash16.v` | maintained strict 175 MHz verification flow |
-| `tcl/round53_run.tcl` | `aes_gcm_axi_top` | `stream_ghash/ghash16.v` | historical timing evidence |
 | `tcl/round54_run.tcl` | `aes_gcm_axi_top` | `stream_ghash/ghash16.v` | retained experiment driver, locked to 175 MHz |
 | `round54_regressions.ps1` | individual `tb_*` tops | `stream_ghash/ghash16.v` | current streaming simulation |
 | `board/run_arty_a7_100t_selftest.tcl` | `arty_a7_100t_aes_gcm_selftest_top` | `stream_ghash/ghash16.v` | current streaming board |

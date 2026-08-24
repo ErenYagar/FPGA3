@@ -1,0 +1,38 @@
+Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+--------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2021.1 (win64) Build 3247384 Thu Jun 10 19:36:33 MDT 2021
+| Date         : Mon Aug 24 03:22:30 2026
+| Host         : DESKTOP-IO47298 running 64-bit major release  (build 9200)
+| Command      : report_clock_networks -levels 4 -file C:/project/FPGA3/docs/report/figures/vivado_native/12_clock_networks.rpt
+| Design       : arty_a7_100t_aes_gcm_uart_rsp_top
+| Device       : 7a100t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+--------------------------------------------------------------------------------------------------------------------------------
+
+Clock Networks Report
+
+
+Constrained Clocks
+-------------------
+
+Clock sys_clk_pin (100MHz)(endpoints: 11093 clock, 1 nonclock)
+Port clk
+   IBUF/I (clk_IBUF_inst)
+      IBUF/O (clk_IBUF_inst)
+         MMCME2_ADV/CLKIN1 (u_mmcm)
+            Clock core_clk_raw (175MHz)(endpoints: 11093 clock, 0 nonclock)
+            MMCME2_ADV/CLKOUT0 (u_mmcm)
+               BUFG/I (u_core_clk_buf)
+                  BUFG/O (u_core_clk_buf)
+                     Bucket FDRE (pins: 9001 clock, 0 nonclock)
+                     Bucket FDSE (pins: 28 clock, 0 nonclock)
+                     Bucket RAMD32 (pins: 1456 clock, 0 nonclock)
+                     Bucket RAMS32 (pins: 480 clock, 0 nonclock)
+                     Bucket RAMD64E (pins: 108 clock, 0 nonclock)
+                     Bucket RAMB18E1 (pins: 20 clock, 0 nonclock)
+            Clock mmcm_clkfb_raw (100MHz)(endpoints: 0 clock, 1 nonclock)
+            MMCME2_ADV/CLKFBOUT (u_mmcm)
+               BUFG/I (u_feedback_buf)
+                  BUFG/O (u_feedback_buf)
+                     Bucket MMCME2_ADV (pins: 0 clock, 1 nonclock)
+

@@ -1,0 +1,47 @@
+Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2021.1 (win64) Build 3247384 Thu Jun 10 19:36:33 MDT 2021
+| Date         : Mon Aug 24 03:22:28 2026
+| Host         : DESKTOP-IO47298 running 64-bit major release  (build 9200)
+| Command      : report_design_analysis -congestion -min_congestion_level 3 -file C:/project/FPGA3/docs/report/figures/vivado_native/08_congestion_analysis.rpt
+| Design       : arty_a7_100t_aes_gcm_uart_rsp_top
+| Device       : xc7a100t
+| Design State : Routed
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Report Design Analysis
+
+Table of Contents
+-----------------
+1. Placer Final Level Congestion Reporting
+2. Initial Estimated Router Congestion Reporting
+3. SLR Net Crossing Reporting
+
+1. Placer Final Level Congestion Reporting
+------------------------------------------
+
++-----------+-------+-------+------------+-----------------------------------+---------------+---------------+-----+--------+------+------+------+-----+-------+-----+-----------------------+
+| Direction |  Type | Level | Congestion |               Window              | Combined LUTs | Avg LUT Input | LUT | LUTRAM | Flop | MUXF | RAMB | DSP | CARRY | SRL |       Cell Names      |
++-----------+-------+-------+------------+-----------------------------------+---------------+---------------+-----+--------+------+------+------+-----+-------+-----+-----------------------+
+| South     | Short |     3 |        86% | (CLBLL_R_X27Y118,CLBLM_L_X34Y125) |            0% |         4.455 | 87% | 32%    |  38% |   2% | NA   | NA  |    0% |  0% | u_aes_gcm/u_core(99%) |
++-----------+-------+-------+------------+-----------------------------------+---------------+---------------+-----+--------+------+------+------+-----+-------+-----+-----------------------+
+* No congestion windows are found above level 3
+
+
+2. Initial Estimated Router Congestion Reporting
+------------------------------------------------
+
++-----------+------+-------+------------------+--------+---------------+---------------+-----+--------+------+------+------+-----+-------+-----+------------+
+| Direction | Type | Level | Percentage Tiles | Window | Combined LUTs | Avg LUT Input | LUT | LUTRAM | Flop | MUXF | RAMB | DSP | CARRY | SRL | Cell Names |
++-----------+------+-------+------------------+--------+---------------+---------------+-----+--------+------+------+------+-----+-------+-----+------------+
+
+
+3. SLR Net Crossing Reporting
+-----------------------------
+
++------------+-----------------------------+
+| Cell Names | Number of Nets crossing SLR |
++------------+-----------------------------+
+* The current part is not an SSI device
+
+

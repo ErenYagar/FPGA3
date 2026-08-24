@@ -1,0 +1,51 @@
+digraph AES_GCM_Core_Architecture {
+  graph [rankdir=LR, splines=ortho, bgcolor="white", pad="0.12", margin="0",
+         nodesep="0.25", outputorder="edgesfirst", charset="UTF-8"];
+  node [shape=box, style="solid", color="black", fontcolor="black",
+        fontname="Helvetica", fontsize=10, penwidth=0.8, fixedsize=true,
+        height=1.45, margin="0.05,0.03"];
+  edge [color="black", penwidth=0.8, arrowsize=0.60, arrowhead=normal];
+
+  control [width=1.15, label=<
+    <B>Control</B><BR/>
+    <FONT POINT-SIZE="10">AXI4-Lite regs</FONT><BR/>
+    <FONT POINT-SIZE="10">Descriptor FIFO</FONT><BR/>
+    <FONT POINT-SIZE="10">depth 2</FONT>
+  >];
+
+  input [width=1.25, label=<
+    <B>Input</B><BR/>
+    <FONT POINT-SIZE="10">Byte parser</FONT><BR/>
+    <FONT POINT-SIZE="10">IV/AAD/data/tag</FONT><BR/>
+    <FONT POINT-SIZE="10">Sensitive queue</FONT><BR/>
+    <FONT POINT-SIZE="10">2 &#215; 128 bit</FONT>
+  >];
+
+  crypto [width=2.10, label=<
+    <B>Crypto Processing</B><BR/>
+    <FONT POINT-SIZE="10">2 first-block AES engines</FONT><BR/>
+    <FONT POINT-SIZE="10">3-context shared AES engine</FONT><BR/>
+    <FONT POINT-SIZE="10">Keystream FIFO, depth 16</FONT><BR/>
+    <FONT POINT-SIZE="10">CTR XOR + partial-block mask</FONT><BR/>
+    <FONT POINT-SIZE="10">GHASH16, 8 digit clocks</FONT>
+  >];
+
+  output [width=1.25, label=<
+    <B>Output Staging</B><BR/>
+    <FONT POINT-SIZE="10">Ciphertext queue</FONT><BR/>
+    <FONT POINT-SIZE="10">Tag queue</FONT><BR/>
+    <FONT POINT-SIZE="10">Result queue</FONT>
+  >];
+
+  axis [width=1.15, label=<
+    <B>AXI Stream</B><BR/>
+    <FONT POINT-SIZE="10">data/tag/result</FONT><BR/>
+    <FONT POINT-SIZE="10">ready/valid</FONT><BR/>
+    <FONT POINT-SIZE="10">TLAST</FONT>
+  >];
+
+  control:e -> input:w;
+  input:e -> crypto:w;
+  crypto:e -> output:w;
+  output:e -> axis:w;
+}

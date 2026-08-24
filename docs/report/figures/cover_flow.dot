@@ -1,0 +1,17 @@
+digraph FPGA3_Cover_Flow {
+  graph [rankdir=LR, splines=ortho, bgcolor="white", pad="0.10", margin="0",
+         nodesep="0.40", outputorder="edgesfirst", charset="UTF-8"];
+  node [shape=box, style="solid", color="black", fontcolor="black",
+        fontname="Helvetica", fontsize=12, penwidth=0.8, fixedsize=true,
+        width=1.50, height=0.80, margin="0.05,0.03"];
+  edge [color="black", penwidth=0.8, arrowsize=0.60, arrowhead=normal];
+
+  host [label=< <B>Host / NIST RSP</B> >];
+  uart [label=< <B>UART Frame</B><BR/><B>Bridge</B><BR/><FONT POINT-SIZE="10">115200 baud</FONT> >];
+  axi  [label=< <B>AXI Wrapper</B><BR/><FONT POINT-SIZE="10">AXI4-Lite</FONT><BR/><FONT POINT-SIZE="10">AXI4-Stream</FONT> >];
+  core [label=< <B>AES-CTR</B><BR/><B>+ GHASH</B><BR/><FONT POINT-SIZE="10">175 MHz core</FONT> >];
+
+  host:e -> uart:w;
+  uart:e -> axi:w;
+  axi:e -> core:w;
+}

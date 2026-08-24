@@ -1,0 +1,35 @@
+digraph NIST_Validation {
+  graph [rankdir=LR, bgcolor="white", pad="0.10", margin="0", nodesep="0.45", charset="UTF-8"];
+  node [shape=plain, fontname="Helvetica", fontsize=10, fontcolor="black"];
+
+  coverage [label=<
+    <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" COLOR="black">
+      <TR><TD COLSPAN="3"><B>FPGA NIST RSP Source Coverage</B></TD></TR>
+      <TR><TD COLSPAN="3"><FONT POINT-SIZE="9">47,250 pass; 0 fail</FONT></TD></TR>
+      <TR><TD><B>RSP source</B></TD><TD><B>Cases</B></TD><TD><B>Result</B></TD></TR>
+      <TR><TD ALIGN="LEFT">gcmEncryptExtIV128</TD><TD ALIGN="RIGHT">7,875</TD><TD><B>PASS</B></TD></TR>
+      <TR><TD ALIGN="LEFT">gcmEncryptExtIV192</TD><TD ALIGN="RIGHT">7,875</TD><TD><B>PASS</B></TD></TR>
+      <TR><TD ALIGN="LEFT">gcmEncryptExtIV256</TD><TD ALIGN="RIGHT">7,875</TD><TD><B>PASS</B></TD></TR>
+      <TR><TD ALIGN="LEFT">gcmDecrypt128</TD><TD ALIGN="RIGHT">7,875</TD><TD><B>PASS</B></TD></TR>
+      <TR><TD ALIGN="LEFT">gcmDecrypt192</TD><TD ALIGN="RIGHT">7,875</TD><TD><B>PASS</B></TD></TR>
+      <TR><TD ALIGN="LEFT">gcmDecrypt256</TD><TD ALIGN="RIGHT">7,875</TD><TD><B>PASS</B></TD></TR>
+    </TABLE>
+  >];
+
+  latency [label=<
+    <TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" COLOR="black">
+      <TR><TD COLSPAN="2"><B>Host-Observed Latency</B></TD></TR>
+      <TR><TD COLSPAN="2"><FONT POINT-SIZE="9">COM4, 115200 baud; not core latency</FONT></TD></TR>
+      <TR><TD><B>Statistic</B></TD><TD><B>ms / case</B></TD></TR>
+      <TR><TD ALIGN="LEFT">Minimum</TD><TD ALIGN="RIGHT">9.101</TD></TR>
+      <TR><TD ALIGN="LEFT">Mean</TD><TD ALIGN="RIGHT">25.376</TD></TR>
+      <TR><TD ALIGN="LEFT">Median</TD><TD ALIGN="RIGHT">31.440</TD></TR>
+      <TR><TD ALIGN="LEFT">P95</TD><TD ALIGN="RIGHT">32.289</TD></TR>
+      <TR><TD ALIGN="LEFT">P99</TD><TD ALIGN="RIGHT">47.797</TD></TR>
+      <TR><TD ALIGN="LEFT">Maximum</TD><TD ALIGN="RIGHT">49.779</TD></TR>
+      <TR><TD COLSPAN="2"><FONT POINT-SIZE="8">Bitstream 22791C...5A686E<BR/>JSONL 56DA5E...0C59761</FONT></TD></TR>
+    </TABLE>
+  >];
+
+  coverage -> latency [style=invis, weight=10];
+}

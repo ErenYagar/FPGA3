@@ -1,0 +1,96 @@
+digraph AES_GCM_GHASH_Architecture {
+  graph [
+    rankdir=LR,
+    splines=ortho,
+    bgcolor="white",
+    pad="0.18",
+    margin="0",
+    nodesep="0.28",
+    ranksep="0.28",
+    outputorder="edgesfirst",
+    charset="UTF-8"
+  ];
+
+  node [
+    shape=box,
+    style="solid",
+    color="black",
+    fillcolor="white",
+    fontcolor="black",
+    fontname="Helvetica",
+    fontsize=10,
+    penwidth=0.8,
+    height=1.20,
+    fixedsize=true,
+    margin="0.08,0.05"
+  ];
+
+  edge [
+    color="black",
+    penwidth=0.8,
+    arrowsize=0.65,
+    arrowhead=normal
+  ];
+
+  init [
+    width=1.30,
+    label=<
+      <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+        <TR><TD><B>Initialization</B></TD></TR>
+        <TR><TD><I>X</I> = <I>Y</I> &#8853; <I>B</I></TD></TR>
+        <TR><TD><I>V</I> = <I>H</I></TD></TR>
+      </TABLE>
+    >
+  ];
+
+  transforms [
+    width=1.55,
+    label=<
+      <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+        <TR><TD><B>Parallel Linear</B></TD></TR>
+        <TR><TD><B>Transforms</B></TD></TR>
+        <TR><TD><I>T</I>&#8304;(<I>V</I>), &#8230;, <I>T</I>&#185;&#8310;(<I>V</I>)</TD></TR>
+      </TABLE>
+    >
+  ];
+
+  digit_engine [
+    width=1.55,
+    label=<
+      <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+        <TR><TD><B>16-bit Digit Product</B></TD></TR>
+        <TR><TD>8 digit iterations</TD></TR>
+        <TR><TD>16 parallel AND masks</TD></TR>
+        <TR><TD>Next 16 bits of <I>X</I></TD></TR>
+      </TABLE>
+    >
+  ];
+
+  xor_tree [
+    shape=circle,
+    width=0.50,
+    height=0.50,
+    fixedsize=true,
+    margin="0",
+    fontsize=14,
+    penwidth=0.8,
+    label=<<B>&#8853;</B>>,
+    xlabel=<<FONT POINT-SIZE="8">Balanced XOR<BR/>tree</FONT>>
+  ];
+
+  update [
+    width=1.50,
+    label=<
+      <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+        <TR><TD><B>State Update</B></TD></TR>
+        <TR><TD><I>Z</I> &#8592; <I>Z</I> &#8853; product</TD></TR>
+        <TR><TD><I>V</I> &#8592; <I>T</I>&#185;&#8310;(<I>V</I>)</TD></TR>
+      </TABLE>
+    >
+  ];
+
+  init:e -> transforms:w;
+  transforms:e -> digit_engine:w;
+  digit_engine:e -> xor_tree:w;
+  xor_tree:e -> update:w;
+}
