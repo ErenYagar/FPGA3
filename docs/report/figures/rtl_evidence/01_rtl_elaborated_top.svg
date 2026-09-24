@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg viewBox="0 0 920 1720"
+     preserveAspectRatio="xMidYMid meet"
+     version="1.1"
+     baseProfile="full"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     xmlns:ev="http://www.w3.org/2001/xml-events"
+     xml:space="preserve">
+<title>arty_a7_100t_aes_gcm_uart_rsp_top</title>
+<desc>Nlview schematic (SVG)</desc>
+<clipPath id="clippingbbox">
+<rect x="0" y="0" width="1720" height="920" />
+</clipPath>
+<g stroke="#19b400"
+   stroke-width="1"
+   stroke-linecap="butt"
+   stroke-linejoin="miter"
+   stroke-miterlimit="4"
+   stroke-dasharray="none"
+   stroke-dashoffset="0"
+   fill="none"
+   font-family="Helvetica"
+   font-style="normal"
+   font-size="12"
+   writing-mode="lr-tb"
+   cursor="crosshair"
+   transform="rotate(-90) translate(-1720)"
+   clip-path="url(#clippingbbox)">
+<path d="M0 0h1720v921h-1720z" stroke="none" fill="white" />
+<path d="M570 38h60v462h-60z" stroke="none" fill="#dfebf8" />
+<g stroke="black">
+<path d="M570 38h60v462h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M581 43v12" />
+<path d="M575 49h12" />
+</g>
+<g stroke="black">
+<path d="M573 41h16v16h-16z" />
+<text x="600" y="36" fill="black" stroke-width="0" text-anchor="middle">u_bridge</text>
+<text x="600" y="502" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">aes_gcm_uart_rsp_bridge</text>
+<path d="M560 70h10" />
+<text x="568" y="69" fill="black" stroke-width="0" font-size="10" text-anchor="end">aresetn</text>
+<path d="M640 90h-10" />
+<text x="632" y="89" fill="black" stroke-width="0" font-size="10">busy</text>
+<path d="M560 90h10" />
+<text x="568" y="89" fill="black" stroke-width="0" font-size="10" text-anchor="end">clk</text>
+<path d="M640 130h-10" />
+<text x="632" y="129" fill="black" stroke-width="0" font-size="10">last_fail</text>
+<path d="M640 150h-10" />
+<text x="632" y="149" fill="black" stroke-width="0" font-size="10">last_pass</text>
+<path d="M560 130h10" />
+<text x="568" y="129" fill="black" stroke-width="0" font-size="10" text-anchor="end">m_axis_data_tlast</text>
+<path d="M640 170h-10" />
+<text x="632" y="169" fill="black" stroke-width="0" font-size="10">m_axis_data_tready</text>
+<path d="M560 170h10" />
+<text x="568" y="169" fill="black" stroke-width="0" font-size="10" text-anchor="end">m_axis_data_tvalid</text>
+<path d="M560 210h10" />
+<text x="568" y="209" fill="black" stroke-width="0" font-size="10" text-anchor="end">m_axis_result_tlast</text>
+<path d="M640 190h-10" />
+<text x="632" y="189" fill="black" stroke-width="0" font-size="10">m_axis_result_tready</text>
+<path d="M560 230h10" />
+<text x="568" y="229" fill="black" stroke-width="0" font-size="10" text-anchor="end">m_axis_result_tvalid</text>
+<path d="M560 270h10" />
+<text x="568" y="269" fill="black" stroke-width="0" font-size="10" text-anchor="end">m_axis_tag_tlast</text>
+<path d="M640 210h-10" />
+<text x="632" y="209" fill="black" stroke-width="0" font-size="10">m_axis_tag_tready</text>
+<path d="M560 290h10" />
+<text x="568" y="289" fill="black" stroke-width="0" font-size="10" text-anchor="end">m_axis_tag_tvalid</text>
+<path d="M560 310h10" />
+<text x="568" y="309" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_arready</text>
+<path d="M640 250h-10" />
+<text x="632" y="249" fill="black" stroke-width="0" font-size="10">s_axi_arvalid</text>
+<path d="M560 330h10" />
+<text x="568" y="329" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_awready</text>
+<path d="M640 290h-10" />
+<text x="632" y="289" fill="black" stroke-width="0" font-size="10">s_axi_awvalid</text>
+<path d="M640 310h-10" />
+<text x="632" y="309" fill="black" stroke-width="0" font-size="10">s_axi_bready</text>
+<path d="M560 370h10" />
+<text x="568" y="369" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_bvalid</text>
+<path d="M640 330h-10" />
+<text x="632" y="329" fill="black" stroke-width="0" font-size="10">s_axi_rready</text>
+<path d="M560 430h10" />
+<text x="568" y="429" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_rvalid</text>
+<path d="M560 450h10" />
+<text x="568" y="449" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_wready</text>
+<path d="M640 390h-10" />
+<text x="632" y="389" fill="black" stroke-width="0" font-size="10">s_axi_wvalid</text>
+<path d="M640 430h-10" />
+<text x="632" y="429" fill="black" stroke-width="0" font-size="10">s_axis_tlast</text>
+<path d="M560 470h10" />
+<text x="568" y="469" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axis_tready</text>
+<path d="M640 450h-10" />
+<text x="632" y="449" fill="black" stroke-width="0" font-size="10">s_axis_tvalid</text>
+<path d="M560 490h10" />
+<text x="568" y="489" fill="black" stroke-width="0" font-size="10" text-anchor="end">uart_rx_i</text>
+<path d="M640 470h-10" />
+<text x="632" y="469" fill="black" stroke-width="0" font-size="10">uart_tx_o</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M640 110h-10" />
+<text x="632" y="109" fill="black" stroke-width="0" font-size="10">key_mode[2:0]</text>
+<path d="M560 110h10" />
+<text x="568" y="109" fill="black" stroke-width="0" font-size="10" text-anchor="end">m_axis_data_tdata[7:0]</text>
+<path d="M560 150h10" />
+<text x="568" y="149" fill="black" stroke-width="0" font-size="10" text-anchor="end">m_axis_data_tuser[3:0]</text>
+<path d="M560 190h10" />
+<text x="568" y="189" fill="black" stroke-width="0" font-size="10" text-anchor="end">m_axis_result_tdata[7:0]</text>
+<path d="M560 250h10" />
+<text x="568" y="249" fill="black" stroke-width="0" font-size="10" text-anchor="end">m_axis_tag_tdata[7:0]</text>
+<path d="M640 230h-10" />
+<text x="632" y="229" fill="black" stroke-width="0" font-size="10">s_axi_araddr[6:0]</text>
+<path d="M640 270h-10" />
+<text x="632" y="269" fill="black" stroke-width="0" font-size="10">s_axi_awaddr[6:0]</text>
+<path d="M560 350h10" />
+<text x="568" y="349" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_bresp[1:0]</text>
+<path d="M560 390h10" />
+<text x="568" y="389" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_rdata[31:0]</text>
+<path d="M560 410h10" />
+<text x="568" y="409" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_rresp[1:0]</text>
+<path d="M640 350h-10" />
+<text x="632" y="349" fill="black" stroke-width="0" font-size="10">s_axi_wdata[31:0]</text>
+<path d="M640 370h-10" />
+<text x="632" y="369" fill="black" stroke-width="0" font-size="10">s_axi_wstrb[3:0]</text>
+<path d="M640 410h-10" />
+<text x="632" y="409" fill="black" stroke-width="0" font-size="10">s_axis_tdata[7:0]</text>
+</g>
+<g stroke="black">
+<path d="M580 70h-10" />
+<path d="M620 90h10" />
+<path d="M580 90h-10" />
+<path d="M620 130h10" />
+<path d="M620 150h10" />
+<path d="M580 130h-10" />
+<path d="M620 170h10" />
+<path d="M580 170h-10" />
+<path d="M580 210h-10" />
+<path d="M620 190h10" />
+<path d="M580 230h-10" />
+<path d="M580 270h-10" />
+<path d="M620 210h10" />
+<path d="M580 290h-10" />
+<path d="M580 310h-10" />
+<path d="M620 250h10" />
+<path d="M580 330h-10" />
+<path d="M620 290h10" />
+<path d="M620 310h10" />
+<path d="M580 370h-10" />
+<path d="M620 330h10" />
+<path d="M580 430h-10" />
+<path d="M580 450h-10" />
+<path d="M620 390h10" />
+<path d="M620 430h10" />
+<path d="M580 470h-10" />
+<path d="M620 450h10" />
+<path d="M580 490h-10" />
+<path d="M620 470h10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M620 110h10" />
+<path d="M580 110h-10" />
+<path d="M580 150h-10" />
+<path d="M580 190h-10" />
+<path d="M580 250h-10" />
+<path d="M620 230h10" />
+<path d="M620 270h10" />
+<path d="M580 350h-10" />
+<path d="M580 390h-10" />
+<path d="M580 410h-10" />
+<path d="M620 350h10" />
+<path d="M620 370h10" />
+<path d="M620 410h10" />
+<path d="M1110 98h60v422h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M1110 98h60v422h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1121 103v12" />
+<path d="M1115 109h12" />
+</g>
+<g stroke="black">
+<path d="M1113 101h16v16h-16z" />
+<text x="1140" y="96" fill="black" stroke-width="0" text-anchor="middle">u_aes_gcm</text>
+<text x="1140" y="522" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">aes_gcm_axi_top</text>
+<path d="M1100 130h10" />
+<text x="1108" y="129" fill="black" stroke-width="0" font-size="10" text-anchor="end">aclk</text>
+<path d="M1100 150h10" />
+<text x="1108" y="149" fill="black" stroke-width="0" font-size="10" text-anchor="end">aresetn</text>
+<path d="M1180 150h-10" />
+<text x="1172" y="149" fill="black" stroke-width="0" font-size="10">m_axis_data_tlast</text>
+<path d="M1100 190h10" />
+<text x="1108" y="189" fill="black" stroke-width="0" font-size="10" text-anchor="end">m_axis_data_tready</text>
+<path d="M1180 190h-10" />
+<text x="1172" y="189" fill="black" stroke-width="0" font-size="10">m_axis_data_tvalid</text>
+<path d="M1180 230h-10" />
+<text x="1172" y="229" fill="black" stroke-width="0" font-size="10">m_axis_result_tlast</text>
+<path d="M1100 210h10" />
+<text x="1108" y="209" fill="black" stroke-width="0" font-size="10" text-anchor="end">m_axis_result_tready</text>
+<path d="M1180 250h-10" />
+<text x="1172" y="249" fill="black" stroke-width="0" font-size="10">m_axis_result_tvalid</text>
+<path d="M1180 290h-10" />
+<text x="1172" y="289" fill="black" stroke-width="0" font-size="10">m_axis_tag_tlast</text>
+<path d="M1100 230h10" />
+<text x="1108" y="229" fill="black" stroke-width="0" font-size="10" text-anchor="end">m_axis_tag_tready</text>
+<path d="M1180 310h-10" />
+<text x="1172" y="309" fill="black" stroke-width="0" font-size="10">m_axis_tag_tvalid</text>
+<path d="M1180 330h-10" />
+<text x="1172" y="329" fill="black" stroke-width="0" font-size="10">s_axi_arready</text>
+<path d="M1100 290h10" />
+<text x="1108" y="289" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_arvalid</text>
+<path d="M1180 350h-10" />
+<text x="1172" y="349" fill="black" stroke-width="0" font-size="10">s_axi_awready</text>
+<path d="M1100 350h10" />
+<text x="1108" y="349" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_awvalid</text>
+<path d="M1100 370h10" />
+<text x="1108" y="369" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_bready</text>
+<path d="M1180 390h-10" />
+<text x="1172" y="389" fill="black" stroke-width="0" font-size="10">s_axi_bvalid</text>
+<path d="M1100 390h10" />
+<text x="1108" y="389" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_rready</text>
+<path d="M1180 450h-10" />
+<text x="1172" y="449" fill="black" stroke-width="0" font-size="10">s_axi_rvalid</text>
+<path d="M1180 470h-10" />
+<text x="1172" y="469" fill="black" stroke-width="0" font-size="10">s_axi_wready</text>
+<path d="M1100 450h10" />
+<text x="1108" y="449" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_wvalid</text>
+<path d="M1100 490h10" />
+<text x="1108" y="489" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axis_tlast</text>
+<path d="M1180 490h-10" />
+<text x="1172" y="489" fill="black" stroke-width="0" font-size="10">s_axis_tready</text>
+<path d="M1100 510h10" />
+<text x="1108" y="509" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axis_tvalid</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1100 170h10" />
+<text x="1108" y="169" fill="black" stroke-width="0" font-size="10" text-anchor="end">key_mode[2:0]</text>
+<path d="M1180 130h-10" />
+<text x="1172" y="129" fill="black" stroke-width="0" font-size="10">m_axis_data_tdata[7:0]</text>
+<path d="M1180 170h-10" />
+<text x="1172" y="169" fill="black" stroke-width="0" font-size="10">m_axis_data_tuser[3:0]</text>
+<path d="M1180 210h-10" />
+<text x="1172" y="209" fill="black" stroke-width="0" font-size="10">m_axis_result_tdata[7:0]</text>
+<path d="M1180 270h-10" />
+<text x="1172" y="269" fill="black" stroke-width="0" font-size="10">m_axis_tag_tdata[7:0]</text>
+<path d="M1100 250h10" />
+<text x="1108" y="249" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_araddr[6:0]</text>
+<path d="M1100 270h10" />
+<text x="1108" y="269" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_arprot[2:0]</text>
+<path d="M1100 310h10" />
+<text x="1108" y="309" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_awaddr[6:0]</text>
+<path d="M1100 330h10" />
+<text x="1108" y="329" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_awprot[2:0]</text>
+<path d="M1180 370h-10" />
+<text x="1172" y="369" fill="black" stroke-width="0" font-size="10">s_axi_bresp[1:0]</text>
+<path d="M1180 410h-10" />
+<text x="1172" y="409" fill="black" stroke-width="0" font-size="10">s_axi_rdata[31:0]</text>
+<path d="M1180 430h-10" />
+<text x="1172" y="429" fill="black" stroke-width="0" font-size="10">s_axi_rresp[1:0]</text>
+<path d="M1100 410h10" />
+<text x="1108" y="409" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_wdata[31:0]</text>
+<path d="M1100 430h10" />
+<text x="1108" y="429" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axi_wstrb[3:0]</text>
+<path d="M1100 470h10" />
+<text x="1108" y="469" fill="black" stroke-width="0" font-size="10" text-anchor="end">s_axis_tdata[7:0]</text>
+</g>
+<g stroke="black">
+<path d="M1120 130h-10" />
+<path d="M1120 150h-10" />
+<path d="M1160 150h10" />
+<path d="M1120 190h-10" />
+<path d="M1160 190h10" />
+<path d="M1160 230h10" />
+<path d="M1120 210h-10" />
+<path d="M1160 250h10" />
+<path d="M1160 290h10" />
+<path d="M1120 230h-10" />
+<path d="M1160 310h10" />
+<path d="M1160 330h10" />
+<path d="M1120 290h-10" />
+<path d="M1160 350h10" />
+<path d="M1120 350h-10" />
+<path d="M1120 370h-10" />
+<path d="M1160 390h10" />
+<path d="M1120 390h-10" />
+<path d="M1160 450h10" />
+<path d="M1160 470h10" />
+<path d="M1120 450h-10" />
+<path d="M1120 490h-10" />
+<path d="M1160 490h10" />
+<path d="M1120 510h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1120 170h-10" />
+<path d="M1160 130h10" />
+<path d="M1160 170h10" />
+<path d="M1160 210h10" />
+<path d="M1160 270h10" />
+<path d="M1120 250h-10" />
+<path d="M1120 270h-10" />
+<path d="M1120 310h-10" />
+<path d="M1120 330h-10" />
+<path d="M1160 370h10" />
+<path d="M1160 410h10" />
+<path d="M1160 430h10" />
+<path d="M1120 410h-10" />
+<path d="M1120 430h-10" />
+<path d="M1120 470h-10" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M640 270h320v40h140" />
+<path d="M560 350h-340v440h1300v-420h-340" />
+<path d="M560 110h-540v460h1680v-440h-520" />
+<path d="M560 150h-460v440h1540v-420h-460" />
+<path d="M640 110h300v60h160" />
+<path d="M560 390h-300v440h1220v-420h-300" />
+<path d="M560 190h-520v460h1640v-440h-500" />
+<path d="M560 410h-280v440h1180v-420h-280" />
+<path d="M640 410h180v60h280" />
+<path d="M560 250h-500v460h1600v-440h-480" />
+<path d="M640 350h240v60h220" />
+<path d="M640 370h220v60h240" />
+</g>
+<g stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M560 70h-540v-60h940v140h140" />
+</g>
+<g>
+<path d="M560 310h-380v440h1380v-420h-380" />
+<path d="M560 330h-360v440h1340v-420h-360" />
+<path d="M640 290h300v60h160" />
+<path d="M640 310h280v60h180" />
+<path d="M560 370h-320v440h1260v-420h-320" />
+</g>
+<g stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M560 90h-480v440h820v-400h200" />
+</g>
+<g>
+<path d="M560 130h-200v420h1020v-400h-200" />
+<path d="M560 170h-440v440h1500v-420h-440" />
+<path d="M560 210h-180v420h980v-400h-180" />
+<path d="M560 230h-420v440h1460v-420h-420" />
+<path d="M560 430h-260v440h1140v-420h-260" />
+<path d="M640 430h160v60h300" />
+<path d="M560 470h-220v440h1060v-420h-220" />
+<path d="M640 450h140v60h320" />
+<path d="M560 270h-160v420h940v-400h-160" />
+<path d="M560 290h-400v440h1420v-420h-400" />
+<path d="M560 450h-240v440h1100v-420h-240" />
+<path d="M640 390h200v60h260" />
+</g>
+</g>
+</svg>

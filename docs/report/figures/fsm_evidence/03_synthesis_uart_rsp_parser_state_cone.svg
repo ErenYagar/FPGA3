@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg viewBox="0 0 740 670"
+     preserveAspectRatio="xMidYMid meet"
+     version="1.1"
+     baseProfile="full"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     xmlns:ev="http://www.w3.org/2001/xml-events"
+     xml:space="preserve">
+<title>arty_a7_100t_aes_gcm_uart_rsp_top</title>
+<desc>Nlview schematic (SVG)</desc>
+<clipPath id="clippingbbox">
+<rect x="0" y="0" width="670" height="740" />
+</clipPath>
+<g stroke="#19b400"
+   stroke-width="1"
+   stroke-linecap="butt"
+   stroke-linejoin="miter"
+   stroke-miterlimit="4"
+   stroke-dasharray="none"
+   stroke-dashoffset="0"
+   fill="none"
+   font-family="Helvetica"
+   font-style="normal"
+   font-size="12"
+   writing-mode="lr-tb"
+   cursor="crosshair"
+   transform="rotate(-90) translate(-670)"
+   clip-path="url(#clippingbbox)">
+<path d="M0 0h670v741h-670z" stroke="none" fill="white" />
+<path d="M78 30h569l3 1l3 1l1 3l1 3v664l-1 3l-1 3l-3 1l-3 1h-569l-3 -1l-3 -1l-1 -3l-1 -3v-664l1 -3l1 -3l3 -1z" stroke="none" fill="#fafafa" />
+<g stroke="black">
+<path d="M78 30h569" />
+<path d="M647,30 A7.83511,7.83511 1.61334 0,1 655,38" />
+<path d="M655 38v664" />
+<path d="M655,702 A7.83511,7.83511 1.61334 0,1 647,710" />
+<path d="M647 710h-569" />
+<path d="M78,710 A7.83511,7.83511 1.61334 0,1 70,702" />
+<path d="M70 702v-664" />
+<path d="M70,38 A7.83511,7.83511 1.61334 0,1 78,30" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M75 41h12" />
+</g>
+<g stroke="black">
+<path d="M73 33h16v16h-16z" />
+<text x="362" y="28" fill="black" stroke-width="0" text-anchor="middle">u_bridge</text>
+<text x="362" y="712" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">aes_gcm_uart_rsp_bridge</text>
+<path d="M60 140h10" />
+<text x="68" y="138" fill="black" stroke-width="0" font-size="10" text-anchor="end">clear</text>
+<path d="M60 160h10" />
+<text x="68" y="158" fill="black" stroke-width="0" font-size="10" text-anchor="end">core_clk</text>
+<path d="M80 140h-10" />
+<path d="M80 160h-10" />
+<path d="M288 354h244l3 1l3 1l1 3l1 3v310l-1 3l-1 3l-3 1l-3 1h-244l-3 -1l-3 -1l-1 -3l-1 -3v-310l1 -3l1 -3l3 -1z" stroke="none" fill="#fafafa" />
+<path d="M288 354h244" />
+<path d="M532,354 A7.83511,7.83511 1.61334 0,1 540,362" />
+<path d="M540 362v310" />
+<path d="M540,672 A7.83511,7.83511 1.61334 0,1 532,680" />
+<path d="M532 680h-244" />
+<path d="M288,680 A7.83511,7.83511 1.61334 0,1 280,672" />
+<path d="M280 672v-310" />
+<path d="M280,362 A7.83511,7.83511 1.61334 0,1 288,354" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M285 365h12" />
+</g>
+<g stroke="black">
+<path d="M283 357h16v16h-16z" />
+<text x="410" y="352" fill="black" stroke-width="0" text-anchor="middle">u_uart_rx</text>
+<text x="410" y="682" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">uart_rx</text>
+<path d="M270 390h10" />
+<text x="278" y="388" fill="black" stroke-width="0" font-size="10" text-anchor="end">clear</text>
+<path d="M270 410h10" />
+<text x="278" y="408" fill="black" stroke-width="0" font-size="10" text-anchor="end">core_clk</text>
+<path d="M550 450h-10" />
+<text x="542" y="448" fill="black" stroke-width="0" font-size="10">data_valid_reg_1</text>
+<path d="M550 600h-10" />
+<text x="542" y="598" fill="black" stroke-width="0" font-size="10">data_valid_reg_2</text>
+<path d="M270 430h10" />
+<text x="278" y="428" fill="black" stroke-width="0" font-size="10" text-anchor="end">key_cfg_r_reg[0]</text>
+<path d="M270 450h10" />
+<text x="278" y="448" fill="black" stroke-width="0" font-size="10" text-anchor="end">key_len_r_reg[0]</text>
+<path d="M270 470h10" />
+<text x="278" y="468" fill="black" stroke-width="0" font-size="10" text-anchor="end">mode_loaded_r_reg_0</text>
+<path d="M290 390h-10" />
+<path d="M290 410h-10" />
+<path d="M530 450h10" />
+<path d="M530 600h10" />
+<path d="M290 430h-10" />
+<path d="M290 450h-10" />
+<path d="M290 470h-10" />
+<path d="M280 210h60v100h-60z" stroke="none" fill="#ffffcc" />
+<path d="M280 210h60v100h-60z" />
+<path d="M280 233l7 -3l-7 -3" />
+<text x="310" y="208" fill="black" stroke-width="0" text-anchor="middle">rx_state_r_reg[1]</text>
+<text x="310" y="312" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">FDRE</text>
+<path d="M350 260h-10" />
+<text x="338" y="260" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="3.25">Q</text>
+<path d="M270 230h10" />
+<text x="289" y="230" fill="black" stroke-width="0" font-size="10" dy="3.25">C</text>
+<path d="M270 250h10" />
+<text x="282" y="250" fill="black" stroke-width="0" font-size="10" dy="3.25">CE</text>
+<path d="M270 270h10" />
+<text x="282" y="270" fill="black" stroke-width="0" font-size="10" dy="3.25">D</text>
+<path d="M270 290h10" />
+<text x="282" y="290" fill="black" stroke-width="0" font-size="10" dy="3.25">R</text>
+<path d="M420 400h60v100h-60z" stroke="none" fill="#ffffcc" />
+<path d="M420 400h60v100h-60z" />
+<text x="450" y="398" fill="black" stroke-width="0" text-anchor="middle">rx_state_r[0]_i_1</text>
+<text x="450" y="502" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">LUT5</text>
+<path d="M490 450h-10" />
+<text x="478" y="450" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="3.25">O</text>
+<path d="M410 410h10" />
+<text x="422" y="410" fill="black" stroke-width="0" font-size="10" dy="3.25">I0</text>
+<path d="M410 430h10" />
+<text x="422" y="430" fill="black" stroke-width="0" font-size="10" dy="3.25">I1</text>
+<path d="M410 450h10" />
+<text x="422" y="450" fill="black" stroke-width="0" font-size="10" dy="3.25">I2</text>
+<path d="M410 470h10" />
+<text x="422" y="470" fill="black" stroke-width="0" font-size="10" dy="3.25">I3</text>
+<path d="M410 490h10" />
+<text x="422" y="490" fill="black" stroke-width="0" font-size="10" dy="3.25">I4</text>
+<path d="M280 60h60v100h-60z" stroke="none" fill="#ffffcc" />
+<path d="M280 60h60v100h-60z" />
+<path d="M280 83l7 -3l-7 -3" />
+<text x="310" y="58" fill="black" stroke-width="0" text-anchor="middle">rx_state_r_reg[0]</text>
+<text x="310" y="162" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">FDRE</text>
+<path d="M350 110h-10" />
+<text x="338" y="110" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="3.25">Q</text>
+<path d="M270 80h10" />
+<text x="289" y="80" fill="black" stroke-width="0" font-size="10" dy="3.25">C</text>
+<path d="M270 100h10" />
+<text x="282" y="100" fill="black" stroke-width="0" font-size="10" dy="3.25">CE</text>
+<path d="M270 120h10" />
+<text x="282" y="120" fill="black" stroke-width="0" font-size="10" dy="3.25">D</text>
+<path d="M270 140h10" />
+<text x="282" y="140" fill="black" stroke-width="0" font-size="10" dy="3.25">R</text>
+<path d="M420 550h60v100h-60z" stroke="none" fill="#ffffcc" />
+<path d="M420 550h60v100h-60z" />
+<text x="450" y="548" fill="black" stroke-width="0" text-anchor="middle">rx_state_r[1]_i_1</text>
+<text x="450" y="652" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">LUT5</text>
+<path d="M490 600h-10" />
+<text x="478" y="600" fill="black" stroke-width="0" font-size="10" text-anchor="end" dy="3.25">O</text>
+<path d="M410 560h10" />
+<text x="422" y="560" fill="black" stroke-width="0" font-size="10" dy="3.25">I0</text>
+<path d="M410 580h10" />
+<text x="422" y="580" fill="black" stroke-width="0" font-size="10" dy="3.25">I1</text>
+<path d="M410 600h10" />
+<text x="422" y="600" fill="black" stroke-width="0" font-size="10" dy="3.25">I2</text>
+<path d="M410 620h10" />
+<text x="422" y="620" fill="black" stroke-width="0" font-size="10" dy="3.25">I3</text>
+<path d="M410 640h10" />
+<text x="422" y="640" fill="black" stroke-width="0" font-size="10" dy="3.25">I4</text>
+</g>
+<g stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M80 140h20v250h170" />
+<path d="M100 140h170" />
+<path d="M100 290h170" />
+<path d="M98 138h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M98 288h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M270 80h-150v330h150" />
+<path d="M80 160h40" />
+<path d="M120 230h150" />
+<path d="M118 158h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M118 228h5v5h-5z" stroke="none" fill="#19b400" />
+</g>
+<g>
+<path d="M490 450h40" />
+<path d="M490 600h40" />
+</g>
+<g stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M290 430h60v150h60" />
+<path d="M350 430h60" />
+<path d="M348 428h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M290 450h40v150h80" />
+<path d="M330 450h80" />
+<path d="M328 448h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M290 470h20v150h100" />
+<path d="M310 470h100" />
+<path d="M308 468h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M410 410h-40v150h40" />
+</g>
+</g>
+</svg>

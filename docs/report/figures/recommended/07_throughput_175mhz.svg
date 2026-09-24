@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="960" viewBox="0 0 1600 960">
+<rect width="1600" height="960" fill="#ffffff"/>
+<defs>
+<marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,4 L0,8 z" fill="#111111"/></marker>
+</defs>
+<text x="70.00" y="62.00" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="600" text-anchor="start" fill="#111111">Six-mode simulated throughput at 175 MHz</text>
+<text x="70.00" y="99.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start" fill="#5a6470">100 × 1024-bit records per mode; core RTL throughput, not UART/board transport throughput</text>
+<line x1="70.00" y1="118.00" x2="1530.00" y2="118.00" stroke="#111111" stroke-width="1.2"/>
+<line x1="1280.91" y1="180.00" x2="1280.91" y2="790.00" stroke="#9a3131" stroke-width="2.5" stroke-dasharray="8 6"/>
+<text x="1280.91" y="165.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" text-anchor="middle" fill="#9a3131">1.000 Gbit/s target</text>
+<text x="80.00" y="205.00" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="600" text-anchor="start" fill="#111111">AES-128 Encrypt</text>
+<rect x="390.00" y="175.00" width="980.00" height="44.00" fill="#eef2f5" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<rect x="390.00" y="175.00" width="949.17" height="44.00" fill="#1f4e79" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1327.17" y="205.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" text-anchor="end" fill="#ffffff">1.065398</text>
+<text x="1510.00" y="205.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#111111">16,820 cycles</text>
+<text x="80.00" y="307.00" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="600" text-anchor="start" fill="#111111">AES-128 Decrypt</text>
+<rect x="390.00" y="277.00" width="980.00" height="44.00" fill="#eef2f5" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<rect x="390.00" y="277.00" width="936.97" height="44.00" fill="#1f4e79" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1314.97" y="307.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" text-anchor="end" fill="#ffffff">1.051705</text>
+<text x="1510.00" y="307.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#111111">17,039 cycles</text>
+<text x="80.00" y="409.00" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="600" text-anchor="start" fill="#111111">AES-192 Encrypt</text>
+<rect x="390.00" y="379.00" width="980.00" height="44.00" fill="#eef2f5" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<rect x="390.00" y="379.00" width="949.17" height="44.00" fill="#1f4e79" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1327.17" y="409.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" text-anchor="end" fill="#ffffff">1.065398</text>
+<text x="1510.00" y="409.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#111111">16,820 cycles</text>
+<text x="80.00" y="511.00" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="600" text-anchor="start" fill="#111111">AES-192 Decrypt</text>
+<rect x="390.00" y="481.00" width="980.00" height="44.00" fill="#eef2f5" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<rect x="390.00" y="481.00" width="936.97" height="44.00" fill="#1f4e79" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1314.97" y="511.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" text-anchor="end" fill="#ffffff">1.051705</text>
+<text x="1510.00" y="511.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#111111">17,039 cycles</text>
+<text x="80.00" y="613.00" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="600" text-anchor="start" fill="#111111">AES-256 Encrypt</text>
+<rect x="390.00" y="583.00" width="980.00" height="44.00" fill="#eef2f5" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<rect x="390.00" y="583.00" width="949.17" height="44.00" fill="#1f4e79" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1327.17" y="613.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" text-anchor="end" fill="#ffffff">1.065398</text>
+<text x="1510.00" y="613.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#111111">16,820 cycles</text>
+<text x="80.00" y="715.00" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="600" text-anchor="start" fill="#111111">AES-256 Decrypt</text>
+<rect x="390.00" y="685.00" width="980.00" height="44.00" fill="#eef2f5" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<rect x="390.00" y="685.00" width="936.97" height="44.00" fill="#1f4e79" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1314.97" y="715.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" text-anchor="end" fill="#ffffff">1.051705</text>
+<text x="1510.00" y="715.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#111111">17,039 cycles</text>
+<line x1="390.00" y1="790.00" x2="390.00" y2="804.00" stroke="#111111" stroke-width="1.5"/>
+<text x="390.00" y="830.00" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="middle" fill="#5a6470">0.00</text>
+<line x1="612.73" y1="790.00" x2="612.73" y2="804.00" stroke="#111111" stroke-width="1.5"/>
+<text x="612.73" y="830.00" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="middle" fill="#5a6470">0.25</text>
+<line x1="835.45" y1="790.00" x2="835.45" y2="804.00" stroke="#111111" stroke-width="1.5"/>
+<text x="835.45" y="830.00" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="middle" fill="#5a6470">0.50</text>
+<line x1="1058.18" y1="790.00" x2="1058.18" y2="804.00" stroke="#111111" stroke-width="1.5"/>
+<text x="1058.18" y="830.00" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="middle" fill="#5a6470">0.75</text>
+<line x1="1280.91" y1="790.00" x2="1280.91" y2="804.00" stroke="#111111" stroke-width="1.5"/>
+<text x="1280.91" y="830.00" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="middle" fill="#5a6470">1.00</text>
+<line x1="390.00" y1="790.00" x2="1370.00" y2="790.00" stroke="#111111" stroke-width="1.5"/>
+<text x="880.00" y="895.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="middle" fill="#111111">Throughput (Gbit/s)</text>
+<text x="70.00" y="930.00" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="start" fill="#5a6470">Source: directed_175 throughput_xsim.log; all six modes PASS</text>
+</svg>

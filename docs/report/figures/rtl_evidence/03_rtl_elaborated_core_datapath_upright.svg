@@ -1,0 +1,977 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg viewBox="0 0 1460 1880"
+     preserveAspectRatio="xMidYMid meet"
+     version="1.1"
+     baseProfile="full"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     xmlns:ev="http://www.w3.org/2001/xml-events"
+     xml:space="preserve">
+<title>arty_a7_100t_aes_gcm_uart_rsp_top</title>
+<desc>Nlview schematic (SVG)</desc>
+<clipPath id="clippingbbox">
+<rect x="0" y="0" width="1460" height="1880" />
+</clipPath>
+<g stroke="#19b400"
+   stroke-width="1"
+   stroke-linecap="butt"
+   stroke-linejoin="miter"
+   stroke-miterlimit="4"
+   stroke-dasharray="none"
+   stroke-dashoffset="0"
+   fill="none"
+   font-family="Helvetica"
+   font-style="normal"
+   font-size="12"
+   writing-mode="lr-tb"
+   cursor="crosshair"
+   clip-path="url(#clippingbbox)">
+<path d="M0 0h1460v1881h-1460z" stroke="none" fill="white" />
+<path d="M18 24h1415l3 1l3 1l1 3l1 3v1810l-1 3l-1 3l-3 1l-3 1h-1415l-3 -1l-3 -1l-1 -3l-1 -3v-1810l1 -3l1 -3l3 -1z" stroke="none" fill="#fafafa" />
+<g stroke="black">
+<path d="M18 24h1415" />
+<path d="M1433,24 A7.83511,7.83511 1.61334 0,1 1441,32" />
+<path d="M1441 32v1810" />
+<path d="M1441,1842 A7.83511,7.83511 1.61334 0,1 1433,1850" />
+<path d="M1433 1850h-1415" />
+<path d="M18,1850 A7.83511,7.83511 1.61334 0,1 10,1842" />
+<path d="M10 1842v-1810" />
+<path d="M10,32 A7.83511,7.83511 1.61334 0,1 18,24" />
+<text x="725" y="22" fill="black" stroke-width="0" text-anchor="middle">u_aes_gcm</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M15 35h12" />
+</g>
+<g stroke="black">
+<path d="M13 27h16v16h-16z" />
+<text x="725" y="1852" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">aes_gcm_axi_top</text>
+<path d="M158 64h1265l3 1l3 1l1 3l1 3v1740l-1 3l-1 3l-3 1l-3 1h-1265l-3 -1l-3 -1l-1 -3l-1 -3v-1740l1 -3l1 -3l3 -1z" stroke="none" fill="#fafafa" />
+<path d="M158 64h1265" />
+<path d="M1423,64 A7.83511,7.83511 1.61334 0,1 1431,72" />
+<path d="M1431 72v1740" />
+<path d="M1431,1812 A7.83511,7.83511 1.61334 0,1 1423,1820" />
+<path d="M1423 1820h-1265" />
+<path d="M158,1820 A7.83511,7.83511 1.61334 0,1 150,1812" />
+<path d="M150 1812v-1740" />
+<path d="M150,72 A7.83511,7.83511 1.61334 0,1 158,64" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M155 75h12" />
+</g>
+<g stroke="black">
+<path d="M153 67h16v16h-16z" />
+<text x="790" y="62" fill="black" stroke-width="0" text-anchor="middle">u_core</text>
+<text x="790" y="1822" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">aes_gcm_stream_core</text>
+<path d="M140 100h10" />
+<text x="148" y="98" fill="black" stroke-width="0" font-size="10" text-anchor="end">clk</text>
+<path d="M140 160h10" />
+<text x="148" y="158" fill="black" stroke-width="0" font-size="10" text-anchor="end">cmd_decrypt</text>
+<path d="M140 200h10" />
+<text x="148" y="198" fill="black" stroke-width="0" font-size="10" text-anchor="end">cmd_push</text>
+<path d="M140 530h10" />
+<text x="148" y="528" fill="black" stroke-width="0" font-size="10" text-anchor="end">key_commit</text>
+<path d="M140 590h10" />
+<text x="148" y="588" fill="black" stroke-width="0" font-size="10" text-anchor="end">rst_n</text>
+<path d="M140 610h10" />
+<text x="148" y="608" fill="black" stroke-width="0" font-size="10" text-anchor="end">zeroize</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M140 120h10" />
+<text x="148" y="118" fill="black" stroke-width="0" font-size="10" text-anchor="end">cmd_aad_bits[10:0]</text>
+<path d="M140 140h10" />
+<text x="148" y="138" fill="black" stroke-width="0" font-size="10" text-anchor="end">cmd_data_bits[10:0]</text>
+<path d="M140 180h10" />
+<text x="148" y="178" fill="black" stroke-width="0" font-size="10" text-anchor="end">cmd_iv_bits[10:0]</text>
+<path d="M140 220h10" />
+<text x="148" y="218" fill="black" stroke-width="0" font-size="10" text-anchor="end">cmd_tag_bits[7:0]</text>
+<path d="M140 550h10" />
+<text x="148" y="548" fill="black" stroke-width="0" font-size="10" text-anchor="end">key_data[255:0]</text>
+<path d="M140 570h10" />
+<text x="148" y="568" fill="black" stroke-width="0" font-size="10" text-anchor="end">key_mode[2:0]</text>
+</g>
+<g stroke="black">
+<path d="M160 100h-10" />
+<path d="M160 160h-10" />
+<path d="M160 200h-10" />
+<path d="M160 530h-10" />
+<path d="M160 590h-10" />
+<path d="M160 610h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M160 120h-10" />
+<path d="M160 140h-10" />
+<path d="M160 180h-10" />
+<path d="M160 220h-10" />
+<path d="M160 550h-10" />
+<path d="M160 570h-10" />
+<path d="M750 418h60v142h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M750 418h60v142h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M761 423v12" />
+<path d="M755 429h12" />
+</g>
+<g stroke="black">
+<path d="M753 421h16v16h-16z" />
+<text x="780" y="416" fill="black" stroke-width="0" text-anchor="middle">u_aes_engine</text>
+<text x="780" y="562" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">aes_block_engine</text>
+<path d="M820 490h-10" />
+<text x="812" y="489" fill="black" stroke-width="0" font-size="10">busy</text>
+<path d="M740 470h10" />
+<text x="748" y="469" fill="black" stroke-width="0" font-size="10" text-anchor="end">clk</text>
+<path d="M820 510h-10" />
+<text x="812" y="509" fill="black" stroke-width="0" font-size="10">done</text>
+<path d="M820 530h-10" />
+<text x="812" y="529" fill="black" stroke-width="0" font-size="10">ready</text>
+<path d="M740 530h10" />
+<text x="748" y="529" fill="black" stroke-width="0" font-size="10" text-anchor="end">rst_n</text>
+<path d="M740 550h10" />
+<text x="748" y="549" fill="black" stroke-width="0" font-size="10" text-anchor="end">start</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M740 450h10" />
+<text x="748" y="449" fill="black" stroke-width="0" font-size="10" text-anchor="end">block_in[127:0]</text>
+<path d="M820 470h-10" />
+<text x="812" y="469" fill="black" stroke-width="0" font-size="10">block_out[127:0]</text>
+<path d="M740 490h10" />
+<text x="748" y="489" fill="black" stroke-width="0" font-size="10" text-anchor="end">key_size[1:0]</text>
+<path d="M740 510h10" />
+<text x="748" y="509" fill="black" stroke-width="0" font-size="10" text-anchor="end">round_keys[1919:0]</text>
+</g>
+<g stroke="black">
+<path d="M800 490h10" />
+<path d="M760 470h-10" />
+<path d="M800 510h10" />
+<path d="M800 530h10" />
+<path d="M760 530h-10" />
+<path d="M760 550h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M760 450h-10" />
+<path d="M800 470h10" />
+<path d="M760 490h-10" />
+<path d="M760 510h-10" />
+<path d="M1260 298h60v142h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M1260 298h60v142h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1271 303v12" />
+<path d="M1265 309h12" />
+</g>
+<g stroke="black">
+<path d="M1263 301h16v16h-16z" />
+<text x="1290" y="296" fill="black" stroke-width="0" text-anchor="middle">u_aes_first_engine</text>
+<text x="1290" y="442" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">aes_first_block_engine</text>
+<path d="M1330 370h-10" />
+<text x="1322" y="369" fill="black" stroke-width="0" font-size="10">busy</text>
+<path d="M1250 350h10" />
+<text x="1258" y="349" fill="black" stroke-width="0" font-size="10" text-anchor="end">clk</text>
+<path d="M1330 390h-10" />
+<text x="1322" y="389" fill="black" stroke-width="0" font-size="10">done</text>
+<path d="M1330 410h-10" />
+<text x="1322" y="409" fill="black" stroke-width="0" font-size="10">ready</text>
+<path d="M1250 410h10" />
+<text x="1258" y="409" fill="black" stroke-width="0" font-size="10" text-anchor="end">rst_n</text>
+<path d="M1250 430h10" />
+<text x="1258" y="429" fill="black" stroke-width="0" font-size="10" text-anchor="end">start</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1250 330h10" />
+<text x="1258" y="329" fill="black" stroke-width="0" font-size="10" text-anchor="end">block_in[127:0]</text>
+<path d="M1330 350h-10" />
+<text x="1322" y="349" fill="black" stroke-width="0" font-size="10">block_out[127:0]</text>
+<path d="M1250 370h10" />
+<text x="1258" y="369" fill="black" stroke-width="0" font-size="10" text-anchor="end">key_size[1:0]</text>
+<path d="M1250 390h10" />
+<text x="1258" y="389" fill="black" stroke-width="0" font-size="10" text-anchor="end">round_keys[1919:0]</text>
+</g>
+<g stroke="black">
+<path d="M1310 370h10" />
+<path d="M1270 350h-10" />
+<path d="M1310 390h10" />
+<path d="M1310 410h10" />
+<path d="M1270 410h-10" />
+<path d="M1270 430h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1270 330h-10" />
+<path d="M1310 350h10" />
+<path d="M1270 370h-10" />
+<path d="M1270 390h-10" />
+<path d="M750 658h60v142h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M750 658h60v142h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M761 663v12" />
+<path d="M755 669h12" />
+</g>
+<g stroke="black">
+<path d="M753 661h16v16h-16z" />
+<text x="780" y="656" fill="black" stroke-width="0" text-anchor="middle">u_aes_meta_fifo</text>
+<text x="780" y="802" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">stream_fifo__parameterized2</text>
+<path d="M740 690h10" />
+<text x="748" y="689" fill="black" stroke-width="0" font-size="10" text-anchor="end">clear</text>
+<path d="M740 710h10" />
+<text x="748" y="709" fill="black" stroke-width="0" font-size="10" text-anchor="end">clk</text>
+<path d="M820 730h-10" />
+<text x="812" y="729" fill="black" stroke-width="0" font-size="10">in_ready</text>
+<path d="M740 750h10" />
+<text x="748" y="749" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_valid</text>
+<path d="M740 770h10" />
+<text x="748" y="769" fill="black" stroke-width="0" font-size="10" text-anchor="end">out_ready</text>
+<path d="M820 770h-10" />
+<text x="812" y="769" fill="black" stroke-width="0" font-size="10">out_valid</text>
+<path d="M740 790h10" />
+<text x="748" y="789" fill="black" stroke-width="0" font-size="10" text-anchor="end">rst_n</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M820 710h-10" />
+<text x="812" y="709" fill="black" stroke-width="0" font-size="10">count[2:0]</text>
+<path d="M740 730h10" />
+<text x="748" y="729" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_data[142:0]</text>
+<path d="M820 750h-10" />
+<text x="812" y="749" fill="black" stroke-width="0" font-size="10">out_data[142:0]</text>
+</g>
+<g stroke="black">
+<path d="M760 690h-10" />
+<path d="M760 710h-10" />
+<path d="M800 730h10" />
+<path d="M760 750h-10" />
+<path d="M760 770h-10" />
+<path d="M800 770h10" />
+<path d="M760 790h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M800 710h10" />
+<path d="M760 730h-10" />
+<path d="M800 750h10" />
+<path d="M340 278h60v142h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M340 278h60v142h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M351 283v12" />
+<path d="M345 289h12" />
+</g>
+<g stroke="black">
+<path d="M343 281h16v16h-16z" />
+<text x="370" y="276" fill="black" stroke-width="0" text-anchor="middle">u_aes_request_fifo</text>
+<text x="370" y="422" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">stream_fifo__parameterized1</text>
+<path d="M330 310h10" />
+<text x="338" y="309" fill="black" stroke-width="0" font-size="10" text-anchor="end">clear</text>
+<path d="M330 330h10" />
+<text x="338" y="329" fill="black" stroke-width="0" font-size="10" text-anchor="end">clk</text>
+<path d="M410 350h-10" />
+<text x="402" y="349" fill="black" stroke-width="0" font-size="10">in_ready</text>
+<path d="M330 370h10" />
+<text x="338" y="369" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_valid</text>
+<path d="M330 390h10" />
+<text x="338" y="389" fill="black" stroke-width="0" font-size="10" text-anchor="end">out_ready</text>
+<path d="M410 390h-10" />
+<text x="402" y="389" fill="black" stroke-width="0" font-size="10">out_valid</text>
+<path d="M330 410h10" />
+<text x="338" y="409" fill="black" stroke-width="0" font-size="10" text-anchor="end">rst_n</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M410 330h-10" />
+<text x="402" y="329" fill="black" stroke-width="0" font-size="10">count[2:0]</text>
+<path d="M330 350h10" />
+<text x="338" y="349" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_data[271:0]</text>
+<path d="M410 370h-10" />
+<text x="402" y="369" fill="black" stroke-width="0" font-size="10">out_data[271:0]</text>
+</g>
+<g stroke="black">
+<path d="M350 310h-10" />
+<path d="M350 330h-10" />
+<path d="M390 350h10" />
+<path d="M350 370h-10" />
+<path d="M350 390h-10" />
+<path d="M390 390h10" />
+<path d="M350 410h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M390 330h10" />
+<path d="M350 350h-10" />
+<path d="M390 370h10" />
+<path d="M1260 678h60v142h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M1260 678h60v142h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1271 683v12" />
+<path d="M1265 689h12" />
+</g>
+<g stroke="black">
+<path d="M1263 681h16v16h-16z" />
+<text x="1290" y="676" fill="black" stroke-width="0" text-anchor="middle">u_aes_result_fifo</text>
+<text x="1290" y="822" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">stream_fifo__parameterized3</text>
+<path d="M1250 710h10" />
+<text x="1258" y="709" fill="black" stroke-width="0" font-size="10" text-anchor="end">clear</text>
+<path d="M1250 730h10" />
+<text x="1258" y="729" fill="black" stroke-width="0" font-size="10" text-anchor="end">clk</text>
+<path d="M1330 750h-10" />
+<text x="1322" y="749" fill="black" stroke-width="0" font-size="10">in_ready</text>
+<path d="M1250 770h10" />
+<text x="1258" y="769" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_valid</text>
+<path d="M1250 790h10" />
+<text x="1258" y="789" fill="black" stroke-width="0" font-size="10" text-anchor="end">out_ready</text>
+<path d="M1330 790h-10" />
+<text x="1322" y="789" fill="black" stroke-width="0" font-size="10">out_valid</text>
+<path d="M1250 810h10" />
+<text x="1258" y="809" fill="black" stroke-width="0" font-size="10" text-anchor="end">rst_n</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1330 730h-10" />
+<text x="1322" y="729" fill="black" stroke-width="0" font-size="10">count[2:0]</text>
+<path d="M1250 750h10" />
+<text x="1258" y="749" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_data[270:0]</text>
+<path d="M1330 770h-10" />
+<text x="1322" y="769" fill="black" stroke-width="0" font-size="10">out_data[270:0]</text>
+</g>
+<g stroke="black">
+<path d="M1270 710h-10" />
+<path d="M1270 730h-10" />
+<path d="M1310 750h10" />
+<path d="M1270 770h-10" />
+<path d="M1270 790h-10" />
+<path d="M1310 790h10" />
+<path d="M1270 810h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1310 730h10" />
+<path d="M1270 750h-10" />
+<path d="M1310 770h10" />
+<path d="M1260 488h60v142h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M1260 488h60v142h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1271 493v12" />
+<path d="M1265 499h12" />
+</g>
+<g stroke="black">
+<path d="M1263 491h16v16h-16z" />
+<text x="1290" y="486" fill="black" stroke-width="0" text-anchor="middle">u_aes_second_engine</text>
+<text x="1290" y="632" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">aes_first_block_engine</text>
+<path d="M1330 560h-10" />
+<text x="1322" y="559" fill="black" stroke-width="0" font-size="10">busy</text>
+<path d="M1250 540h10" />
+<text x="1258" y="539" fill="black" stroke-width="0" font-size="10" text-anchor="end">clk</text>
+<path d="M1330 580h-10" />
+<text x="1322" y="579" fill="black" stroke-width="0" font-size="10">done</text>
+<path d="M1330 600h-10" />
+<text x="1322" y="599" fill="black" stroke-width="0" font-size="10">ready</text>
+<path d="M1250 600h10" />
+<text x="1258" y="599" fill="black" stroke-width="0" font-size="10" text-anchor="end">rst_n</text>
+<path d="M1250 620h10" />
+<text x="1258" y="619" fill="black" stroke-width="0" font-size="10" text-anchor="end">start</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1250 520h10" />
+<text x="1258" y="519" fill="black" stroke-width="0" font-size="10" text-anchor="end">block_in[127:0]</text>
+<path d="M1330 540h-10" />
+<text x="1322" y="539" fill="black" stroke-width="0" font-size="10">block_out[127:0]</text>
+<path d="M1250 560h10" />
+<text x="1258" y="559" fill="black" stroke-width="0" font-size="10" text-anchor="end">key_size[1:0]</text>
+<path d="M1250 580h10" />
+<text x="1258" y="579" fill="black" stroke-width="0" font-size="10" text-anchor="end">round_keys[1919:0]</text>
+</g>
+<g stroke="black">
+<path d="M1310 560h10" />
+<path d="M1270 540h-10" />
+<path d="M1310 580h10" />
+<path d="M1310 600h10" />
+<path d="M1270 600h-10" />
+<path d="M1270 620h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1270 520h-10" />
+<path d="M1310 540h10" />
+<path d="M1270 560h-10" />
+<path d="M1270 580h-10" />
+<path d="M1260 1078h60v142h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M1260 1078h60v142h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1271 1083v12" />
+<path d="M1265 1089h12" />
+</g>
+<g stroke="black">
+<path d="M1263 1081h16v16h-16z" />
+<text x="1290" y="1076" fill="black" stroke-width="0" text-anchor="middle">u_ciphertext_fifo</text>
+<text x="1290" y="1222" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">stream_fifo__parameterized6</text>
+<path d="M1250 1110h10" />
+<text x="1258" y="1109" fill="black" stroke-width="0" font-size="10" text-anchor="end">clear</text>
+<path d="M1250 1130h10" />
+<text x="1258" y="1129" fill="black" stroke-width="0" font-size="10" text-anchor="end">clk</text>
+<path d="M1330 1150h-10" />
+<text x="1322" y="1149" fill="black" stroke-width="0" font-size="10">in_ready</text>
+<path d="M1250 1170h10" />
+<text x="1258" y="1169" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_valid</text>
+<path d="M1250 1190h10" />
+<text x="1258" y="1189" fill="black" stroke-width="0" font-size="10" text-anchor="end">out_ready</text>
+<path d="M1330 1190h-10" />
+<text x="1322" y="1189" fill="black" stroke-width="0" font-size="10">out_valid</text>
+<path d="M1250 1210h10" />
+<text x="1258" y="1209" fill="black" stroke-width="0" font-size="10" text-anchor="end">rst_n</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1330 1130h-10" />
+<text x="1322" y="1129" fill="black" stroke-width="0" font-size="10">count[2:0]</text>
+<text x="1386" y="1129" fill="black" stroke-width="0" font-size="8">n/c</text>
+<path d="M1250 1150h10" />
+<text x="1258" y="1149" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_data[133:0]</text>
+<path d="M1330 1170h-10" />
+<text x="1322" y="1169" fill="black" stroke-width="0" font-size="10">out_data[133:0]</text>
+</g>
+<g stroke="black">
+<path d="M1270 1110h-10" />
+<path d="M1270 1130h-10" />
+<path d="M1310 1150h10" />
+<path d="M1270 1170h-10" />
+<path d="M1270 1190h-10" />
+<path d="M1310 1190h10" />
+<path d="M1270 1210h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1310 1130h10" />
+<path d="M1270 1150h-10" />
+<path d="M1310 1170h10" />
+<path d="M1260 108h60v142h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M1260 108h60v142h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1271 113v12" />
+<path d="M1265 119h12" />
+</g>
+<g stroke="black">
+<path d="M1263 111h16v16h-16z" />
+<text x="1290" y="106" fill="black" stroke-width="0" text-anchor="middle">u_desc_fifo</text>
+<text x="1290" y="252" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">stream_fifo__parameterized0</text>
+<path d="M1250 140h10" />
+<text x="1258" y="139" fill="black" stroke-width="0" font-size="10" text-anchor="end">clear</text>
+<path d="M1250 160h10" />
+<text x="1258" y="159" fill="black" stroke-width="0" font-size="10" text-anchor="end">clk</text>
+<path d="M1330 180h-10" />
+<text x="1322" y="179" fill="black" stroke-width="0" font-size="10">in_ready</text>
+<path d="M1250 200h10" />
+<text x="1258" y="199" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_valid</text>
+<path d="M1250 220h10" />
+<text x="1258" y="219" fill="black" stroke-width="0" font-size="10" text-anchor="end">out_ready</text>
+<path d="M1330 220h-10" />
+<text x="1322" y="219" fill="black" stroke-width="0" font-size="10">out_valid</text>
+<path d="M1250 240h10" />
+<text x="1258" y="239" fill="black" stroke-width="0" font-size="10" text-anchor="end">rst_n</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1330 160h-10" />
+<text x="1322" y="159" fill="black" stroke-width="0" font-size="10">count[1:0]</text>
+<path d="M1250 180h10" />
+<text x="1258" y="179" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_data[41:0]</text>
+<path d="M1330 200h-10" />
+<text x="1322" y="199" fill="black" stroke-width="0" font-size="10">out_data[41:0]</text>
+</g>
+<g stroke="black">
+<path d="M1270 140h-10" />
+<path d="M1270 160h-10" />
+<path d="M1310 180h10" />
+<path d="M1270 200h-10" />
+<path d="M1270 220h-10" />
+<path d="M1310 220h10" />
+<path d="M1270 240h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1310 160h10" />
+<path d="M1270 180h-10" />
+<path d="M1310 200h10" />
+<path d="M1260 868h60v162h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M1260 868h60v162h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1271 873v12" />
+<path d="M1265 879h12" />
+</g>
+<g stroke="black">
+<path d="M1263 871h16v16h-16z" />
+<text x="1290" y="866" fill="black" stroke-width="0" text-anchor="middle">u_ghash</text>
+<text x="1290" y="1032" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">ghash16</text>
+<path d="M1330 960h-10" />
+<text x="1322" y="959" fill="black" stroke-width="0" font-size="10">busy</text>
+<path d="M1250 940h10" />
+<text x="1258" y="939" fill="black" stroke-width="0" font-size="10" text-anchor="end">clk</text>
+<path d="M1330 980h-10" />
+<text x="1322" y="979" fill="black" stroke-width="0" font-size="10">done</text>
+<path d="M1250 960h10" />
+<text x="1258" y="959" fill="black" stroke-width="0" font-size="10" text-anchor="end">init</text>
+<path d="M1250 980h10" />
+<text x="1258" y="979" fill="black" stroke-width="0" font-size="10" text-anchor="end">load_h</text>
+<path d="M1250 1000h10" />
+<text x="1258" y="999" fill="black" stroke-width="0" font-size="10" text-anchor="end">rst_n</text>
+<path d="M1250 1020h10" />
+<text x="1258" y="1019" fill="black" stroke-width="0" font-size="10" text-anchor="end">start</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1250 900h10" />
+<text x="1258" y="899" fill="black" stroke-width="0" font-size="10" text-anchor="end">H[127:0]</text>
+<path d="M1330 940h-10" />
+<text x="1322" y="939" fill="black" stroke-width="0" font-size="10">Y[127:0]</text>
+<path d="M1250 920h10" />
+<text x="1258" y="919" fill="black" stroke-width="0" font-size="10" text-anchor="end">block_in[127:0]</text>
+</g>
+<g stroke="black">
+<path d="M1310 960h10" />
+<path d="M1270 940h-10" />
+<path d="M1310 980h10" />
+<path d="M1270 960h-10" />
+<path d="M1270 980h-10" />
+<path d="M1270 1000h-10" />
+<path d="M1270 1020h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1270 900h-10" />
+<path d="M1310 940h10" />
+<path d="M1270 920h-10" />
+<path d="M750 898h60v142h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M750 898h60v142h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M761 903v12" />
+<path d="M755 909h12" />
+</g>
+<g stroke="black">
+<path d="M753 901h16v16h-16z" />
+<text x="780" y="896" fill="black" stroke-width="0" text-anchor="middle">u_ghash_request_fifo</text>
+<text x="780" y="1042" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">stream_fifo__parameterized5</text>
+<path d="M740 930h10" />
+<text x="748" y="929" fill="black" stroke-width="0" font-size="10" text-anchor="end">clear</text>
+<path d="M740 950h10" />
+<text x="748" y="949" fill="black" stroke-width="0" font-size="10" text-anchor="end">clk</text>
+<path d="M820 970h-10" />
+<text x="812" y="969" fill="black" stroke-width="0" font-size="10">in_ready</text>
+<path d="M740 990h10" />
+<text x="748" y="989" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_valid</text>
+<path d="M740 1010h10" />
+<text x="748" y="1009" fill="black" stroke-width="0" font-size="10" text-anchor="end">out_ready</text>
+<path d="M820 1010h-10" />
+<text x="812" y="1009" fill="black" stroke-width="0" font-size="10">out_valid</text>
+<path d="M740 1030h10" />
+<text x="748" y="1029" fill="black" stroke-width="0" font-size="10" text-anchor="end">rst_n</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M820 950h-10" />
+<text x="812" y="949" fill="black" stroke-width="0" font-size="10">count[2:0]</text>
+<text x="876" y="949" fill="black" stroke-width="0" font-size="8">n/c</text>
+<path d="M740 970h10" />
+<text x="748" y="969" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_data[131:0]</text>
+<path d="M820 990h-10" />
+<text x="812" y="989" fill="black" stroke-width="0" font-size="10">out_data[131:0]</text>
+</g>
+<g stroke="black">
+<path d="M760 930h-10" />
+<path d="M760 950h-10" />
+<path d="M800 970h10" />
+<path d="M760 990h-10" />
+<path d="M760 1010h-10" />
+<path d="M800 1010h10" />
+<path d="M760 1030h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M800 950h10" />
+<path d="M760 970h-10" />
+<path d="M800 990h10" />
+<path d="M340 478h60v142h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M340 478h60v142h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M351 483v12" />
+<path d="M345 489h12" />
+</g>
+<g stroke="black">
+<path d="M343 481h16v16h-16z" />
+<text x="370" y="476" fill="black" stroke-width="0" text-anchor="middle">u_key_context</text>
+<text x="370" y="622" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">aes_key_context</text>
+<path d="M410 510h-10" />
+<text x="402" y="509" fill="black" stroke-width="0" font-size="10">busy</text>
+<path d="M330 510h10" />
+<text x="338" y="509" fill="black" stroke-width="0" font-size="10" text-anchor="end">clk</text>
+<path d="M330 530h10" />
+<text x="338" y="529" fill="black" stroke-width="0" font-size="10" text-anchor="end">commit</text>
+<path d="M410 550h-10" />
+<text x="402" y="549" fill="black" stroke-width="0" font-size="10">ready</text>
+<path d="M330 590h10" />
+<text x="338" y="589" fill="black" stroke-width="0" font-size="10" text-anchor="end">rst_n</text>
+<path d="M330 610h10" />
+<text x="338" y="609" fill="black" stroke-width="0" font-size="10" text-anchor="end">zeroize</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M330 550h10" />
+<text x="338" y="549" fill="black" stroke-width="0" font-size="10" text-anchor="end">key[255:0]</text>
+<path d="M330 570h10" />
+<text x="338" y="569" fill="black" stroke-width="0" font-size="10" text-anchor="end">key_mode[2:0]</text>
+<path d="M410 530h-10" />
+<text x="402" y="529" fill="black" stroke-width="0" font-size="10">key_size[1:0]</text>
+<path d="M410 570h-10" />
+<text x="402" y="569" fill="black" stroke-width="0" font-size="10">round_count[3:0]</text>
+<text x="502" y="569" fill="black" stroke-width="0" font-size="8">n/c</text>
+<path d="M410 590h-10" />
+<text x="402" y="589" fill="black" stroke-width="0" font-size="10">round_keys[1919:0]</text>
+</g>
+<g stroke="black">
+<path d="M390 510h10" />
+<path d="M350 510h-10" />
+<path d="M350 530h-10" />
+<path d="M390 550h10" />
+<path d="M350 590h-10" />
+<path d="M350 610h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M350 550h-10" />
+<path d="M350 570h-10" />
+<path d="M390 530h10" />
+<path d="M390 570h10" />
+<path d="M390 590h10" />
+<path d="M1260 1268h60v142h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M1260 1268h60v142h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1271 1273v12" />
+<path d="M1265 1279h12" />
+</g>
+<g stroke="black">
+<path d="M1263 1271h16v16h-16z" />
+<text x="1290" y="1266" fill="black" stroke-width="0" text-anchor="middle">u_keystream_fifo</text>
+<text x="1290" y="1412" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">stream_fifo__parameterized4</text>
+<path d="M1250 1300h10" />
+<text x="1258" y="1299" fill="black" stroke-width="0" font-size="10" text-anchor="end">clear</text>
+<path d="M1250 1320h10" />
+<text x="1258" y="1319" fill="black" stroke-width="0" font-size="10" text-anchor="end">clk</text>
+<path d="M1330 1340h-10" />
+<text x="1322" y="1339" fill="black" stroke-width="0" font-size="10">in_ready</text>
+<path d="M1250 1360h10" />
+<text x="1258" y="1359" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_valid</text>
+<path d="M1250 1380h10" />
+<text x="1258" y="1379" fill="black" stroke-width="0" font-size="10" text-anchor="end">out_ready</text>
+<path d="M1330 1380h-10" />
+<text x="1322" y="1379" fill="black" stroke-width="0" font-size="10">out_valid</text>
+<path d="M1250 1400h10" />
+<text x="1258" y="1399" fill="black" stroke-width="0" font-size="10" text-anchor="end">rst_n</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1330 1320h-10" />
+<text x="1322" y="1319" fill="black" stroke-width="0" font-size="10">count[4:0]</text>
+<text x="1386" y="1319" fill="black" stroke-width="0" font-size="8">n/c</text>
+<path d="M1250 1340h10" />
+<text x="1258" y="1339" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_data[133:0]</text>
+<path d="M1330 1360h-10" />
+<text x="1322" y="1359" fill="black" stroke-width="0" font-size="10">out_data[133:0]</text>
+</g>
+<g stroke="black">
+<path d="M1270 1300h-10" />
+<path d="M1270 1320h-10" />
+<path d="M1310 1340h10" />
+<path d="M1270 1360h-10" />
+<path d="M1270 1380h-10" />
+<path d="M1310 1380h10" />
+<path d="M1270 1400h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1310 1320h10" />
+<path d="M1270 1340h-10" />
+<path d="M1310 1360h10" />
+<path d="M1260 1458h60v142h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M1260 1458h60v142h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1271 1463v12" />
+<path d="M1265 1469h12" />
+</g>
+<g stroke="black">
+<path d="M1263 1461h16v16h-16z" />
+<text x="1290" y="1456" fill="black" stroke-width="0" text-anchor="middle">u_plain_release_fifo</text>
+<text x="1290" y="1602" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">stream_fifo__parameterized8</text>
+<path d="M1250 1490h10" />
+<text x="1258" y="1489" fill="black" stroke-width="0" font-size="10" text-anchor="end">clear</text>
+<path d="M1250 1510h10" />
+<text x="1258" y="1509" fill="black" stroke-width="0" font-size="10" text-anchor="end">clk</text>
+<path d="M1330 1530h-10" />
+<text x="1322" y="1529" fill="black" stroke-width="0" font-size="10">in_ready</text>
+<path d="M1250 1550h10" />
+<text x="1258" y="1549" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_valid</text>
+<path d="M1250 1570h10" />
+<text x="1258" y="1569" fill="black" stroke-width="0" font-size="10" text-anchor="end">out_ready</text>
+<path d="M1330 1570h-10" />
+<text x="1322" y="1569" fill="black" stroke-width="0" font-size="10">out_valid</text>
+<path d="M1250 1590h10" />
+<text x="1258" y="1589" fill="black" stroke-width="0" font-size="10" text-anchor="end">rst_n</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1330 1510h-10" />
+<text x="1322" y="1509" fill="black" stroke-width="0" font-size="10">count[1:0]</text>
+<text x="1386" y="1509" fill="black" stroke-width="0" font-size="8">n/c</text>
+<path d="M1250 1530h10" />
+<text x="1258" y="1529" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_data[11:0]</text>
+<path d="M1330 1550h-10" />
+<text x="1322" y="1549" fill="black" stroke-width="0" font-size="10">out_data[11:0]</text>
+</g>
+<g stroke="black">
+<path d="M1270 1490h-10" />
+<path d="M1270 1510h-10" />
+<path d="M1310 1530h10" />
+<path d="M1270 1550h-10" />
+<path d="M1270 1570h-10" />
+<path d="M1310 1570h10" />
+<path d="M1270 1590h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1310 1510h10" />
+<path d="M1270 1530h-10" />
+<path d="M1310 1550h10" />
+<path d="M1260 1648h60v142h-60z" stroke="none" fill="#dfebf8" />
+</g>
+<g stroke="black">
+<path d="M1260 1648h60v142h-60z" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1271 1653v12" />
+<path d="M1265 1659h12" />
+</g>
+<g stroke="black">
+<path d="M1263 1651h16v16h-16z" />
+<text x="1290" y="1646" fill="black" stroke-width="0" text-anchor="middle">u_tag_packet_fifo</text>
+<text x="1290" y="1792" fill="black" stroke-width="0" text-anchor="middle" dy="7.7">stream_fifo__parameterized7</text>
+<path d="M1250 1680h10" />
+<text x="1258" y="1679" fill="black" stroke-width="0" font-size="10" text-anchor="end">clear</text>
+<path d="M1250 1700h10" />
+<text x="1258" y="1699" fill="black" stroke-width="0" font-size="10" text-anchor="end">clk</text>
+<path d="M1330 1720h-10" />
+<text x="1322" y="1719" fill="black" stroke-width="0" font-size="10">in_ready</text>
+<path d="M1250 1740h10" />
+<text x="1258" y="1739" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_valid</text>
+<path d="M1250 1760h10" />
+<text x="1258" y="1759" fill="black" stroke-width="0" font-size="10" text-anchor="end">out_ready</text>
+<path d="M1330 1760h-10" />
+<text x="1322" y="1759" fill="black" stroke-width="0" font-size="10">out_valid</text>
+<path d="M1250 1780h10" />
+<text x="1258" y="1779" fill="black" stroke-width="0" font-size="10" text-anchor="end">rst_n</text>
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1330 1700h-10" />
+<text x="1322" y="1699" fill="black" stroke-width="0" font-size="10">count[1:0]</text>
+<path d="M1250 1720h10" />
+<text x="1258" y="1719" fill="black" stroke-width="0" font-size="10" text-anchor="end">in_data[135:0]</text>
+<path d="M1330 1740h-10" />
+<text x="1322" y="1739" fill="black" stroke-width="0" font-size="10">out_data[135:0]</text>
+</g>
+<g stroke="black">
+<path d="M1270 1680h-10" />
+<path d="M1270 1700h-10" />
+<path d="M1310 1720h10" />
+<path d="M1270 1740h-10" />
+<path d="M1270 1760h-10" />
+<path d="M1310 1760h10" />
+<path d="M1270 1780h-10" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1310 1700h10" />
+<path d="M1270 1720h-10" />
+<path d="M1310 1740h10" />
+</g>
+<g stroke="green" stroke-width="3" stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M330 350h-130v-100h780v270h270" />
+<path d="M980 330h270" />
+<path d="M977 327h7v7h-7z" stroke="none" fill="green" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M820 470h140v275l1 1" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M960 745l5 5h1" />
+</g>
+<g stroke-width="3">
+<path d="M965 750h285" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M820 750h120" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M940 750h5" />
+</g>
+<g stroke-width="3">
+<path d="M945 750h305" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M410 370h200v80h130" />
+<path d="M160 120h900v55l1 1" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1060 175l5 5h1" />
+</g>
+<g stroke-width="3">
+<path d="M1065 180h185" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M160 140h820v35l1 1" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M980 175l5 5h1" />
+</g>
+<g stroke-width="3">
+<path d="M985 180h265" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M160 180h780" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M940 180h5" />
+</g>
+<g stroke-width="3">
+<path d="M945 180h305" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M160 220h800v-35l1 -1" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M960 185l5 -5h1" />
+</g>
+<g stroke-width="3">
+<path d="M965 180h285" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M410 530h140v-140h390" />
+<path d="M937 387h7v7h-7z" stroke="none" fill="green" />
+<path d="M550 490h190" />
+<path d="M547 487h7v7h-7z" stroke="none" fill="green" />
+<path d="M1250 370h-310v190h310" />
+<path d="M820 990h260v-73" />
+<path d="M1080 920h170" />
+</g>
+<g>
+<path d="M1080 960h170" />
+</g>
+<g stroke="black" stroke-width="3">
+<path d="M1079 955v10l11 -5" stroke="none" fill="black" />
+<path d="M1079 915v10l11 -5" stroke="none" fill="black" />
+</g>
+<g stroke="green" stroke-width="3">
+<path d="M160 550h170" />
+<path d="M160 570h170" />
+<path d="M740 510h-150v80h410v-200h250" />
+<path d="M1000 580h250" />
+<path d="M997 577h7v7h-7z" stroke="none" fill="green" />
+<path d="M410 590h180" />
+<path d="M587 587h7v7h-7z" stroke="none" fill="green" />
+</g>
+<g stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M160 100h20v410h150" />
+<path d="M180 330h150" />
+<path d="M180 450h390v500h170" />
+<path d="M570 470h170" />
+<path d="M570 710h170" />
+<path d="M570 830h470" />
+<path d="M1040 940h210" />
+<path d="M1040 1130h210" />
+<path d="M1040 1320h210" />
+<path d="M1040 1510h210" />
+<path d="M1038 348h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1038 538h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1038 728h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1038 828h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1038 938h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1038 1128h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1038 1318h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1038 1508h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M178 328h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M178 448h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M568 468h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M568 708h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M568 828h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1250 160h-210v1540h210" />
+<path d="M1040 350h210" />
+<path d="M1040 540h210" />
+<path d="M1040 730h210" />
+</g>
+<g>
+<path d="M160 160h800v15l1 1" />
+</g>
+<g stroke="black">
+<path d="M960 175l5 5h1" />
+</g>
+<g stroke-width="2">
+<path d="M965 180h285" />
+</g>
+<g stroke-dasharray="7,3" stroke-dashoffset="3">
+<path d="M160 200h1090" />
+<path d="M160 530h170" />
+<path d="M330 310h-110v380h370v240h150" />
+<path d="M590 690h150" />
+<path d="M590 850h530" />
+<path d="M1120 1110h130" />
+<path d="M1118 848h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1118 1108h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M588 688h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M588 848h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1250 710h-130v590h130" />
+<path d="M330 410h-130v240h350v380h190" />
+<path d="M550 790h190" />
+<path d="M550 870h510" />
+<path d="M1060 1210h190" />
+<path d="M1060 1400h190" />
+<path d="M1060 1590h190" />
+<path d="M1058 808h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1058 868h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1058 1208h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1058 1398h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1058 1588h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M160 590h40" />
+<path d="M200 590h130" />
+<path d="M198 588h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M548 788h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M548 868h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1250 240h-190v1540h190" />
+<path d="M1060 810h190" />
+<path d="M740 530h-130v80h490" />
+<path d="M1098 598h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1098 608h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1250 410h-150v590h150" />
+<path d="M1100 600h150" />
+<path d="M160 610h20v60h430v-40h410" />
+<path d="M1020 1490h230" />
+<path d="M1018 628h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1018 1488h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M180 610h150" />
+<path d="M178 608h5v5h-5z" stroke="none" fill="#19b400" />
+<path d="M1250 140h-230v1540h230" />
+<text x="965" y="749" fill="black" stroke-width="0" font-size="8">...</text>
+<text x="945" y="749" fill="black" stroke-width="0" font-size="8">...</text>
+<text x="1065" y="179" fill="black" stroke-width="0" font-size="8">...</text>
+<text x="985" y="179" fill="black" stroke-width="0" font-size="8">...</text>
+<text x="945" y="179" fill="black" stroke-width="0" font-size="8">...</text>
+<text x="965" y="181" fill="black" stroke-width="0" font-size="8" dy="5.3">...</text>
+<text x="1086" y="959" fill="black" stroke-width="0" font-size="8">128</text>
+<text x="1086" y="919" fill="black" stroke-width="0" font-size="8">...</text>
+</g>
+</g>
+</svg>

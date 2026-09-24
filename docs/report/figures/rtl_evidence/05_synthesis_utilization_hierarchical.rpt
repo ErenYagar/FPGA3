@@ -1,0 +1,100 @@
+Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2021.1 (win64) Build 3247384 Thu Jun 10 19:36:33 MDT 2021
+| Date         : Wed Aug 26 12:58:14 2026
+| Host         : DESKTOP-IO47298 running 64-bit major release  (build 9200)
+| Command      : report_utilization -hierarchical -hierarchical_depth 4 -file C:/project/FPGA3/docs/report/figures/rtl_evidence/05_synthesis_utilization_hierarchical.rpt
+| Design       : arty_a7_100t_aes_gcm_uart_rsp_top
+| Device       : 7a100tcsg324-1
+| Design State : Synthesized
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++-----------------------------------------+-----------------------------+------------+------------+---------+------+------+--------+--------+------------+
+|                 Instance                |            Module           | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs | RAMB36 | RAMB18 | DSP Blocks |
++-----------------------------------------+-----------------------------+------------+------------+---------+------+------+--------+--------+------------+
+| arty_a7_100t_aes_gcm_uart_rsp_top       |                       (top) |      12392 |      11308 |    1084 |    0 | 8998 |      0 |     10 |          0 |
+|   (arty_a7_100t_aes_gcm_uart_rsp_top)   |                       (top) |          3 |          3 |       0 |    0 |  275 |      0 |      0 |          0 |
+|   u_aes_gcm                             |             aes_gcm_axi_top |      11326 |      10358 |     968 |    0 | 8029 |      0 |     10 |          0 |
+|     (u_aes_gcm)                         |             aes_gcm_axi_top |          0 |          0 |       0 |    0 |    6 |      0 |      0 |          0 |
+|     u_core                              |         aes_gcm_stream_core |      11206 |      10254 |     952 |    0 | 7640 |      0 |     10 |          0 |
+|       (u_core)                          |         aes_gcm_stream_core |       2177 |       1833 |     344 |    0 | 2721 |      0 |      0 |          0 |
+|       u_aes_engine                      |            aes_block_engine |        665 |        665 |       0 |    0 |  695 |      0 |      8 |          0 |
+|         (u_aes_engine)                  |            aes_block_engine |         43 |         43 |       0 |    0 |  695 |      0 |      0 |          0 |
+|         GEN_DATA_SBOX[11].u_data_sbox   |                     sbox_34 |         82 |         82 |       0 |    0 |    0 |      0 |      1 |          0 |
+|         GEN_DATA_SBOX[13].u_data_sbox   |                     sbox_35 |         78 |         78 |       0 |    0 |    0 |      0 |      1 |          0 |
+|         GEN_DATA_SBOX[15].u_data_sbox   |                     sbox_36 |         76 |         76 |       0 |    0 |    0 |      0 |      1 |          0 |
+|         GEN_DATA_SBOX[1].u_data_sbox    |                     sbox_37 |         71 |         71 |       0 |    0 |    0 |      0 |      1 |          0 |
+|         GEN_DATA_SBOX[3].u_data_sbox    |                     sbox_38 |         88 |         88 |       0 |    0 |    0 |      0 |      1 |          0 |
+|         GEN_DATA_SBOX[5].u_data_sbox    |                     sbox_39 |         82 |         82 |       0 |    0 |    0 |      0 |      1 |          0 |
+|         GEN_DATA_SBOX[7].u_data_sbox    |                     sbox_40 |         75 |         75 |       0 |    0 |    0 |      0 |      1 |          0 |
+|         GEN_DATA_SBOX[9].u_data_sbox    |                     sbox_41 |         70 |         70 |       0 |    0 |    0 |      0 |      1 |          0 |
+|       u_aes_first_engine                |      aes_first_block_engine |        780 |        780 |       0 |    0 |  147 |      0 |      0 |          0 |
+|         (u_aes_first_engine)            |      aes_first_block_engine |        527 |        527 |       0 |    0 |  147 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[0].u_sbox  |     sbox__parameterized0_18 |         19 |         19 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[10].u_sbox |     sbox__parameterized0_19 |         17 |         17 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[11].u_sbox |     sbox__parameterized0_20 |         14 |         14 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[12].u_sbox |     sbox__parameterized0_21 |         15 |         15 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[13].u_sbox |     sbox__parameterized0_22 |         18 |         18 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[14].u_sbox |     sbox__parameterized0_23 |         17 |         17 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[15].u_sbox |     sbox__parameterized0_24 |          0 |          0 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[1].u_sbox  |     sbox__parameterized0_25 |         18 |         18 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[2].u_sbox  |     sbox__parameterized0_26 |         14 |         14 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[3].u_sbox  |     sbox__parameterized0_27 |         14 |         14 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[4].u_sbox  |     sbox__parameterized0_28 |         16 |         16 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[5].u_sbox  |     sbox__parameterized0_29 |         27 |         27 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[6].u_sbox  |     sbox__parameterized0_30 |         16 |         16 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[7].u_sbox  |     sbox__parameterized0_31 |         13 |         13 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[8].u_sbox  |     sbox__parameterized0_32 |         18 |         18 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[9].u_sbox  |     sbox__parameterized0_33 |         17 |         17 |       0 |    0 |    0 |      0 |      0 |          0 |
+|       u_aes_meta_fifo                   | stream_fifo__parameterized2 |         41 |         29 |      12 |    0 |   20 |      0 |      0 |          0 |
+|       u_aes_request_fifo                | stream_fifo__parameterized1 |        255 |        157 |      98 |    0 |  148 |      0 |      0 |          0 |
+|       u_aes_result_fifo                 | stream_fifo__parameterized3 |        404 |        306 |      98 |    0 |  144 |      0 |      0 |          0 |
+|       u_aes_second_engine               |    aes_first_block_engine_1 |        779 |        779 |       0 |    0 |  147 |      0 |      0 |          0 |
+|         (u_aes_second_engine)           |    aes_first_block_engine_1 |        526 |        526 |       0 |    0 |  147 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[0].u_sbox  |        sbox__parameterized0 |         18 |         18 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[10].u_sbox |      sbox__parameterized0_3 |         18 |         18 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[11].u_sbox |      sbox__parameterized0_4 |         15 |         15 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[12].u_sbox |      sbox__parameterized0_5 |         18 |         18 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[13].u_sbox |      sbox__parameterized0_6 |         13 |         13 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[14].u_sbox |      sbox__parameterized0_7 |         16 |         16 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[15].u_sbox |      sbox__parameterized0_8 |          0 |          0 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[1].u_sbox  |      sbox__parameterized0_9 |         14 |         14 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[2].u_sbox  |     sbox__parameterized0_10 |         15 |         15 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[3].u_sbox  |     sbox__parameterized0_11 |         18 |         18 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[4].u_sbox  |     sbox__parameterized0_12 |         16 |         16 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[5].u_sbox  |     sbox__parameterized0_13 |         28 |         28 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[6].u_sbox  |     sbox__parameterized0_14 |         16 |         16 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[7].u_sbox  |     sbox__parameterized0_15 |         18 |         18 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[8].u_sbox  |     sbox__parameterized0_16 |         16 |         16 |       0 |    0 |    0 |      0 |      0 |          0 |
+|         GEN_FIRST_BLOCK_SBOX[9].u_sbox  |     sbox__parameterized0_17 |         14 |         14 |       0 |    0 |    0 |      0 |      0 |          0 |
+|       u_ciphertext_fifo                 | stream_fifo__parameterized6 |        298 |        206 |      92 |    0 |  141 |      0 |      0 |          0 |
+|       u_desc_fifo                       | stream_fifo__parameterized0 |        143 |        115 |      28 |    0 |   46 |      0 |      0 |          0 |
+|       u_ghash                           |                     ghash16 |       1436 |       1436 |       0 |    0 |  648 |      0 |      0 |          0 |
+|       u_ghash_request_fifo              | stream_fifo__parameterized5 |        383 |        295 |      88 |    0 |  140 |      0 |      0 |          0 |
+|       u_key_context                     |             aes_key_context |       2953 |       2953 |       0 |    0 | 2344 |      0 |      2 |          0 |
+|         (u_key_context)                 |             aes_key_context |       2913 |       2913 |       0 |    0 | 2344 |      0 |      0 |          0 |
+|         u_key_sbox1                     |                        sbox |         24 |         24 |       0 |    0 |    0 |      0 |      1 |          0 |
+|         u_key_sbox3                     |                      sbox_2 |         16 |         16 |       0 |    0 |    0 |      0 |      1 |          0 |
+|       u_keystream_fifo                  | stream_fifo__parameterized4 |        532 |        440 |      92 |    0 |  146 |      0 |      0 |          0 |
+|       u_plain_release_fifo              | stream_fifo__parameterized8 |         50 |         42 |       8 |    0 |   16 |      0 |      0 |          0 |
+|       u_tag_packet_fifo                 | stream_fifo__parameterized7 |        310 |        218 |      92 |    0 |  137 |      0 |      0 |          0 |
+|     u_data_output_register              |          axis_output_skid_8 |          5 |          5 |       0 |    0 |   14 |      0 |      0 |          0 |
+|     u_input_queue                       |                 stream_fifo |         24 |         16 |       8 |    0 |   13 |      0 |      0 |          0 |
+|     u_registers                         |               axi_lite_regs |         66 |         66 |       0 |    0 |  343 |      0 |      0 |          0 |
+|     u_tag_output_register               |               stream_fifo_0 |         25 |         17 |       8 |    0 |   13 |      0 |      0 |          0 |
+|   u_bridge                              |     aes_gcm_uart_rsp_bridge |       1063 |        947 |     116 |    0 |  694 |      0 |      0 |          0 |
+|     (u_bridge)                          |     aes_gcm_uart_rsp_bridge |        850 |        734 |     116 |    0 |  621 |      0 |      0 |          0 |
+|     u_uart_rx                           |                     uart_rx |        112 |        112 |       0 |    0 |   42 |      0 |      0 |          0 |
+|     u_uart_tx                           |                     uart_tx |        101 |        101 |       0 |    0 |   31 |      0 |      0 |          0 |
++-----------------------------------------+-----------------------------+------------+------------+---------+------+------+--------+--------+------------+
+
+

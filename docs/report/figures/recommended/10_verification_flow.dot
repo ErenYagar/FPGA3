@@ -1,0 +1,28 @@
+digraph Verification_Flow {
+  graph [rankdir=LR, splines=ortho, bgcolor="white", pad="0.18", margin="0",
+         nodesep="0.45", ranksep="0.75", outputorder="edgesfirst", charset="UTF-8",
+         fontname="Arial", fontsize=20, fontcolor="#111111"];
+  node [shape=box, style="filled", fillcolor="#ffffff", color="#111111",
+        fontcolor="#111111", fontname="Arial", fontsize=12, penwidth=1.0,
+        margin="0.14,0.10"];
+  edge [color="#111111", penwidth=1.0, arrowsize=0.65, arrowhead=normal,
+        fontname="Arial", fontsize=10, fontcolor="#111111"];
+
+  graph [ratio=fill, size="14,6!", label=<<B>Exact-current RTL-to-FPGA verification flow</B>>, labelloc=t, labeljust=l];
+  rtl [label=<<B>Exact RTL + XDC identity</B><BR/>SHA-256 manifest>];
+  sim [label=<<B>Simulation verification</B><BR/>smoke + 8/8 directed<BR/>47,250/0 NIST>];
+  sva [label=<<B>SVA</B><BR/>37 properties<BR/>0 failures>];
+  uvm [label=<<B>UVM 1.2</B><BR/>3 seeds, 24/0 scoreboard<BR/>100% maintained bins>];
+  formal [label=<<B>Formal subset</B><BR/>19 combinational assertions<BR/>PARTIAL PASS scope>];
+  synth [label=<<B>Vivado synthesis</B><BR/>WNS -0.298 ns<BR/>292 setup endpoints>];
+  impl [label=<<B>Place + route</B><BR/>WNS +0.029 ns; WHS +0.044 ns<BR/>17,758/17,758 nets>];
+  gates [label=<<B>Static hard gates</B><BR/>DRC / CDC / methodology / check_timing<BR/>Error/CW = 0/0>];
+  bit [label=<<B>Bitstream provenance</B><BR/>DCP + BIN SHA-256<BR/>payload identity PASS>];
+  board [label=<<B>Hardware Manager</B><BR/>program PASS<BR/>6/0 board smoke>];
+  nist [label=<<B>FPGA NIST RSP</B><BR/>47,250 / 47,250 PASS<BR/>COM4, 1,208.505 s>];
+
+  rtl -> sim -> synth -> impl -> gates -> bit -> board -> nist;
+  rtl -> sva -> sim;
+  rtl -> uvm -> sim;
+  rtl -> formal -> synth;
+}

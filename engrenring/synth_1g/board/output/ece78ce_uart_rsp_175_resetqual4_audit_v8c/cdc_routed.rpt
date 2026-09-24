@@ -1,0 +1,26 @@
+Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2021.1 (win64) Build 3247384 Thu Jun 10 19:36:33 MDT 2021
+| Date         : Sat Aug 22 23:19:53 2026
+| Host         : DESKTOP-IO47298 running 64-bit major release  (build 9200)
+| Command      : report_cdc -details -file C:/project/FPGA3/engrenring/synth_1g/board/output/ece78ce_uart_rsp_175_resetqual4_audit_v8c/cdc_routed.rpt
+| Design       : arty_a7_100t_aes_gcm_uart_rsp_top
+| Device       : 7a100t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CDC Report
+
+ID     Severity  Count  Description
+-----  --------  -----  ------------------------------------------
+CDC-3  Info          2  1-bit synchronized with ASYNC_REG property
+
+Source Clock: input port clock
+Destination Clock: core_clk_raw
+CDC Type: No Common Primary Clock
+
+Row  ID     Severity  Description                                 Depth  Exception   Source (From)  Destination (To)
+---  -----  --------  ------------------------------------------  -----  ----------  -------------  --------------------------------
+  1  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  rst_btn        run_req_sync_r_reg[0]/D
+  2  CDC-3  Info      1-bit synchronized with ASYNC_REG property      2  False Path  uart_txd_in    u_bridge/u_uart_rx/rx_meta_reg/D
+

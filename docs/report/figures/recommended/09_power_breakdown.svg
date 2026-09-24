@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="970" viewBox="0 0 1600 970">
+<rect width="1600" height="970" fill="#ffffff"/>
+<defs>
+<marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,4 L0,8 z" fill="#111111"/></marker>
+</defs>
+<text x="70.00" y="62.00" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="600" text-anchor="start" fill="#111111">Vivado routed vectorless power estimate</text>
+<text x="70.00" y="99.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start" fill="#5a6470">Medium confidence; estimate only, not measured board power</text>
+<line x1="70.00" y1="118.00" x2="1530.00" y2="118.00" stroke="#111111" stroke-width="1.2"/>
+<text x="1380.00" y="75.00" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="600" text-anchor="end" fill="#1f4e79">0.461 W total</text>
+<text x="90.00" y="195.00" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" text-anchor="start" fill="#111111">Signals</text>
+<rect x="360.00" y="165.00" width="980.00" height="42.00" fill="#eef2f5" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<rect x="360.00" y="165.00" width="922.83" height="42.00" fill="#1f4e79" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1480.00" y="195.00" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" text-anchor="end" fill="#111111">0.113 W</text>
+<text x="1560.00" y="195.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#5a6470">24.5%</text>
+<text x="90.00" y="291.00" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" text-anchor="start" fill="#111111">Static</text>
+<rect x="360.00" y="261.00" width="980.00" height="42.00" fill="#eef2f5" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<rect x="360.00" y="261.00" width="808.50" height="42.00" fill="#5a6470" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1480.00" y="291.00" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" text-anchor="end" fill="#111111">0.099 W</text>
+<text x="1560.00" y="291.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#5a6470">21.5%</text>
+<text x="90.00" y="387.00" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" text-anchor="start" fill="#111111">MMCM</text>
+<rect x="360.00" y="357.00" width="980.00" height="42.00" fill="#eef2f5" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<rect x="360.00" y="357.00" width="735.00" height="42.00" fill="#1f4e79" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1480.00" y="387.00" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" text-anchor="end" fill="#111111">0.090 W</text>
+<text x="1560.00" y="387.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#5a6470">19.5%</text>
+<text x="90.00" y="483.00" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" text-anchor="start" fill="#111111">Slice logic</text>
+<rect x="360.00" y="453.00" width="980.00" height="42.00" fill="#eef2f5" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<rect x="360.00" y="453.00" width="637.00" height="42.00" fill="#1f4e79" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1480.00" y="483.00" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" text-anchor="end" fill="#111111">0.078 W</text>
+<text x="1560.00" y="483.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#5a6470">16.9%</text>
+<text x="90.00" y="579.00" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" text-anchor="start" fill="#111111">Clocks</text>
+<rect x="360.00" y="549.00" width="980.00" height="42.00" fill="#eef2f5" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<rect x="360.00" y="549.00" width="334.83" height="42.00" fill="#1f4e79" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1480.00" y="579.00" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" text-anchor="end" fill="#111111">0.041 W</text>
+<text x="1560.00" y="579.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#5a6470">8.9%</text>
+<text x="90.00" y="675.00" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" text-anchor="start" fill="#111111">Block RAM</text>
+<rect x="360.00" y="645.00" width="980.00" height="42.00" fill="#eef2f5" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<rect x="360.00" y="645.00" width="285.83" height="42.00" fill="#1f4e79" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1480.00" y="675.00" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" text-anchor="end" fill="#111111">0.035 W</text>
+<text x="1560.00" y="675.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#5a6470">7.6%</text>
+<text x="90.00" y="771.00" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" text-anchor="start" fill="#111111">I/O</text>
+<rect x="360.00" y="741.00" width="980.00" height="42.00" fill="#eef2f5" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<rect x="360.00" y="741.00" width="40.83" height="42.00" fill="#1f4e79" stroke="none" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1480.00" y="771.00" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" text-anchor="end" fill="#111111">0.005 W</text>
+<text x="1560.00" y="771.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#5a6470">1.1%</text>
+<line x1="360.00" y1="835.00" x2="360.00" y2="850.00" stroke="#111111" stroke-width="1.5"/>
+<text x="360.00" y="878.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">0.00</text>
+<line x1="605.00" y1="835.00" x2="605.00" y2="850.00" stroke="#111111" stroke-width="1.5"/>
+<text x="605.00" y="878.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">0.03</text>
+<line x1="850.00" y1="835.00" x2="850.00" y2="850.00" stroke="#111111" stroke-width="1.5"/>
+<text x="850.00" y="878.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">0.06</text>
+<line x1="1095.00" y1="835.00" x2="1095.00" y2="850.00" stroke="#111111" stroke-width="1.5"/>
+<text x="1095.00" y="878.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">0.09</text>
+<line x1="1340.00" y1="835.00" x2="1340.00" y2="850.00" stroke="#111111" stroke-width="1.5"/>
+<text x="1340.00" y="878.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">0.12</text>
+<line x1="360.00" y1="835.00" x2="1340.00" y2="835.00" stroke="#111111" stroke-width="1.5"/>
+<text x="850.00" y="920.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="middle" fill="#111111">Power (W)</text>
+<text x="70.00" y="950.00" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="start" fill="#5a6470">Source: power_vectorless_routed.rpt; rounded components sum may differ by 0.001 W</text>
+</svg>

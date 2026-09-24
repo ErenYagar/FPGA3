@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="930" viewBox="0 0 1600 930">
+<rect width="1600" height="930" fill="#ffffff"/>
+<defs>
+<marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,4 L0,8 z" fill="#111111"/></marker>
+</defs>
+<text x="70.00" y="62.00" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="600" text-anchor="start" fill="#111111">175 MHz timing closure across implementation stages</text>
+<text x="70.00" y="99.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start" fill="#5a6470">Retained Vivado 2021.1 reports; positive slack is required for final signoff</text>
+<line x1="70.00" y1="118.00" x2="1530.00" y2="118.00" stroke="#111111" stroke-width="1.2"/>
+<line x1="150.00" y1="600.00" x2="1050.00" y2="600.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="130.00" y="607.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#5a6470">-0.3</text>
+<line x1="150.00" y1="500.00" x2="1050.00" y2="500.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="130.00" y="507.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#5a6470">-0.2</text>
+<line x1="150.00" y1="400.00" x2="1050.00" y2="400.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="130.00" y="407.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#5a6470">-0.1</text>
+<line x1="150.00" y1="300.00" x2="1050.00" y2="300.00" stroke="#111111" stroke-width="1.5"/>
+<text x="130.00" y="307.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#5a6470">+0.0</text>
+<line x1="150.00" y1="200.00" x2="1050.00" y2="200.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="130.00" y="207.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#5a6470">+0.1</text>
+<text x="76.00" y="420.00" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" text-anchor="middle" fill="#111111" transform="rotate(-90 76 420)">Slack (ns)</text>
+<polyline points="240.00,598.00 590.00,225.00 940.00,271.00" fill="none" stroke="#1f4e79" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="240.00,255.00 590.00,382.00 940.00,256.00" fill="none" stroke="#9a5b13" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="240.00" y1="180.00" x2="240.00" y2="650.00" stroke="#d5d9de" stroke-width="1" stroke-dasharray="4 6"/>
+<text x="240.00" y="696.00" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" text-anchor="middle" fill="#111111">Synthesis</text>
+<circle cx="240.00" cy="598.00" r="9.00" fill="#ffffff" stroke="#1f4e79" stroke-width="4"/>
+<text x="255.00" y="580.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" text-anchor="start" fill="#1f4e79">-0.298</text>
+<circle cx="240.00" cy="255.00" r="9.00" fill="#ffffff" stroke="#9a5b13" stroke-width="4"/>
+<text x="255.00" y="279.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" text-anchor="start" fill="#9a5b13">+0.045</text>
+<line x1="590.00" y1="180.00" x2="590.00" y2="650.00" stroke="#d5d9de" stroke-width="1" stroke-dasharray="4 6"/>
+<text x="590.00" y="696.00" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" text-anchor="middle" fill="#111111">Placed + phys_opt</text>
+<circle cx="590.00" cy="225.00" r="9.00" fill="#ffffff" stroke="#1f4e79" stroke-width="4"/>
+<text x="605.00" y="207.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" text-anchor="start" fill="#1f4e79">+0.075</text>
+<circle cx="590.00" cy="382.00" r="9.00" fill="#ffffff" stroke="#9a5b13" stroke-width="4"/>
+<text x="605.00" y="406.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" text-anchor="start" fill="#9a5b13">-0.082</text>
+<line x1="940.00" y1="180.00" x2="940.00" y2="650.00" stroke="#d5d9de" stroke-width="1" stroke-dasharray="4 6"/>
+<text x="940.00" y="696.00" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" text-anchor="middle" fill="#111111">Final routed</text>
+<circle cx="940.00" cy="271.00" r="9.00" fill="#ffffff" stroke="#1f4e79" stroke-width="4"/>
+<text x="955.00" y="253.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" text-anchor="start" fill="#1f4e79">+0.029</text>
+<circle cx="940.00" cy="256.00" r="9.00" fill="#ffffff" stroke="#9a5b13" stroke-width="4"/>
+<text x="955.00" y="280.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" text-anchor="start" fill="#9a5b13">+0.044</text>
+<line x1="200.00" y1="770.00" x2="250.00" y2="770.00" stroke="#1f4e79" stroke-width="4"/>
+<text x="265.00" y="777.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start" fill="#111111">Setup WNS</text>
+<line x1="440.00" y1="770.00" x2="490.00" y2="770.00" stroke="#9a5b13" stroke-width="4"/>
+<text x="505.00" y="777.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start" fill="#111111">Hold WHS</text>
+<rect x="1120.00" y="170.00" width="400.00" height="570.00" fill="#ffffff" stroke="#111111" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1150.00" y="215.00" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="600" text-anchor="start" fill="#111111">Failing-path summary</text>
+<text x="1150.00" y="260.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" text-anchor="start" fill="#111111">Stage</text>
+<text x="1150.00" y="288.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="start" fill="#1f4e79">Setup TNS / FEP</text>
+<text x="1355.00" y="288.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="start" fill="#9a5b13">Hold THS / FEP</text>
+<line x1="1140.00" y1="314.00" x2="1500.00" y2="314.00" stroke="#d5d9de" stroke-width="1.5"/>
+<text x="1150.00" y="352.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#111111">Synthesis</text>
+<text x="1150.00" y="380.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="start" fill="#1f4e79">-11.728 ns / 292</text>
+<text x="1355.00" y="380.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="start" fill="#9a5b13">0 / 0</text>
+<line x1="1140.00" y1="406.00" x2="1500.00" y2="406.00" stroke="#d5d9de" stroke-width="1.5"/>
+<text x="1150.00" y="444.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#111111">Placed</text>
+<text x="1150.00" y="472.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="start" fill="#1f4e79">0 / 0</text>
+<text x="1355.00" y="472.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="start" fill="#9a5b13">-0.364 ns / 9</text>
+<line x1="1140.00" y1="498.00" x2="1500.00" y2="498.00" stroke="#d5d9de" stroke-width="1.5"/>
+<text x="1150.00" y="536.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#111111">Final routed</text>
+<text x="1150.00" y="564.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="start" fill="#1f4e79">0 / 0</text>
+<text x="1355.00" y="564.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="start" fill="#9a5b13">0 / 0</text>
+<rect x="1140.00" y="640.00" width="360.00" height="64.00" fill="#dcebdd" stroke="#2f6b45" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1320.00" y="681.00" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" text-anchor="middle" fill="#2f6b45">FINAL SETUP + HOLD PASS</text>
+<text x="70.00" y="885.00" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="start" fill="#5a6470">Source: timing_synth.rpt, timing_placed.rpt, timing_routed.rpt</text>
+</svg>

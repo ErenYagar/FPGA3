@@ -1,0 +1,17 @@
+metric	value
+top	arty_a7_100t_aes_gcm_uart_rsp_top
+part	xc7a100tcsg324-1
+clock_mhz	175
+synthesis_setup_slack_ns	-0.298
+synthesis_setup_startpoint	u_bridge/ct_len_r_reg[4]/C
+synthesis_setup_endpoint	u_bridge/stream_total_bytes_r_reg[8]/D
+setup_slack_ns	0.029
+setup_startpoint	u_bridge/rx_payload_bytes_r_reg[1]/C
+setup_endpoint	u_bridge/key_cfg_r_reg[24]/D
+logic_levels	5
+datapath_delay_ns	5.544
+logic_delay_ns	1.214
+net_delay_ns	4.330
+placed_primitive_cells	24996
+critical_path_cells	7
+critical_path_routed_nets	6

@@ -982,17 +982,171 @@ Setup margin 只有 29 ps，屬於窄但為正的 margin；結論只對目前 ex
 
 \chapter{Wrapper、UART 封包與傳輸效率}
 
-\section{AXI wrapper}
+\section{Production AXI IP wrapper：設計目標與責任邊界}
+\label{sec:production-axi-wrapper}
 
-\code{aes_gcm_axi_top.v} 是主要 integration wrapper：
+\code{aes_gcm_axi_top.v} 是正式系統整合所使用的 production-facing wrapper；它和外層 \path{arty_a7_100t_aes_gcm_uart_rsp_top.v} 的角色不同。前者把 \code{aes_gcm_stream_core} 封裝成 AXI4-Lite 加 AXI4-Stream IP，後者只是在 Arty A7 上以 UART 重播 NIST 向量的 board-validation transport。這一層 Wrapper 不執行 AES round 或 GHASH，而是集中承擔下列三種系統責任：
+
+\begin{table}[H]
+\centering
+\small
+\caption{Production AXI wrapper 的三個責任平面}
+\begin{tabularx}{\linewidth}{p{0.17\linewidth} p{0.22\linewidth} X X}
+\toprule
+責任平面 & 主要 RTL 結構 & 對外保證 & 設計理由 \\
+\midrule
+Control plane & \code{u_registers}、register bank、one-cycle command pulses、admission equations & AXI4-Lite write/read、可觀測 status、非法或當下不可接受的命令以 \code{SLVERR} 拒絕且不產生 side effect & 將軟體設定、core lifecycle 與命令原子性集中在單一邊界 \\
+Streaming data plane & 2-entry input queue、one-entry Data skid、2-entry Tag FIFO、Result gate & 只有成功接受 descriptor 後才能送 input frame；一般 backpressure 下公開 payload 穩定；避免 Data/Tag/Result 互相超車 & 讓 byte transport、core acceptance 與 downstream stall 以局部 buffer 解耦 \\
+Security / ordering boundary & input-frame credits、outermost frame trackers、ZEROIZE masks/clears & authentication-before-release、mode-dependent completion order、emergency ZEROIZE flush & 防止未認證 plaintext、stale frame 與跨 transaction 公開輸出混線 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+因此「Wrapper 只是接線」是不正確的描述。較精確的設計說法是：\textbf{Core 負責密碼運算與 record lifecycle；Wrapper 負責把軟體命令、公開 byte stream、backpressure、frame ownership 與 emergency scrub policy 轉換成 Core 可以安全接受的同步事件。}
+
+它是手寫 RTL，目前 repository 沒有 \code{.xci}，也不是 Xilinx IP Integrator 自動產生的 packaged IP。若後續要放入 block design，可再建立 IP-XACT component packaging 與 driver header；這不改變目前 RTL、synthesis、implementation 與 board evidence 的有效性。
+
+\subsection{AXI4-Lite control plane 與 register map}
+
+\code{u_registers/axi_lite_regs} 是 32-bit、one-outstanding-transaction AXI4-Lite register bank。AW 與 W channel 可分開握手並各自保存；只有兩者都已捕捉、且 B channel 沒有尚未完成的 response 時，才在一個 active edge dispatch 該 write。CONTROL write 成功後所產生的 \code{cmd_push_pulse}、\code{key_commit_pulse} 或 \code{zeroize_pulse} 都只有一個 clock；即使 master 暫時不拉高 \code{BREADY}，pulse 也不會因 \code{BVALID} stall 而重複。
+
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}p{0.09\linewidth}p{0.17\linewidth}p{0.31\linewidth}p{0.34\linewidth}@{}}
+\caption{Production AES-GCM AXI wrapper 的精確 AXI4-Lite register map}\label{tab:axi-wrapper-register-map}\\
+\toprule
+位址 & 名稱／存取 & 欄位 & 設計語意 \\
+\midrule
+\endfirsthead
+\toprule
+位址 & 名稱／存取 & 欄位 & 設計語意 \\
+\midrule
+\endhead
+\code{0x00} & CONTROL / W pulse & bit0 \code{CMD_PUSH}；bit1 \code{KEY_COMMIT}；bit2 \code{ZEROIZE} & 只有 byte lane 0 的 \code{WSTRB[0]} 有效；一次只能要求一個 command。多個 command bits 同時為 1 時整筆 write 以 \code{SLVERR} 拒絕。全 0 或未選 lane 0 是 OKAY no-op。 \\
+\addlinespace
+\code{0x04} & STATUS / R & bit0 KEY\_READY；bit1 KEY\_BUSY；bit2 CMD\_FULL；bit3 RECORD\_ACTIVE；bit4 OUTPUT\_PENDING；bit5 ZEROIZE\_BUSY & STATUS 在 AR handshake 取 snapshot，再經 pending stage送出；若 AR 和 command dispatch 發生在同一 edge，讀值可能反映 command 前的狀態。 \\
+\addlinespace
+\code{0x08} & CFG / R/W & bit0 \code{DECRYPT}；bits15:8 \code{TAG_BITS} & 這不是 AES key-mode register。\code{key_mode[2:0]} 是 Wrapper 的獨立 input，於 KEY\_COMMIT pulse 一起被 Core 取樣。 \\
+\addlinespace
+\code{0x0C} & IV\_LEN / R/W & bits10:0，單位為 bit & 允許最多 2,047 bits；CMD\_PUSH 時另外檢查不可為 0。 \\
+\addlinespace
+\code{0x10} & AAD\_LEN / R/W & bits10:0，單位為 bit & 0 合法；實際 byte ordering 由 input frame 與 descriptor 長度共同定義。 \\
+\addlinespace
+\code{0x14} & DATA\_LEN / R/W & bits10:0，單位為 bit & 0 合法；encrypt/decrypt 共用此長度欄位。 \\
+\addlinespace
+\code{0x20--0x3C} & KEY\_WORD0--7 / W & 8 個 32-bit staging words & WORD0 寫入 key[255:224]，WORD7 寫入 key[31:0]；每個 byte 依 \code{WSTRB} 更新，\code{WDATA[31:24]} 是該 word 最早的 AES byte；architectural read 回 0。 \\
+\addlinespace
+\code{0x40} & CAPABILITY / R & version、key modes、max length、tag policy & default 為 \code{0x0107B7FF}；若啟用 NIST truncated-tag build 則為 \code{0x0107BFFF}。 \\
+\bottomrule
+\end{longtable}
+\endgroup
+
+Reset 後 \code{DECRYPT=0}、\code{TAG_BITS=128}、IV/AAD/DATA lengths 為 0、key staging 為 0。ZEROIZE 會把 key staging 清為 0，但不會改寫 CFG 與 length registers；這使 software 可以保留非敏感的 descriptor configuration，同時讓下一把 key 必須重新載入。
+
+\subsection{三條命令不是同一組 admission checks}
+
+漂亮的概念圖很容易把 KEY\_COMMIT、CMD\_PUSH 與 ZEROIZE 畫成共用一個 checklist；exact RTL 並非如此。三者有不同的安全目的，因此使用三種不同規則：
+
+\begin{enumerate}
+  \item \textbf{CMD\_PUSH：}建立一筆 record descriptor。接受條件為 key 已 ready、descriptor FIFO 未滿、Core 不在 ZEROIZE、IV length 不為 0、tag length 符合本 build policy。它刻意\textbf{不要求}目前 record 或 public output 完全 idle，只要 descriptor FIFO 有空間，就能讓下一筆 descriptor 預先排隊。
+  \item \textbf{KEY\_COMMIT：}把 256-bit staging key 與外部 \code{key_mode} 交給 key expansion。接受條件為 \code{key_mode} 只可為 0/1/2（AES-128/192/256）、key engine 不 busy、Core key lifecycle quiescent、Data skid 與 Tag FIFO 沒有 boundary residue、Core 不在 ZEROIZE。它不使用 IV/tag length 或 CMD\_FULL 作為條件。
+  \item \textbf{ZEROIZE：}standalone、格式合法的 ZEROIZE write 不依賴上述 lifecycle 狀態而被 state-reject；它是 emergency flush，不是「等輸出 drain 完再清除」。但若同一 CONTROL write 同時設了其他 command bit，仍因 command 不具原子唯一性而回 \code{SLVERR}。
+\end{enumerate}
+
+Default production build只接受 128-bit tag；當 \code{ALLOW_NIST_TAG_LENGTHS=1} 時，另外接受 32、64、96、104、112 與 120 bits。CFG write 本身只保存值並回 OKAY，真正的 tag-policy validation 延後到 CMD\_PUSH；這使設定階段與 descriptor admission 的錯誤責任清楚分離。任何被拒絕的 CMD\_PUSH/KEY\_COMMIT 都只回 \code{SLVERR}、不產生 pulse、也不改變 Core；目前沒有 sticky error register，因此 software 必須檢查每一筆 B response。
+
+\subsection{Input plane：2-entry registered-head queue 與 frame credits}
+
+公開 input 不是直接接到 Core，而先進入一個 2-entry、9-bit FIFO；每一 entry 保存 1-bit \code{TLAST} 與 8-bit \code{TDATA[7:0]}。這個 queue 的設計目的有兩個：第一，用 registered head 暫存 byte；第二，以 registered \code{s_axis_tready_r} 切斷複雜的 Core byte-acceptance logic 到 public READY 的組合路徑。
+
+\code{input_frame_credits} 不是 FIFO occupancy，也不是整筆 transaction 的 lifetime counter。它精確表示「已成功 CMD\_PUSH、但 public input TLAST 尚未 handshake 的 frame 數量」：
 
 \begin{itemize}
-  \item 32-bit AXI4-Lite register interface：寫入 key words、mode、IV/AAD/data/tag bit lengths、command；讀取 status。
-  \item 8-bit AXI4-Stream input：依 descriptor 順序傳 IV、AAD、PT/CT 與 decrypt tag，使用 \code{TVALID/TREADY/TLAST}。
-  \item 三個 8-bit AXI4-Stream outputs：data、tag、result status；data 的 \code{TUSER} 表示 result class。
+  \item 成功的 CMD\_PUSH 增加一個 credit；
+  \item public \code{TVALID} \&\& \code{TREADY} \&\& \code{TLAST} 減少一個 credit；
+  \item 同一 edge 同時 CMD\_PUSH 與 TLAST handshake 時淨變化為 0；
+  \item 沒有 credit 時 public READY 一定為 0，因此 software 不可能在 descriptor 被接受以前塞入資料；
+  \item early TLAST 會先在 public boundary 歸還 credit，Core 之後再回報 framing abort；late TLAST 則保留 credit，直到 drain 過程真的收到後續 TLAST。
 \end{itemize}
 
-它是手寫 RTL wrapper，目前 repository 沒有 \code{.xci}，也不是 Xilinx IP Integrator 自動產生的 packaged IP。若後續要放入 block design，可再建立 IP-XACT component packaging，但這不影響現在 RTL/board signoff。
+READY 使用 predictive occupancy：每個 edge 根據本拍 push/pop 後的 queue count 與下一拍 credit 狀態，決定下一 cycle 是否仍可接資料。Reset 後 READY 為 0；CMD\_PUSH 被取樣後，credit 與 registered READY 在 edge 更新，最快下一個 edge 才可能接收第一個 byte。當 queue 同時 pop 與 push 時可維持每 clock 一 byte；若無 pop 且本拍接收使預測 count 變成 2，下一 cycle READY 會先行拉低，避免 overflow。
+
+\subsection{Output plane：elasticity、outermost frame ownership 與 mode-dependent ordering}
+
+三條 output 的 buffer 並不相同，因此不能統稱為「都用 registered READY 完全隔離」：
+
+\begin{table}[H]
+\centering
+\small
+\caption{三條公開 output 的實際 buffering 與 timing 特性}
+\begin{tabularx}{\linewidth}{p{0.12\linewidth} p{0.22\linewidth} X X}
+\toprule
+Channel & RTL 結構 & Backpressure 行為 & 必須誠實說明的 timing 邊界 \\
+\midrule
+Data & one-entry \code{axis_output_skid_8} & 普通 stall 時 DATA/LAST/USER 穩定；空時可先收一拍；同一 edge 可送舊 beat 並補新 beat & 它提供 forward payload register 與 one-beat elasticity，但 \code{m_axis_data_tready} 在 skid occupied 時仍可組合影響 \code{core_data_tready}，所以不是完整 READY register slice \\
+Tag & 2-entry、9-bit registered-head FIFO & head 在 stall 時穩定；Core READY 取決於 registered count；可在 Data 尚未送完時先 buffer tag bytes & 這條 path 才具有 registered-occupancy READY isolation；full 後 pop 的 refill 仍有一拍限制，第二個 entry用來隱藏 public output bubble \\
+Result & 無 FIFO／無 skid；ordering gate直接連 Core result register & Core 必須在 public stall 時保持 VALID/data；只有 boundary trackers 判定可離開時才傳遞 READY & 不提供額外 buffering；它解決的是 ordering eligibility，而非 backpressure decoupling \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Wrapper 不能用「目前 FIFO 是否空」判斷 frame 結束，因為 authenticated plaintext 可能在 16-byte BRAM block loading 之間出現合法 bubble。設計因此使用 \code{data_boundary_idle_r} 與 \code{tag_boundary_idle_r} 追蹤\textbf{最外層公開 handshake}：接受任何一個 Core Data/Tag beat 後即標記 frame busy；只有 public final TLAST 真正 handshake 才回 idle。\code{public_frames_idle_core_r} 再把兩個 predicted next states 註冊起來，使 Result 最早在最後一個 Data/Tag handshake 的下一 cycle 可見，不會在同一 edge 穿越 boundary。
+
+真正的公開順序必須依 mode 說明：
+
+\begin{table}[H]
+\centering
+\small
+\caption{合法完成與錯誤路徑的公開輸出順序}
+\begin{tabularx}{\linewidth}{p{0.22\linewidth} X p{0.30\linewidth}}
+\toprule
+情境 & 公開順序 & 安全／協定意義 \\
+\midrule
+Encrypt success & Ciphertext Data frame $\rightarrow$ generated Tag frame $\rightarrow$ \code{ENC_OK} Result & Result 不能超過尚未完成的 Data 或 Tag \\
+Decrypt authentication success & \code{DEC_AUTH_OK} Result $\rightarrow$ authenticated Plaintext Data frame & Plaintext 先留在 protected banks；只有 success Result 被接受後，Core 才啟動 release \\
+Decrypt authentication failure & \code{AUTH_FAIL} Result only & 不產生任何未授權 plaintext \\
+Protocol abort after visible encryption prefix & 已 buffer 的 prefix $\rightarrow$ synthetic zero/TLAST terminator $\rightarrow$ abort Result & 先合法關閉已開始的 public Data frame，再回錯誤狀態 \\
+ZEROIZE & 撤銷尚未 handshake 的 Data/Tag；scrub 完成後輸出仍欠的 \code{ZEROIZE_ABORT} Results & emergency flush；不保證把 partial frame drain 或補 terminator \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+所以正確保證不是「永遠 Data、Tag、Result」，而是：\textbf{Result 不得超越已開啟或已 buffer 的 public Data/Tag frame；decrypt plaintext 另受 authentication-before-release 規則控制。}
+
+\subsection{ZEROIZE：emergency flush，而不是 graceful drain}
+
+ZEROIZE pulse 是 AXI register bank 完成 buffered CONTROL write dispatch 後產生的 synchronous one-cycle event。Pulse 為 1 的 cycle，Wrapper 立即將 public input READY 與所有 public output VALID gate 為 0；在取樣 pulse 的 active edge，input FIFO、Data skid、Tag FIFO、input credits 與 boundary trackers 都被 synchronous clear/reset，key staging 清為 0，同一 pulse 直接送進 Core 啟動 sensitive-state invalidation 與 plaintext-bank scrub。
+
+這個定義有四個必須明說的界線：
+
+\begin{enumerate}
+  \item 已經完成 public handshake 的 byte 無法被撤回；ZEROIZE 只能阻止尚未 handshake 的公開資料。
+  \item 這是 flush semantics。被 stall 的 VALID 可以被撤銷，partial Data/Tag frame 可以被截斷，ZEROIZE 不為它補 synthetic TLAST。
+  \item generic FIFO 的 clear 會清 pointers、count、registered head 與 validity，使 stale entry 不再可觀察；它不是對每個 backing \code{mem[]} word 逐位物理抹除。若產品威脅模型要求 memory remanence scrub，必須另加 explicit overwrite 或使用具有 erase guarantee 的 storage policy。
+  \item Core 只對「Result 尚未退休」的 unfinished descriptors保留對應的 \code{ZEROIZE_ABORT} 債務。若 \code{DEC_AUTH_OK} 已 handshake、但 authenticated plaintext 尚在 release path，ZEROIZE 可丟棄剩餘 plaintext而不再產生第二個 abort result；這和 emergency flush 定義一致，但不能宣稱每一個尚未輸完的 byte 都會得到替代 Result。
+\end{enumerate}
+
+\newpage
+目前 Wrapper 連接但不採用 \code{core_zeroize_defer}，因此 policy 明確偏向立即 flush。若未來產品規格改成「先保存／drain 已認證輸出，再 scrub」，就不能只修改文件；必須把 release-producer、allocated plaintext bank、boundary buffer 與 repeated ZEROIZE 都納入 defer contract，再以 SVA 和 directed fault injection 重新驗證。
+
+\subsection{Protocol abort 與 ZEROIZE 的差異}
+
+TLAST protocol error 是單一 record 的協定錯誤，不應破壞已排隊的其他 descriptor。Early TLAST 進入 abort wait；late TLAST 進入 drain 並丟棄 byte，直到收到後續 accepted TLAST。若 encrypt 已有 prefix 跨越 Core boundary，Core 會送 synthetic zero/TLAST terminator，再送 abort Result。這條路徑不會像 ZEROIZE 一樣清掉 top input queue、Data skid、Tag FIFO、descriptor FIFO 與舊的完成結果。
+
+Core 內部在 abort flush 時可以更換尚未被 Core-output handshake 接受的 stalled beat；public boundary 的 Data skid 會保護已被 Wrapper 接受的公開 beat，使外部一般 AXI stability 仍成立。因此若未來有人直接繞過 \code{aes_gcm_axi_top} 使用 \code{aes_gcm_stream_core}，就必須自己加等價 output buffering，不能假設 Core raw interface 已具有相同 public guarantee。
+
+\subsection{設計取捨、可驗證性與報告結論}
+
+此 Wrapper 選擇的不是「每一條 channel 都加很深 FIFO」，而是針對問題配置最小結構：input 需要 registered READY 與 command credit，因此用 2-entry queue；Data 需要一拍 elasticity 與 payload hold，因此用 one-entry skid；Tag 需要在 Data 尚未結束時提前吸收 byte，因此用 2-entry FIFO；Result 只需要防超車，因此使用 frame gate而不加 FIFO。代價是 ordering logic與 mode semantics較複雜，但可避免不必要的 area/latency，並讓每個 correctness property 有清楚的 checker boundary。
+
+報告這一頁時可用一句話收斂：
+
+\begin{quote}
+\textbf{我把 AXI Wrapper 設計成同步的 protocol/security boundary：control plane 將 software write 原子化為不同 admission 規則的命令事件；input queue 與 output buffers 管理 byte-level backpressure；outermost frame trackers保證公開順序；ZEROIZE則採立即 flush並觸發 Core scrub。它的目的不是做 AES-GCM運算，而是讓同一個 Core 能以可整合、可 timing、可驗證的方式進入真正系統。}
+\end{quote}
+
+主要 code anchors 為 \path{aes_gcm_axi_top.v:94--100}（admission）、\path{aes_gcm_axi_top.v:139--211}（input queue／credits／registered READY）、\path{aes_gcm_axi_top.v:280--378}（public frame ownership／outputs）與 \path{stream_axi/axi_lite_regs.v:127--290}（CONTROL dispatch／register write semantics）。Vivado 原生 schematic 可證明 \code{u_registers}、\code{u_input_queue}、\code{u_core}、\code{u_data_output_register} 與 \code{u_tag_output_register} 的 hierarchy/connectivity；UVM/SVA/NIST 則分別證明 transaction result、cycle-level invariant 與標準向量 correctness，三者不可互相取代。
 
 \section{UART board wrapper}
 
@@ -1010,8 +1164,8 @@ Reset directed XSim test 拒絕 1--3 個 sampled clocks 的 button/LOCKED pulse 
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=0.96\linewidth]{vivado_native/32_package_io_gui.png}
-\caption{Vivado 原生 Package／I/O 視圖；顯示 XC7A100T CSG324 package、電源／時脈／I/O pins 與 board-level pin planning。}
+\includegraphics[width=0.72\linewidth]{vivado_native/32_package_io_gui.png}
+\caption{Vivado 原生 Package／I/O 視圖的清晰裁切；顯示 XC7A100T CSG324 package 的電源、時脈與 I/O pins，供 board-level pin planning 查核。DRC 的 No Violations Found 證據另見圖~\ref{fig:vivado-drc-native}。}
 \label{fig:vivado-package-native}
 \end{figure}
 
@@ -1090,11 +1244,79 @@ Stage & 工作內容 & 工具與主要 artifact & PASS gate 與本版結果 \\
 
 本流程沒有把 gate-level timing simulation 當作 routed timing signoff。Internal setup/hold、clock pulse width、routing completeness與 CDC legality由 Vivado static analysis處理；RTL/UVM/NIST simulation負責功能與 protocol；FPGA UART runner負責真實 configuration image、wrapper與 board I/O 的 operational evidence。三者互補，不能互相取代。
 
+\subsection{RTL 模擬 gate：UVM、NIST 與 SVA 的先後關係}
+
+UVM、NIST RSP 與 SVA 都在 synthesis 之前檢查同一份 SystemVerilog RTL，但三者不是同一個 testbench，也不應與 FPGA board result 合併解讀。實際執行順序是「RTL compile/elaboration $\rightarrow$ simulation-domain verification gate $\rightarrow$ synthesis $\rightarrow$ implementation/signoff $\rightarrow$ exact-bitstream board replay」。只有 simulation gate 通過，RTL 才進入 synthesis；只有 fully routed design 的 timing、route 與 DRC hard gates 通過，才可產生 promotion bitstream；最後才由 FPGA board 驗證真實 wrapper、clock、UART 與 configuration image。
+
+\noindent\begin{minipage}{\linewidth}
+\begin{center}
+\small
+\fbox{同一份 RTL source}
+$\rightarrow$ \fbox{compile / elaboration}
+$\rightarrow$ \fbox{simulation-domain gate}
+\\[1.5mm]
+$\left.\begin{array}{c}
+\text{UVM transaction regression}\\
+\text{NIST .rsp functional simulation}\\
+\text{SVA cycle-level monitoring}
+\end{array}\right\}$
+$\rightarrow$ \fbox{RTL functional verification PASS}
+\\[1.5mm]
+$\rightarrow$ \fbox{synthesis}
+$\rightarrow$ \fbox{implementation / STA / DRC}
+$\rightarrow$ \fbox{bitstream / board}
+\end{center}
+\end{minipage}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.12\linewidth}>{\raggedright\arraybackslash}p{0.21\linewidth}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{0.20\linewidth}@{}}
+\toprule
+模擬路徑 & Stimulus 與入口 & Checker / oracle boundary & Retained PASS evidence \\
+\midrule
+UVM 1.2 & \path{tb_uvm_top.sv}；virtual sequence 經 AXI-Lite 與 AXI-Stream agents 驅動 DUT & Passive reconstruction monitor 只根據實際 handshakes 重建 transaction；independent AES-GCM model 與 scoreboard 比對 data、tag、result、authentication outcome & 3 seeds、每 seed 8 scenarios；24 checked、0 failed、UVM E/F 0/0；maintained scenario coverage 100\% \\
+\addlinespace
+Full NIST RSP & \path{tb_nist.sv} 讀取 6 份 RSP sources；AES-128/192/256，encrypt/decrypt & Testbench 逐筆比對 plaintext/ciphertext、tag 與 expected FAIL；此路徑不是 UVM sequence 或 UVM scoreboard & 47,250/47,250 PASS；fail 0；17,740,527 simulation cycles \\
+\addlinespace
+SVA & \path{bind_all.sv} 將 checker 綁到 GHASH、key context、stream core 與 AXI outputs；隨 smoke/NIST trace 被動取樣 & 逐 clock edge 檢查 handshake、queue、ZEROIZE、tag serializer 與 GHASH recurrence；不產生 transaction expected value & 37 source assertions、39 active instances；retained simulation traces 中 assertion failure 0 \\
+\bottomrule
+\end{tabularx}
+\caption{Simulation domain 內三條獨立 checker path；full RSP path 為 \texttt{tb\_nist + bound SVA}，UVM regression 另行執行。}
+\label{tab:simulation-checker-boundaries}
+\end{table}
+
+因此，「UVM PASS」代表 transaction-level checker 已通過；「NIST 47,250 PASS」代表 full RSP simulation 的 expected/actual comparison 通過；「SVA failure 0」代表 retained traces 中未違反已綁定的 temporal properties。這三項都不等於 synthesis 或 implementation timing closure，也不能單獨證明實板；它們共同構成 RTL 進入 synthesis 前的 functional verification gate。
+
 \subsection{UVM 如何從訊號走到 scoreboard}
 
 UVM environment 由 AXI-Lite agent、AXI-Stream input agent、三個 output agents、virtual sequencer、passive record reconstruction monitor、scoreboard與 coverage subscriber組成。Sequence先透過 AXI-Lite寫入 key、mode、IV/AAD/data/tag lengths與 command；input driver逐 byte驅動 \code{TDATA/TVALID/TLAST}，只有 \code{TVALID \&\& TREADY} 的取樣 edge才算 DUT接受。Output monitors同樣只在 handshake時採集 data、tag與 result，因此 backpressure期間不會重複計數。
 
+\noindent\begin{minipage}{\linewidth}
 Checker path刻意與 driver分離。Passive monitor不直接重用 sequence item，而是從實際 AW/W、input stream與 output stream handshakes重新建立 record。重建後才呼叫 independent AES-GCM model，產生 expected payload、tag與 authentication predicate，再由 scoreboard比對：
+\end{minipage}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.06\linewidth}>{\raggedright\arraybackslash}p{0.22\linewidth}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{0.27\linewidth}@{}}
+\toprule
+Step & UVM component & 實際資料流與觀察點 & FAIL condition \\
+\midrule
+1 & Virtual sequence / sequencer & 依 scenario 產生 key mode、encrypt/decrypt、IV/AAD/data/tag lengths、payload、received tag、input gaps & Randomization失敗、scenario不存在或 sequence timeout \\
+2 & AXI-Lite driver & 寫入 8 個 key words，觸發 key expansion，輪詢 ready，再寫 mode/lengths 與 start command & AXI response非 OK、key expansion超時 \\
+3 & AXI-Stream input driver & 依 IV $\rightarrow$ AAD $\rightarrow$ payload $\rightarrow$ received tag 的順序送 byte；最後一個 byte 送 TLAST & 只有 \code{TVALID \&\& TREADY} 才算接受；錯誤握手不得改變已接受長度 \\
+4 & Passive reconstruction monitor & 從 AW/W、input、data、tag、result 的真實 handshake 重建 record；不讀取 sequence 的 expected item & orphan output、缺少/重複 result、transaction未完整即 timeout \\
+5 & Independent reference model & 依 FIPS-197 AES 與 SP 800-38D GCM 規則計算 expected payload、tag 與 \code{auth\_ok} & Reference-model self-test或輸入尺寸契約不成立 \\
+6 & Scoreboard & Encrypt比對 ciphertext/tag/result；decrypt success比對 plaintext/result；decrypt auth-fail要求 plaintext不可輸出 & Data/tag/status mismatch，或 unauthenticated plaintext 被釋出 \\
+7 & Coverage / runner gate & 收集 key、mode、IV/AAD/data length classes、auth pass/fail與 crosses；解析 UVM summary & checked不是 8/seed、failed非 0、UVM E/F非 0、required maintained bins未達 100\% \\
+\bottomrule
+\end{tabularx}
+\caption{UVM transaction 從 stimulus、interface handshake、passive observation 到 scoreboard 的完整生命週期。}
+\label{tab:uvm-transaction-lifecycle}
+\end{table}
 
 \begin{lstlisting}[language=Verilog]
 if (input_tvalid && input_tready)
@@ -1111,9 +1333,73 @@ if (decrypt && !auth_ok && observed_data.size() != 0)
         "unauthenticated plaintext was released")
 \end{lstlisting}
 
+\subsubsection{UVM class hierarchy 與程式碼對照}
+
+上述流程不只是一張概念圖；其實作分散在 testbench top、UVM package、reference model 與 XSim runner 四個 source boundary。\path{tb_uvm_top.sv} 實例化 DUT、clock/reset 與 AXI virtual interfaces，並以 \code{uvm\_config\_db} 將 control、input、data/tag/result output interfaces 傳給 environment。\path{aesgcm_uvm_pkg.sv} 則以官方 UVM 1.2 base classes建立本專案的 item、agent、monitor、scoreboard、coverage 與 test；UVM framework 是 XSim 載入的 library，AES-GCM/AXI protocol 行為則完全由本專案 source 定義。
+
+\begin{lstlisting}[language=Verilog]
+tb_uvm_top
+  -> aesgcm_xsim_random_test : uvm_test
+      -> aesgcm_env : uvm_env
+          -> AXI-Lite agent       : sequencer + driver + monitor
+          -> AXI-Stream input agent: sequencer + driver + monitor
+          -> Data/Tag/Result agents: monitor + output-ready driver
+          -> passive reconstruction monitor
+              -> aesgcm_scoreboard
+              -> aesgcm_coverage
+\end{lstlisting}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{0.92}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.31\linewidth}>{\raggedright\arraybackslash}p{0.19\linewidth}>{\raggedright\arraybackslash}X@{}}
+\toprule
+Source / class & UVM base 或型態 & 本專案責任 \\
+\midrule
+\path{tb_uvm_top.sv} & SystemVerilog module & 實例化 \code{aes\_gcm\_axi\_top}、產生 clock/reset，並以 \code{uvm\_config\_db} 注入 5 組 AXI virtual interface。 \\
+\addlinespace
+\code{aesgcm\_record\_item} & \code{uvm\_sequence\_item} & 定義一筆 record 的 key mode、key、encrypt/decrypt、IV/AAD/data/tag lengths、payload、received tag 與 observed outputs。 \\
+\addlinespace
+\code{axi\_lite\_agent}、\code{axis\_input\_agent}、\code{axis\_output\_agent} & UVM agent composition & 將 protocol-specific sequencer、driver、monitor 封裝；output agent另由 ready driver製造已定義的 downstream ready profile。 \\
+\addlinespace
+\code{aesgcm\_virtual\_sequencer} / constrained-random sequence & \code{uvm\_sequencer} / \code{uvm\_sequence} & 同步排程 control writes、input bytes 與 output-ready behavior；每個 XSim seed執行 8 個 coverage-oriented scenarios。 \\
+\addlinespace
+\code{passive\_record\_}\\\code{reconstruction\_monitor} & \code{uvm\_monitor} & 只從實際 AXI handshakes重建 record；它不共用 sequence/driver 的 transaction object。 \\
+\addlinespace
+\code{aesgcm\_scoreboard} & \code{uvm\_component} & 呼叫 independent model，比對 payload、tag、唯一 result 與 authentication outcome；auth-fail plaintext release 為 hard failure。 \\
+\addlinespace
+\code{aesgcm\_coverage} & \code{uvm\_subscriber} & 對 reconstructed record取樣 key/mode/IV/AAD/data/auth bins與指定 crosses。 \\
+\addlinespace
+\path{aesgcm\_reference\_}\\\path{model\_pkg.sv} & independent SV package & 以獨立 AES/GHASH implementation計算 expected data、tag與 \code{auth\_ok}，不重用 DUT lookup table 或 digit-serial GHASH datapath。 \\
+\bottomrule
+\end{tabularx}
+\caption{XSim UVM 1.2 驗證環境的 source/class 分工；UVM library 提供共通 framework，本專案實作 AES-GCM/AXI 驗證語意。}
+\label{tab:uvm-class-architecture}
+\end{table}
+
+\newpage
+Environment 的 \code{connect\_phase} 是此架構的關鍵：virtual sequencer 取得各 agent 的 sequencer handle；同一個 reconstructed record 再以 analysis port 同時廣播給 scoreboard 與 coverage，而不是由 driver 把預期答案傳入 checker：
+
+\begin{lstlisting}[language=Verilog]
+virtual_sequencer.axi_lite_seqr = axi_lite.sequencer;
+virtual_sequencer.input_seqr    = input_axis.sequencer;
+virtual_sequencer.data_seqr     = data_output.sequencer;
+virtual_sequencer.tag_seqr      = tag_output.sequencer;
+virtual_sequencer.result_seqr   = result_output.sequencer;
+
+reconstruction.ap.connect(scoreboard.record_imp);
+reconstruction.ap.connect(coverage.analysis_export);
+\end{lstlisting}
+
+此連接方式形成「driver stimulus $\neq$ checker observation」的驗證隔離：若 DUT 在 backpressure 下漏送、重複送、錯序送出 data/tag/result，monitor 會重建出與 stimulus不同的 observed record，scoreboard 即會報出 mismatch。這也是 UVM path 能發現 AXI transaction-level integration error，而不只檢查單一 AES block 演算法的原因。
+
 Constrained-random item包含 key mode、key、encrypt/decrypt、IV/AAD/data/tag bit lengths、payload與 received tag。三個 XSim seeds各執行固定的 8 類 coverage-oriented scenarios，涵蓋 AES-128/192/256、encrypt/decrypt、96/non-96-bit IV、empty/short/one-block/multi-block AAD/data與一個 corrupted-tag negative case。Runner同時檢查 scoreboard count/failure、全域 UVM error/fatal與 maintained functional coverage bins，任何一項不符即 FAIL。
 
+\noindent\begin{minipage}{\linewidth}
 ModelSim Starter 10.5b的責任邊界不同：它只執行一筆 deterministic AES-128 UVM smoke，結果為 scoreboard 1/0、UVM E/F 0/0。Starter環境沒有完成本 regression所需的 constrained randomization與 covergroups，所以狀態明確保留為 constrained-random NOT RUN、coverage NOT COLLECTED；完整 random與 functional coverage證據來自 XSim。
+\end{minipage}
 
 \subsection{SVA、UVM、Vivado與實板 checker 的分工}
 
@@ -1131,6 +1417,25 @@ assert property (disable iff (!rst_n)
 \end{lstlisting}
 
 SVA透過 \code{bind} 掛到 \code{ghash16}、\code{aes_key_context}、\code{aes_gcm_stream_core}與 \code{aes_gcm_axi_top}，不修改 production RTL，也不合成進 bitstream。Simulation runner把 RTL與 SVA一起交給 \code{xvlog}、\code{xelab}與 \code{xsim}；任何 assertion failure都會使 smoke或 NIST suite失敗。現有 37 條 source assertions在 retained tests中 failure為 0，但沒有 assertion activation/vacuity coverage，因此不能宣稱 100\% assertion coverage。
+
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.16\linewidth}>{\raggedright\arraybackslash}p{0.24\linewidth}>{\raggedright\arraybackslash}X@{}}
+\toprule
+SVA 階段 & 工具 / artifact & 驗證意義與 hard-fail 行為 \\
+\midrule
+Compile & \code{xvlog -sv} 編譯 production RTL、5 個 checker source 與 \path{bind_all.sv} & Checker 與 DUT port/state schema 必須一致；語法、名稱或 binding錯誤使 suite停止。 \\
+Elaboration & \code{xelab} 展開 module hierarchy 與 bind instances & 37 條 source assertions依實際 module instance展開為 39 active instances；production RTL不需插入 checker code。 \\
+Runtime sampling & \code{xsim} 在 clock edge評估 \code{|->}、\code{|=>}、\code{$past}、\code{$stable} 與 \code{disable iff} & 監看 GHASH recurrence、key lifecycle、queue/serializer progress、AXI backpressure stability與 ZEROIZE清除規則。 \\
+Failure propagation & Smoke/NIST runner搜尋 \code{Assertion failed} 並以 non-zero終止 & Property名稱與失敗 cycle可定位局部 control/protocol錯誤；即使 final ciphertext碰巧相同，temporal violation仍會擋下 promotion。 \\
+Evidence boundary & Retained smoke/NIST logs與 summary & failure 0只代表已執行 traces未觸發違規；未收集 activation、vacuity或 assertion coverage，因此不宣稱 exhaustive proof或 100\% assertion coverage。 \\
+\bottomrule
+\end{tabularx}
+\caption{SVA 從編譯、bind/elaboration、逐拍監看到 runner hard gate 的執行流程。}
+\label{tab:sva-execution-flow}
+\end{table}
 
 Vivado implementation則檢查 simulation看不到的 physical問題：真實 routing delay、setup/hold、clock pulse width、unrouted nets、DRC、methodology、CDC schema與 \code{check_timing}。只有 routed hard gates全部通過才產生可 promotion bitstream。板上驗證再用 exact bitstream hash綁定六模式 smoke與 NIST RSP；host逐筆比對 status、ciphertext/plaintext與 tag，RSP \code{FAIL} case還必須確認 plaintext/tag皆不可觀察。
 
@@ -1277,6 +1582,39 @@ GHASH checker 沒有呼叫 DUT 的直接 $T^{POWER}$ 邏輯。它以 NIST shift/
 SVA、UVM 與 formal 的責任不同：UVM 由 transactions、independent golden model 與 scoreboard 檢查 end-to-end data/tag/status；SVA 在這些 dynamic simulation traces 上逐拍檢查局部 control/protocol invariants；Yosys SAT 的 19 個 combinational assertions 是另一組 formal harness，並不是這 37 條 SVA 的 exhaustive proof。目前 SVA 來源內沒有 \code{cover property} 或 \code{assume property}，也未收集 property activation、vacuity 或 assertion coverage，所以只能宣稱「retained tests 中 0 assertion failures」，不能宣稱 37/37 都被觸發或 100\% assertion coverage。它也不是 post-route、實板、sequential whole-design、liveness、CDC、timing、power 或 side-channel formal proof。
 
 證據 provenance 另有一個已知缺口：retained \path{verification/results/sva/sva_summary.md} 仍記錄舊 RTL SHA，因此 current 判定採用 promotion manifest 綁定的 integrated \path{run_all.log} 與 retained smoke/NIST logs；現有 SVA runner 尚未像 UVM runner 一樣保存每個 compile input 的 SHA-256。後續應補上 compile-input manifest 與 activation/vacuity coverage，再提升成 exact-source SVA attestation。
+
+\subsubsection{SVA 證據台帳：原始 checker、bind、執行 gate 與 retained trace}
+\label{sec:sva-evidence-ledger}
+
+SVA 的證據不是單一截圖，而是一條可回溯的 chain：\textbf{property source} 定義要檢查的規則，\textbf{bind source} 證明它接到 production RTL，\textbf{runner} 定義失敗 gate，最後由 \textbf{XSim logs} 保存實際執行結果。表~\ref{tab:sva-evidence-ledger} 列出本報告採用的 retained evidence；報告答辯時可依此順序開啟檔案，不需要以口頭敘述取代原始紀錄。
+
+\begingroup
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}p{0.16\linewidth}p{0.34\linewidth}p{0.42\linewidth}@{}}
+\caption{SVA evidence ledger 與可宣稱的範圍}\label{tab:sva-evidence-ledger}\\
+\toprule
+證據層 & 原始檔／log 位置 & 可直接確認的事實與邊界 \\
+\midrule
+\endfirsthead
+\toprule
+證據層 & 原始檔／log 位置 & 可直接確認的事實與邊界 \\
+\midrule
+\endhead
+Property source & \path{verification/sva/ghash16_sva.sv}、\path{aes_key_context_sva.sv}、\path{ghash_queue_sva.sv}、\path{aesgcm_tag_sva.sv}、\path{axis_output_sva.sv} & 37 個 source-level \code{assert property} statements，分別定義 GHASH、key scrub、queue、tag 與 AXI output stability 的逐拍規則。這證明「寫了哪些 property」，不是已觸發或已證明。 \\
+\addlinespace
+Bind / elaboration target & \path{verification/sva/bind_all.sv} & \code{bind} 把 checker 接到 \code{ghash16}、\code{aes_key_context}、\code{aes_gcm_stream_core} 與 \code{aes_gcm_axi_top}；其中 \code{axis_output_sva} 對 data/tag/result 三條輸出各 bind 一次，production top 共展開 39 個 active instances。 \\
+\addlinespace
+Hard-fail runner & \path{verification/scripts/run_smoke.sh}、\path{verification/scripts/run_nist.sh} & 兩個 runner 都將 RTL 與 SVA sources 一起傳入 \code{xvlog -sv}，再經 \code{xelab}/\code{xsim} 執行；若 log 出現 \code{Assertion failed} 即以 non-zero exit 結束。Smoke 另要求 \code{GHASH16_PASS tests=66} 與 \code{AXI_SMOKE_PASS cycles=7676}；NIST 另要求 \code{NIST_ALL_PASS 47250/47250}。 \\
+\addlinespace
+Smoke execution trace & \path{verification/results/smoke/run_smoke.log}；\path{verification/results/run_all.log} & retained log 記錄 \code{GHASH16\_PASS tests=66 digit\_cycles=8 external\_ii=9}、\code{AXI\_SMOKE\_PASS cycles=7676}；integrated summary 記錄 \code{suite=smoke status=PASS assertion\_failures=0}。這是兩個 smoke trace 內未違反 assertion 的證據。 \\
+\addlinespace
+Full NIST execution trace & \path{verification/results/nist/run_nist.log}；\path{verification/results/run_all.log} & log 顯示 SVA checker modules 隨 \code{tb_nist} 編譯，並記錄 \code{NIST\_TOTAL\_SUMMARY pass=47250 fail=0 total=47250} 與 \code{NIST\_ALL\_PASS 47250/47250}；integrated summary 記錄 \code{suite=nist status=PASS}。這是完整 NIST dynamic trace 的 SVA hard-gate execution evidence，但不是 assertion activation/vacuity coverage。 \\
+\bottomrule
+\end{longtable}
+\endgroup
+
+\noindent\textbf{判讀規則：}上述 logs 支持「retained smoke 與 NIST execution 中沒有 assertion failure」；不支持「每條 assertion 都至少觸發一次」、「100\% assertion coverage」或「對 current exact RTL 的 cryptographic attestation」。最後一項仍受限於 SVA runner 未保存 compile-input SHA-256，且舊 \path{sva_summary.md} 的 RTL SHA 不可單獨當作 current-source provenance。
 
 \section{UVM、coverage、formal 與 integrated replay}
 

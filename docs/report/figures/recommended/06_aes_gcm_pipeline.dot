@@ -1,0 +1,45 @@
+digraph AES_GCM_Pipeline {
+  graph [rankdir=LR, splines=ortho, bgcolor="white", pad="0.18", margin="0",
+         nodesep="0.45", ranksep="0.75", outputorder="edgesfirst", charset="UTF-8",
+         fontname="Arial", fontsize=20, fontcolor="#111111"];
+  node [shape=box, style="filled", fillcolor="#ffffff", color="#111111",
+        fontcolor="#111111", fontname="Arial", fontsize=12, penwidth=1.0,
+        margin="0.14,0.10"];
+  edge [color="#111111", penwidth=1.0, arrowsize=0.65, arrowhead=normal,
+        fontname="Arial", fontsize=10, fontcolor="#111111"];
+
+  graph [ratio=fill, size="14,6!", label=<<B>AES-GCM parallel pipeline and queue structure</B>>, labelloc=t, labeljust=l];
+  regs [label=<<B>AXI4-Lite control</B><BR/>key / IV / lengths / mode>];
+  desc [label=<<B>Descriptor FIFO</B><BR/>record metadata>];
+  input [label=<<B>AXI-Stream input</B><BR/>IV / AAD / payload / tag>];
+  parser [label=<<B>Byte parser + queues</B><BR/>ready/valid decoupling>];
+
+  key [label=<<B>Key context</B><BR/>round-key expansion<BR/>BRAM-backed S-boxes>];
+  first0 [label=<<B>First-block AES #0</B><BR/>one round / clock<BR/>10 / 12 / 14 clocks>];
+  first1 [label=<<B>First-block AES #1</B><BR/>one round / clock<BR/>10 / 12 / 14 clocks>];
+  shared [label=<<B>Shared AES engine</B><BR/>3 interleaved contexts<BR/>II = 10 / 12 / 14 clocks>];
+
+  ctr [label=<<B>CTR XOR</B><BR/>keystream ⊕ payload>];
+  cipherq [label=<<B>Ciphertext FIFO</B><BR/>clear-safe output staging>];
+  ghashq [label=<<B>GHASH request FIFO</B><BR/>ciphertext/AAD blocks>];
+  ghash [label=<<B>GHASH16</B><BR/>8 digit cycles<BR/>external II = 9>];
+  tag [label=<<B>Tag generation</B><BR/>E(K,J₀) ⊕ GHASH>];
+  output [label=<<B>AXI-Stream outputs</B><BR/>data / tag / result>];
+
+  regs -> desc -> parser;
+  input -> parser;
+  regs -> key;
+  key -> first0;
+  key -> first1;
+  key -> shared;
+  parser -> first0;
+  parser -> first1;
+  parser -> shared;
+  first0 -> ctr;
+  first1 -> ctr;
+  shared -> ctr;
+  ctr -> cipherq -> output;
+  parser -> ghashq;
+  ctr -> ghashq;
+  ghashq -> ghash -> tag -> output;
+}

@@ -1,0 +1,32 @@
+digraph Clock_Reset_Architecture {
+  graph [rankdir=LR, splines=ortho, bgcolor="white", pad="0.18", margin="0",
+         nodesep="0.45", ranksep="0.75", outputorder="edgesfirst", charset="UTF-8",
+         fontname="Arial", fontsize=20, fontcolor="#111111"];
+  node [shape=box, style="filled", fillcolor="#ffffff", color="#111111",
+        fontcolor="#111111", fontname="Arial", fontsize=12, penwidth=1.0,
+        margin="0.14,0.10"];
+  edge [color="#111111", penwidth=1.0, arrowsize=0.65, arrowhead=normal,
+        fontname="Arial", fontsize=10, fontcolor="#111111"];
+
+  graph [ratio=fill, size="14,6!", label=<<B>175 MHz clock, reset, and CDC architecture</B>>, labelloc=t, labeljust=l];
+  clk [label=<<B>Board clock</B><BR/>100 MHz input>];
+  mmcm [label=<<B>MMCME2_ADV</B><BR/>100 → 175 MHz<BR/><FONT POINT-SIZE="10">feedback: 100 MHz</FONT>>];
+  bufg [label=<<B>BUFGCTRL_X0Y16</B><BR/>core_clk = 175 MHz<BR/>5.714 ns>];
+  core [label=<<B>AES-GCM core domain</B><BR/>9,039 clocked cells<BR/>setup/hold closed>];
+  fb [label=<<B>MMCM feedback loop</B><BR/>BUFGCTRL_X0Y17 → CLKFBIN<BR/>100 MHz>];
+
+  button [label=<<B>Button + MMCM LOCKED</B><BR/>asynchronous request>];
+  gate [label=<<B>LUT2 request gate</B><BR/>combined run request>];
+  sync [label=<<B>2-FF synchronizer</B><BR/>ASYNC_REG<BR/>sampled by core_clk>];
+  qual [label=<<B>4-stage qualifier</B><BR/>stable-high release>];
+  repl [label=<<B>Physical reset release</B><BR/>4 FF replicas @ SLICE_X49Y132<BR/>13,161 unique endpoints>];
+
+  uart [label=<<B>UART RX pin</B><BR/>asynchronous serial input>];
+  uart_sync [label=<<B>2-FF synchronizer</B><BR/>CDC-3 Info<BR/>sampled by core_clk>];
+  bridge [label=<<B>UART bridge</B><BR/>core_clk domain>];
+
+  clk -> mmcm -> bufg -> core;
+  mmcm -> fb [style=dashed, arrowhead=none];
+  button -> gate -> sync -> qual -> repl -> core;
+  uart -> uart_sync -> bridge -> core;
+}

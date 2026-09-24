@@ -1,0 +1,29 @@
+{
+  "generated_figures": [
+    "01_timing_closure_progress",
+    "02_critical_path_delay_breakdown",
+    "03_resource_utilization",
+    "04_critical_path_placement_zoom",
+    "05_clock_reset_architecture",
+    "06_aes_gcm_pipeline",
+    "07_throughput_175mhz",
+    "08_placement_density_congestion",
+    "09_power_breakdown",
+    "10_verification_flow",
+    "11_verification_matrix",
+    "12_sva_uvm_transaction_timing"
+  ],
+  "graphviz_version": "14.1.3",
+  "vivado_version": "2021.1 SW Build 3247384",
+  "target_clock_mhz": 175,
+  "manifest": "verification/results/exact_current_manifest.json",
+  "manifest_sha256": "3019FB7CCAEF2ED451786C4A2B584299EBD7AF403332951A914A071182D964E3",
+  "routed_dcp_sha256": "A91758ED87EB56648EEF0CAB67B2C50D198D00A2D5088E624B507687D99C016B",
+  "limitations": [
+    "Power is a medium-confidence vectorless estimate, not a board measurement.",
+    "Placement density is not route-capacity utilization; Vivado congestion status is reported separately.",
+    "The SVA/UVM timing diagram illustrates implemented protocol relationships and is not a captured waveform.",
+    "Throughput values are RTL simulation measurements, not UART or board transport throughput.",
+    "Formal is a partial combinational subset; sequential/whole-design formal closure is not claimed."
+  ]
+}

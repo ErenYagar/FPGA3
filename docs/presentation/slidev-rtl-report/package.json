@@ -1,0 +1,16 @@
+{
+  "name": "fpga3-aes-gcm-rtl-report",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "slidev --open",
+    "build": "slidev build",
+    "export:pdf": "slidev export --output AES-GCM_175MHz_RTL_Engineering_Report.pdf --executable-path \"C:/Program Files/Google/Chrome/Application/chrome.exe\"",
+    "export:pptx": "slidev export --format pptx --output AES-GCM_175MHz_RTL_Engineering_Report.pptx --executable-path \"C:/Program Files/Google/Chrome/Application/chrome.exe\""
+  },
+  "devDependencies": {
+    "@slidev/cli": "52.19.1",
+    "@slidev/theme-default": "0.25.0",
+    "playwright-chromium": "1.62.1"
+  }
+}

@@ -1,19 +1,31 @@
-# This repository intentionally tracks reproducible project inputs only.
+# This repository tracks project inputs, reports, and reviewable evidence.
 # Vivado implementation products, simulator work directories, crash dumps,
 # archived experiments, and local reference documents remain local.
 
 # Default-deny the workspace, then allow the maintained source tree below.
 /*
 !/.gitignore
+!/README.md
 !/engrenring/
 !/docs/
 !/tcl/
 !/verification/
+!/output/
+
+# Publish final reports; personal documents and other outputs remain local.
+/output/*
+!/output/pdf/
+/output/pdf/*
+!/output/pdf/*.pdf
 
 # Reviewable timing-closure evidence and reproducible Tcl entry points.
 /docs/*
 !/docs/timing/
 !/docs/timing/**
+!/docs/report/
+!/docs/report/**
+!/docs/presentation/
+!/docs/presentation/**
 !/tcl/**
 !/verification/**
 
@@ -25,6 +37,8 @@
 !/verification/results/**/*.md
 !/verification/results/**/*.json
 !/verification/results/**/*.csv
+!/verification/results/**/*.rpt
+!/verification/results/**/*.sha256
 
 # Maintained RTL and verification inputs.
 /engrenring/*
@@ -57,6 +71,31 @@
 !/engrenring/synth_1g/axi_ooc/*.xdc
 !/engrenring/synth_1g/axi_ooc/*.ps1
 
+# Retain generated implementation reports without build databases/bitstreams.
+!/engrenring/synth_1g/board/output/
+/engrenring/synth_1g/board/output/**
+!/engrenring/synth_1g/board/output/**/
+!/engrenring/synth_1g/board/output/**/*.rpt
+!/engrenring/synth_1g/board/output/**/signoff_metrics.txt
+!/engrenring/synth_1g/board/output/**/*.summary.json
+
+# Personal material, credentials, and generated caches are never published.
+/output/resume/
+/docs/presentation/面試3_逐頁講稿.md
+**/.env
+**/.env.*
+**/credentials.json
+**/secrets.json
+**/*.pem
+**/*.key
+**/node_modules/
+**/dist/
+**/rendered/
+**/__pycache__/
+**/*.pyc
+**/*.inspect.ndjson
+
 # Runtime transcripts are evidence, not source inputs.
 **/*.log
+**/*.jou
 **/transcript

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="850" viewBox="0 0 1600 850">
+<rect width="1600" height="850" fill="#ffffff"/>
+<defs>
+<marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,4 L0,8 z" fill="#111111"/></marker>
+</defs>
+<text x="70.00" y="62.00" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="600" text-anchor="start" fill="#111111">Final routed critical-path delay breakdown</text>
+<text x="70.00" y="99.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start" fill="#5a6470">Worst setup path at 175 MHz; routed DCP WNS = +0.029 ns</text>
+<line x1="70.00" y1="118.00" x2="1530.00" y2="118.00" stroke="#111111" stroke-width="1.2"/>
+<rect x="150.00" y="250.00" width="278.10" height="120.00" fill="#d9e8f5" stroke="#111111" stroke-width="1.2" rx="0" opacity="1.0"/>
+<rect x="428.10" y="250.00" width="991.90" height="120.00" fill="#eef2f5" stroke="#111111" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="289.05" y="305.00" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="600" text-anchor="middle" fill="#111111">Logic</text>
+<text x="289.05" y="338.00" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" text-anchor="middle" fill="#111111">1.214 ns</text>
+<text x="924.05" y="305.00" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="600" text-anchor="middle" fill="#111111">Net / routing</text>
+<text x="924.05" y="338.00" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" text-anchor="middle" fill="#111111">4.330 ns</text>
+<text x="150.00" y="220.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#5a6470">0 ns</text>
+<text x="1420.00" y="220.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="end" fill="#5a6470">5.544 ns datapath</text>
+<text x="280.00" y="445.00" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="600" text-anchor="middle" fill="#1f4e79">21.9%</text>
+<text x="280.00" y="480.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="middle" fill="#111111">logic contribution</text>
+<text x="800.00" y="445.00" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="600" text-anchor="middle" fill="#111111">78.1%</text>
+<text x="800.00" y="480.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="middle" fill="#111111">routing contribution</text>
+<text x="1320.00" y="445.00" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="600" text-anchor="middle" fill="#111111">5</text>
+<text x="1320.00" y="480.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="middle" fill="#111111">logic levels</text>
+<rect x="110.00" y="545.00" width="1380.00" height="185.00" fill="#ffffff" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="140.00" y="585.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#5a6470">Startpoint</text>
+<text x="140.00" y="620.00" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" text-anchor="start" fill="#111111">u_bridge/rx_payload_bytes_r_reg[1]/C</text>
+<line x1="770.00" y1="585.00" x2="770.00" y2="700.00" stroke="#d5d9de" stroke-width="1.5"/>
+<text x="800.00" y="585.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#5a6470">Endpoint</text>
+<text x="800.00" y="620.00" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" text-anchor="start" fill="#111111">u_bridge/key_cfg_r_reg[24]/D</text>
+<text x="140.00" y="680.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" text-anchor="start" fill="#111111">Interpretation: routing contributes most of the datapath delay; WNS also includes clock skew and uncertainty.</text>
+<text x="70.00" y="805.00" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" text-anchor="start" fill="#5a6470">Source: vivado_critical_path_timing.rpt and routed DCP timing-path properties</text>
+</svg>

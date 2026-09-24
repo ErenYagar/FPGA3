@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1120" viewBox="0 0 1800 1120">
+<rect width="1800" height="1120" fill="#ffffff"/>
+<defs>
+<marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,4 L0,8 z" fill="#111111"/></marker>
+</defs>
+<text x="70.00" y="62.00" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="600" text-anchor="start" fill="#111111">SVA/UVM AXI-Stream tag transaction timing</text>
+<text x="70.00" y="99.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="400" text-anchor="start" fill="#5a6470">Protocol relationship illustration from implemented properties and monitor behavior; not a captured waveform</text>
+<line x1="70.00" y1="118.00" x2="1730.00" y2="118.00" stroke="#111111" stroke-width="1.2"/>
+<line x1="360.00" y1="155.00" x2="360.00" y2="764.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="412.50" y="140.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">C0</text>
+<line x1="465.00" y1="155.00" x2="465.00" y2="764.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="517.50" y="140.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">C1</text>
+<line x1="570.00" y1="155.00" x2="570.00" y2="764.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="622.50" y="140.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">C2</text>
+<line x1="675.00" y1="155.00" x2="675.00" y2="764.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="727.50" y="140.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">C3</text>
+<line x1="780.00" y1="155.00" x2="780.00" y2="764.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="832.50" y="140.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">C4</text>
+<line x1="885.00" y1="155.00" x2="885.00" y2="764.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="937.50" y="140.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">C5</text>
+<line x1="990.00" y1="155.00" x2="990.00" y2="764.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="1042.50" y="140.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">C6</text>
+<line x1="1095.00" y1="155.00" x2="1095.00" y2="764.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="1147.50" y="140.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">C7</text>
+<line x1="1200.00" y1="155.00" x2="1200.00" y2="764.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="1252.50" y="140.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">C8</text>
+<line x1="1305.00" y1="155.00" x2="1305.00" y2="764.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="1357.50" y="140.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">C9</text>
+<line x1="1410.00" y1="155.00" x2="1410.00" y2="764.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="1462.50" y="140.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">C10</text>
+<line x1="1515.00" y1="155.00" x2="1515.00" y2="764.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="1567.50" y="140.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#5a6470">C11</text>
+<line x1="1620.00" y1="155.00" x2="1620.00" y2="764.00" stroke="#d5d9de" stroke-width="1"/>
+<text x="75.00" y="238.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="600" text-anchor="start" fill="#111111">tagq_valid</text>
+<polyline points="360.00,251.00 465.00,251.00 465.00,251.00 465.00,251.00 570.00,251.00 570.00,251.00 570.00,211.00 675.00,211.00 675.00,211.00 675.00,211.00 780.00,211.00 780.00,211.00 780.00,211.00 885.00,211.00 885.00,211.00 885.00,211.00 990.00,211.00 990.00,211.00 990.00,211.00 1095.00,211.00 1095.00,211.00 1095.00,211.00 1200.00,211.00 1200.00,211.00 1200.00,211.00 1305.00,211.00 1305.00,211.00 1305.00,211.00 1410.00,211.00 1410.00,211.00 1410.00,211.00 1515.00,211.00 1515.00,211.00 1515.00,251.00 1620.00,251.00" fill="none" stroke="#111111" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="60.00" y1="272.00" x2="1730.00" y2="272.00" stroke="#d5d9de" stroke-width="0.8"/>
+<text x="75.00" y="320.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="600" text-anchor="start" fill="#111111">m_axis_tag_tvalid</text>
+<polyline points="360.00,333.00 465.00,333.00 465.00,333.00 465.00,333.00 570.00,333.00 570.00,333.00 570.00,333.00 675.00,333.00 675.00,333.00 675.00,293.00 780.00,293.00 780.00,293.00 780.00,293.00 885.00,293.00 885.00,293.00 885.00,293.00 990.00,293.00 990.00,293.00 990.00,293.00 1095.00,293.00 1095.00,293.00 1095.00,293.00 1200.00,293.00 1200.00,293.00 1200.00,293.00 1305.00,293.00 1305.00,293.00 1305.00,293.00 1410.00,293.00 1410.00,293.00 1410.00,293.00 1515.00,293.00 1515.00,293.00 1515.00,333.00 1620.00,333.00" fill="none" stroke="#111111" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="60.00" y1="354.00" x2="1730.00" y2="354.00" stroke="#d5d9de" stroke-width="0.8"/>
+<text x="75.00" y="402.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="600" text-anchor="start" fill="#111111">m_axis_tag_tready</text>
+<polyline points="360.00,375.00 465.00,375.00 465.00,375.00 465.00,375.00 570.00,375.00 570.00,375.00 570.00,375.00 675.00,375.00 675.00,375.00 675.00,375.00 780.00,375.00 780.00,375.00 780.00,415.00 885.00,415.00 885.00,415.00 885.00,415.00 990.00,415.00 990.00,415.00 990.00,375.00 1095.00,375.00 1095.00,375.00 1095.00,375.00 1200.00,375.00 1200.00,375.00 1200.00,415.00 1305.00,415.00 1305.00,415.00 1305.00,375.00 1410.00,375.00 1410.00,375.00 1410.00,375.00 1515.00,375.00 1515.00,375.00 1515.00,375.00 1620.00,375.00" fill="none" stroke="#111111" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="60.00" y1="436.00" x2="1730.00" y2="436.00" stroke="#d5d9de" stroke-width="0.8"/>
+<text x="75.00" y="484.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="600" text-anchor="start" fill="#111111">tag_stream_fire</text>
+<polyline points="360.00,497.00 465.00,497.00 465.00,497.00 465.00,497.00 570.00,497.00 570.00,497.00 570.00,497.00 675.00,497.00 675.00,497.00 675.00,457.00 780.00,457.00 780.00,457.00 780.00,497.00 885.00,497.00 885.00,497.00 885.00,497.00 990.00,497.00 990.00,497.00 990.00,457.00 1095.00,457.00 1095.00,457.00 1095.00,457.00 1200.00,457.00 1200.00,457.00 1200.00,497.00 1305.00,497.00 1305.00,497.00 1305.00,457.00 1410.00,457.00 1410.00,457.00 1410.00,457.00 1515.00,457.00 1515.00,457.00 1515.00,497.00 1620.00,497.00" fill="none" stroke="#1f4e79" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="60.00" y1="518.00" x2="1730.00" y2="518.00" stroke="#d5d9de" stroke-width="0.8"/>
+<text x="75.00" y="566.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="600" text-anchor="start" fill="#111111">m_axis_tag_tlast</text>
+<polyline points="360.00,579.00 465.00,579.00 465.00,579.00 465.00,579.00 570.00,579.00 570.00,579.00 570.00,579.00 675.00,579.00 675.00,579.00 675.00,579.00 780.00,579.00 780.00,579.00 780.00,579.00 885.00,579.00 885.00,579.00 885.00,579.00 990.00,579.00 990.00,579.00 990.00,579.00 1095.00,579.00 1095.00,579.00 1095.00,579.00 1200.00,579.00 1200.00,579.00 1200.00,579.00 1305.00,579.00 1305.00,579.00 1305.00,579.00 1410.00,579.00 1410.00,579.00 1410.00,539.00 1515.00,539.00 1515.00,539.00 1515.00,579.00 1620.00,579.00" fill="none" stroke="#111111" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="60.00" y1="600.00" x2="1730.00" y2="600.00" stroke="#d5d9de" stroke-width="0.8"/>
+<text x="75.00" y="648.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="600" text-anchor="start" fill="#111111">tag_out_index</text>
+<rect x="363.00" y="617.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="412.50" y="648.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">–</text>
+<rect x="468.00" y="617.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="517.50" y="648.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">–</text>
+<rect x="573.00" y="617.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="622.50" y="648.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">0</text>
+<rect x="678.00" y="617.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="727.50" y="648.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">0</text>
+<rect x="783.00" y="617.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="832.50" y="648.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">1</text>
+<rect x="888.00" y="617.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="937.50" y="648.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">1</text>
+<rect x="993.00" y="617.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1042.50" y="648.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">1</text>
+<rect x="1098.00" y="617.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1147.50" y="648.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">2</text>
+<rect x="1203.00" y="617.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1252.50" y="648.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">3</text>
+<rect x="1308.00" y="617.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1357.50" y="648.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">3</text>
+<rect x="1413.00" y="617.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1462.50" y="648.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">4</text>
+<rect x="1518.00" y="617.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1567.50" y="648.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">–</text>
+<line x1="60.00" y1="682.00" x2="1730.00" y2="682.00" stroke="#d5d9de" stroke-width="0.8"/>
+<text x="75.00" y="730.00" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="600" text-anchor="start" fill="#111111">m_axis_tag_tdata</text>
+<rect x="363.00" y="699.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="412.50" y="730.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">–</text>
+<rect x="468.00" y="699.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="517.50" y="730.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">–</text>
+<rect x="573.00" y="699.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="622.50" y="730.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">–</text>
+<rect x="678.00" y="699.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="727.50" y="730.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">T0</text>
+<rect x="783.00" y="699.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="832.50" y="730.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">T1</text>
+<rect x="888.00" y="699.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="937.50" y="730.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">T1</text>
+<rect x="993.00" y="699.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1042.50" y="730.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">T1</text>
+<rect x="1098.00" y="699.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1147.50" y="730.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">T2</text>
+<rect x="1203.00" y="699.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1252.50" y="730.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">T3</text>
+<rect x="1308.00" y="699.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1357.50" y="730.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">T3</text>
+<rect x="1413.00" y="699.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1462.50" y="730.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">T4</text>
+<rect x="1518.00" y="699.00" width="99.00" height="48.00" fill="#eef2f5" stroke="#d5d9de" stroke-width="1.2" rx="0" opacity="1.0"/>
+<text x="1567.50" y="730.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#111111">–</text>
+<line x1="60.00" y1="764.00" x2="1730.00" y2="764.00" stroke="#d5d9de" stroke-width="0.8"/>
+<rect x="780.00" y="272.00" width="210.00" height="492.00" fill="#f4e6cf" stroke="#9a5b13" stroke-width="1.5" rx="0" opacity="0.45"/>
+<text x="885.00" y="809.00" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" text-anchor="middle" fill="#9a5b13">Backpressure: VALID=1, READY=0 → data/index hold</text>
+<line x1="727.50" y1="849.00" x2="727.50" y2="889.00" stroke="#1f4e79" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="727.50" y="919.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#1f4e79">UVM monitor samples T0</text>
+<line x1="1462.50" y1="849.00" x2="1462.50" y2="889.00" stroke="#1f4e79" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="1462.50" y="919.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="middle" fill="#1f4e79">Final beat: TLAST with remaining=1</text>
+<text x="70.00" y="1085.00" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" text-anchor="start" fill="#5a6470">SVA checks stability, index advance, decrement, TLAST legality; UVM reconstructs handshakes and scoreboards payload/tag/result.</text>
+</svg>

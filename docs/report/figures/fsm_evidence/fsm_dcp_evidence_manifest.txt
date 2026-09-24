@@ -1,0 +1,11 @@
+VIVADO_VERSION=2021.1
+TOP=arty_a7_100t_aes_gcm_uart_rsp_top
+PART=xc7a100tcsg324-1
+SYNTH_DCP=C:/project/FPGA3/engrenring/synth_1g/board/output/ece78ce_uart_rsp_175_resetqual4_final_v8/arty_a7_100t_aes_gcm_uart_rsp_top_synth.dcp
+CORE_STATE_REGISTERS=4
+CORE_EXPORTED_OBJECTS=8
+BRIDGE_ENGINE_STATE_REGISTERS=5
+BRIDGE_ENGINE_EXPORTED_OBJECTS=10
+BRIDGE_PARSER_STATE_REGISTERS=2
+BRIDGE_PARSER_EXPORTED_OBJECTS=4
+INTERPRETATION=Optimized post-synthesis registers and one-level D-input cones; RTL source remains authoritative for semantic state transitions.
